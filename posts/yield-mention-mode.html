@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoClaw v2.24.0 — Yield Mention Mode</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Cormorant+Garamond:ital,wght@0,600;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e1621;
+    --surface: #17212b;
+    --surface2: #1e2c3a;
+    --surface3: #242f3d;
+    --border: #2b3945;
+    --text: #e4ecf2;
+    --text-muted: #7e919f;
+    --tg-blue: #2ca5e0;
+    --tg-blue2: #3db8f5;
+    --tg-green: #4fae4e;
+    --tg-orange: #e5a64e;
+    --tg-red: #e55454;
+    --tg-purple: #9b7ce5;
+    --bubble-out: #2b5278;
+    --bubble-in: #182533;
+    --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --hand: 'Playfair Display', Georgia, serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.7; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+
+  /* LANG */
+  .lang-switch { position: fixed; top: 16px; right: 16px; z-index: 100; display: flex; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); background: rgba(14,22,33,0.85); backdrop-filter: blur(12px); }
+  .lang-btn { padding: 7px 12px; font-family: var(--mono); font-size: 11px; color: var(--text-muted); background: transparent; border: none; cursor: pointer; transition: 0.2s; }
+  .lang-btn:hover { color: var(--text); }
+  .lang-btn.active { background: var(--tg-blue); color: #fff; }
+
+  /* HERO */
+  .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 60px 24px; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 50% at 50% 30%, rgba(44,165,224,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border: 1px solid var(--border); border-radius: 100px; font-family: var(--mono); font-size: 12px; color: var(--text-muted); margin-bottom: 32px; animation: fadeUp .8s ease both; }
+  .hero-badge .hb-dot { width: 6px; height: 6px; background: var(--tg-green); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
+  .hero h1 { font-size: clamp(36px, 7vw, 72px); font-weight: 800; line-height: 1.1; max-width: 800px; animation: fadeUp 1s ease .1s both; }
+  .hero h1 .hl { color: var(--tg-blue); }
+  .hero-sub { max-width: 580px; font-size: 17px; color: var(--text-muted); margin-top: 24px; animation: fadeUp 1s ease .2s both; }
+  .hero-hand { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-weight: 600; font-size: 26px; color: var(--tg-orange); margin-top: 32px; letter-spacing: .01em; animation: fadeUp 1s ease .35s both; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)} }
+
+  /* CONTENT */
+  .content { max-width: 780px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 72px 0; }
+  .section-num { font-family: var(--mono); font-size: 11px; letter-spacing: .15em; text-transform: uppercase; color: var(--tg-blue); margin-bottom: 10px; display: block; }
+  h2 { font-size: clamp(28px, 4vw, 42px); font-weight: 800; line-height: 1.15; margin-bottom: 20px; }
+  h2 .hl { color: var(--tg-blue); }
+  h3 { font-size: 20px; font-weight: 700; margin: 28px 0 12px; color: var(--tg-blue2); }
+  p { font-size: 16px; color: var(--text-muted); margin-bottom: 14px; }
+  strong { color: var(--text); }
+  code { font-family: var(--mono); font-size: 13px; background: rgba(44,165,224,0.1); color: var(--tg-blue2); padding: 2px 7px; border-radius: 4px; }
+  .divider { width: 40px; height: 2px; background: var(--border); margin: 0 auto; }
+
+  /* COMPARISON TABLE */
+  .cmp-table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 24px 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); }
+  .cmp-table th { background: var(--surface2); padding: 12px 16px; text-align: left; font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+  .cmp-table td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid var(--border); background: var(--surface); color: var(--text-muted); }
+  .cmp-table tr:last-child td { border-bottom: none; }
+
+  /* CHAT SIMULATION */
+  .chat-window { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin: 28px 0; }
+  .chat-titlebar { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .chat-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .chat-titlebar-info h4 { font-size: 14px; font-weight: 600; color: var(--text); }
+  .chat-titlebar-info span { font-size: 12px; color: var(--text-muted); }
+  .chat-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; min-height: 200px; }
+  .msg { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; animation: msgIn .4s ease both; position: relative; }
+  .msg.user { background: var(--bubble-out); color: var(--text); align-self: flex-end; border-bottom-right-radius: 4px; }
+  .msg.bot { background: var(--bubble-in); color: var(--text-muted); align-self: flex-start; border-bottom-left-radius: 4px; }
+  .msg .msg-name { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .msg .msg-name.blue { color: var(--tg-blue); }
+  .msg .msg-name.green { color: var(--tg-green); }
+  .msg .msg-name.orange { color: var(--tg-orange); }
+  .msg .msg-name.purple { color: var(--tg-purple); }
+  .msg.yield { opacity: 0.25; }
+  .msg.yield::after { content: '🔇 yield'; position: absolute; top: -8px; right: -4px; font-size: 10px; font-family: var(--mono); color: var(--tg-red); background: var(--surface); padding: 2px 6px; border-radius: 6px; border: 1px solid var(--border); }
+  .msg.respond::after { content: '✅'; position: absolute; top: -8px; right: -4px; font-size: 10px; background: var(--surface); padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(79,174,78,0.3); }
+  @keyframes msgIn { from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)} }
+  .msg:nth-child(1) { animation-delay: 0s; }
+  .msg:nth-child(2) { animation-delay: .15s; }
+  .msg:nth-child(3) { animation-delay: .3s; }
+  .msg:nth-child(4) { animation-delay: .45s; }
+  .msg:nth-child(5) { animation-delay: .6s; }
+
+  /* FLOW DIAGRAM */
+  .flow-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px 24px; margin: 28px 0; overflow-x: auto; }
+  .flow-title { font-family: var(--mono); font-size: 11px; letter-spacing: .15em; text-transform: uppercase; color: var(--text-muted); text-align: center; margin-bottom: 24px; }
+  .flow-svg { width: 100%; max-width: 680px; margin: 0 auto; display: block; }
+
+  /* CONFIG BLOCK */
+  .config-block { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin: 20px 0; }
+  .config-header { padding: 10px 16px; background: var(--surface2); border-bottom: 1px solid var(--border); font-family: var(--mono); font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+  .config-header .cfg-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .config-body { padding: 16px; }
+  .config-body pre { font-family: var(--mono); font-size: 13px; line-height: 1.7; color: var(--text-muted); white-space: pre-wrap; }
+  .config-body .ck { color: var(--tg-blue2); }
+  .config-body .cv { color: var(--tg-green); }
+  .config-body .cc { color: var(--text-muted); opacity: 0.5; font-style: italic; }
+
+  /* MODE CARDS */
+  .mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+  @media (max-width: 540px) { .mode-cards { grid-template-columns: 1fr; } }
+  .mode-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
+  .mode-card.active-mode { border-color: var(--tg-blue); }
+  .mode-card h4 { font-family: var(--mono); font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+  .mode-card h4 .tag { font-size: 10px; padding: 2px 8px; border-radius: 6px; margin-left: 8px; font-weight: 600; }
+  .tag-default { background: rgba(126,145,159,0.15); color: var(--text-muted); }
+  .tag-new { background: rgba(44,165,224,0.15); color: var(--tg-blue); }
+  .mode-card p { font-size: 14px; margin: 0; }
+
+  /* CASCADE */
+  .cascade { display: flex; align-items: center; justify-content: center; gap: 0; margin: 24px 0; flex-wrap: wrap; }
+  .cas-box { padding: 16px 20px; border-radius: 12px; text-align: center; min-width: 160px; }
+  .cas-box h5 { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px; opacity: .6; }
+  .cas-box p { font-size: 13px; margin: 0; font-family: var(--mono); }
+  .cas-ch { background: rgba(229,166,78,0.1); border: 1px solid rgba(229,166,78,0.2); color: var(--tg-orange); }
+  .cas-gr { background: rgba(44,165,224,0.1); border: 1px solid rgba(44,165,224,0.2); color: var(--tg-blue); }
+  .cas-tp { background: rgba(155,124,229,0.1); border: 1px solid rgba(155,124,229,0.2); color: var(--tg-purple); }
+  .cas-arrow { padding: 0 12px; font-size: 20px; color: var(--border); flex-shrink: 0; }
+
+  /* USE CASES */
+  .uc-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 24px 0; }
+  .uc-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; display: flex; gap: 16px; align-items: flex-start; }
+  .uc-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .uc-icon.i-blue { background: rgba(44,165,224,0.12); }
+  .uc-icon.i-green { background: rgba(79,174,78,0.12); }
+  .uc-icon.i-purple { background: rgba(155,124,229,0.12); }
+  .uc-card h4 { font-size: 16px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+  .uc-card p { font-size: 14px; margin: 0; }
+  .uc-bots { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .uc-bot { font-family: var(--mono); font-size: 11px; padding: 3px 8px; border-radius: 6px; background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
+
+  /* INTERNALS */
+  .code-snippet { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin: 12px 0; overflow-x: auto; }
+  .code-snippet pre { font-family: var(--mono); font-size: 13px; line-height: 1.7; color: var(--text-muted); }
+  .code-snippet .kw { color: var(--tg-purple); }
+  .code-snippet .fn { color: var(--tg-blue2); }
+  .code-snippet .str { color: var(--tg-green); }
+  .code-snippet .cmt { color: var(--text-muted); opacity: .4; }
+
+  /* UPGRADE */
+  .upgrade-box { background: var(--surface); border: 1px solid var(--tg-green); border-radius: 14px; padding: 24px; margin: 24px 0; }
+  .upgrade-box h4 { font-size: 16px; font-weight: 700; color: var(--tg-green); margin-bottom: 12px; }
+  .upgrade-box p { font-size: 14px; margin-bottom: 8px; }
+  .upgrade-box .note { font-family: var(--mono); font-size: 12px; color: var(--tg-green); opacity: .7; }
+
+  /* FOOTER */
+  .footer { text-align: center; padding: 48px 24px; border-top: 1px solid var(--border); }
+  .footer p { font-size: 16px; color: var(--text-muted); max-width: 560px; margin: 0 auto; }
+  .footer p .hl { color: var(--tg-blue); }
+  .footer .flink { font-family: var(--mono); font-size: 12px; color: var(--border); margin-top: 16px; }
+  .footer .flink a { color: inherit; text-decoration: none; }
+  .footer .flink a:hover { color: var(--text-muted); }
+
+  /* REVEAL */
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<nav class="lang-switch">
+  <button class="lang-btn active" data-lang="vi">VI</button>
+  <button class="lang-btn" data-lang="en">EN</button>
+  <button class="lang-btn" data-lang="zh">CN</button>
+  <button class="lang-btn" data-lang="ja">JP</button>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <span class="hero-badge"><span class="hb-dot"></span> GoClaw v2.24.0</span>
+  <h1>Yield Mention <span class="hl">Mode</span></h1>
+  <p class="hero-sub" data-i18n="hero_sub">Cho nhiều bot cùng chung sống trong một Telegram group — mỗi bot biết khi nào nên nhường nhau.</p>
+  <div class="hero-hand" data-i18n="hero_hand">"Bot nào cũng sẵn sàng, nhưng biết khi nào nên im lặng"</div>
+</header>
+
+<!-- PROBLEM -->
+<section>
+  <div class="content reveal">
+    <span class="section-num" data-i18n="s01_num">01 — Vấn đề</span>
+    <h2 data-i18n="s01_title" data-i18n-html="1">"Ai cũng muốn <span class="hl">trả lời</span>"</h2>
+    <p data-i18n="s01_desc">Hình dung bạn có 3 AI bot trong một Telegram group: <strong>@writer_bot</strong>, <strong>@code_bot</strong>, và <strong>@research_bot</strong>. Trước v2.24.0, bạn chỉ có 2 lựa chọn tệ:</p>
+
+    <table class="cmp-table">
+      <thead><tr><th data-i18n="cmp_config">Cấu hình</th><th data-i18n="cmp_behavior">Hành vi</th><th data-i18n="cmp_problem">Vấn đề</th></tr></thead>
+      <tbody>
+        <tr><td><code>require_mention: false</code></td><td data-i18n="cmp1_b">Bot trả lời <strong>mọi</strong> tin nhắn</td><td data-i18n="cmp1_p">Cả 3 bot đều nhảy vào trả lời</td></tr>
+        <tr><td><code>require_mention: true</code></td><td data-i18n="cmp2_b">Bot chỉ trả lời khi được mention</td><td data-i18n="cmp2_p">Phải luôn gõ @bot_name — mệt mỏi</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- SOLUTION -->
+<section>
+  <div class="content reveal">
+    <span class="section-num" data-i18n="s02_num">02 — Giải pháp</span>
+    <h2 data-i18n="s02_title" data-i18n-html="1">Yield <span class="hl">Mode</span></h2>
+    <p data-i18n="s02_rule"><strong>Nguyên tắc:</strong> Trả lời mọi tin nhắn, TRỪ KHI ai đó đang mention bot/user khác.</p>
+
+    <!-- Chat demo 1: no mention -->
+    <div class="chat-window">
+      <div class="chat-titlebar">
+        <div class="chat-avatar" style="background:var(--tg-blue);">AI</div>
+        <div class="chat-titlebar-info"><h4>AI Workspace</h4><span data-i18n="chat_members">3 bots, 5 members</span></div>
+      </div>
+      <div class="chat-body">
+        <div class="msg user"><div class="msg-name blue">You</div><span data-i18n="chat1_msg">Viết cho mình bài review sản phẩm X</span></div>
+        <div class="msg bot respond"><div class="msg-name green">@writer_bot</div><span data-i18n="chat1_r1">Tôi sẽ viết bài review cho bạn...</span></div>
+        <div class="msg bot respond"><div class="msg-name orange">@code_bot</div><span data-i18n="chat1_r2">Tôi có thể giúp phân tích kỹ thuật...</span></div>
+        <div class="msg bot respond"><div class="msg-name purple">@research_bot</div><span data-i18n="chat1_r3">Tôi tìm được thông tin về sản phẩm X...</span></div>
+      </div>
+    </div>
+    <p style="text-align: center; font-family: var(--hand); font-size: 18px; color: var(--text-muted);" data-i18n="chat1_note">↑ Không mention ai → tất cả trả lời</p>
+
+    <!-- Chat demo 2: with mention -->
+    <div class="chat-window" style="margin-top: 20px;">
+      <div class="chat-titlebar">
+        <div class="chat-avatar" style="background:var(--tg-blue);">AI</div>
+        <div class="chat-titlebar-info"><h4>AI Workspace</h4><span data-i18n="chat_members">3 bots, 5 members</span></div>
+      </div>
+      <div class="chat-body">
+        <div class="msg user"><div class="msg-name blue">You</div><span data-i18n="chat2_msg"><strong>@writer_bot</strong> viết cho mình bài review sản phẩm X</span></div>
+        <div class="msg bot respond"><div class="msg-name green">@writer_bot</div><span data-i18n="chat2_r1">Vâng, tôi sẽ viết bài review ngay!</span></div>
+        <div class="msg bot yield"><div class="msg-name orange">@code_bot</div>...</div>
+        <div class="msg bot yield"><div class="msg-name purple">@research_bot</div>...</div>
+      </div>
+    </div>
+    <p style="text-align: center; font-family: var(--hand); font-size: 18px; color: var(--text-muted);" data-i18n="chat2_note">↑ Mention @writer_bot → chỉ writer trả lời, còn lại yield</p>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- DECISION FLOW -->
+<section>
+  <div class="content reveal">
+    <span class="section-num" data-i18n="s03_num">03 — Luồng quyết định</span>
+    <h2 data-i18n="s03_title" data-i18n-html="1">Yield hay <span class="hl">respond</span>?</h2>
+
+    <div class="flow-wrap">
+      <div class="flow-title">Decision Flow</div>
+      <svg class="flow-svg" viewBox="0 0 680 360" xmlns="http://www.w3.org/2000/svg">
+        <!-- Message received -->
+        <rect x="240" y="10" width="200" height="36" rx="8" fill="rgba(44,165,224,0.15)" stroke="var(--tg-blue)" stroke-opacity=".3"/>
+        <text x="340" y="33" text-anchor="middle" fill="var(--tg-blue)" font-size="12" font-family="var(--mono)">Message Received</text>
+
+        <line x1="340" y1="46" x2="340" y2="72" stroke="var(--border)" stroke-width="1.5"/>
+
+        <!-- From bot? -->
+        <rect x="260" y="72" width="160" height="36" rx="18" fill="var(--surface2)" stroke="var(--border)"/>
+        <text x="340" y="95" text-anchor="middle" fill="var(--text-muted)" font-size="12" font-family="var(--sans)">From another bot?</text>
+
+        <!-- Yes: Am I mentioned? -->
+        <line x1="420" y1="90" x2="530" y2="90" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="470" y="83" fill="var(--tg-green)" font-size="10" font-family="var(--mono)">yes</text>
+        <rect x="530" y="72" width="140" height="36" rx="18" fill="var(--surface2)" stroke="var(--border)"/>
+        <text x="600" y="95" text-anchor="middle" fill="var(--text-muted)" font-size="11" font-family="var(--sans)">Am I @mentioned?</text>
+
+        <!-- Bot yes → respond -->
+        <line x1="600" y1="108" x2="600" y2="138" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="610" y="128" fill="var(--tg-green)" font-size="10" font-family="var(--mono)">yes</text>
+        <rect x="540" y="138" width="120" height="32" rx="8" fill="rgba(79,174,78,0.15)" stroke="var(--tg-green)" stroke-opacity=".4"/>
+        <text x="600" y="159" text-anchor="middle" fill="var(--tg-green)" font-size="12" font-family="var(--mono)">RESPOND</text>
+
+        <!-- Bot no → record+skip -->
+        <line x1="670" y1="90" x2="680" y2="90" stroke="transparent"/>
+        <text x="644" y="83" fill="var(--tg-red)" font-size="10" font-family="var(--mono)">no</text>
+
+        <!-- No: has mention? -->
+        <line x1="340" y1="108" x2="340" y2="150" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="350" y="133" fill="var(--tg-red)" font-size="10" font-family="var(--mono)">no (human)</text>
+        <rect x="250" y="150" width="180" height="36" rx="18" fill="var(--surface2)" stroke="var(--border)"/>
+        <text x="340" y="173" text-anchor="middle" fill="var(--text-muted)" font-size="12" font-family="var(--sans)">Any @mention in msg?</text>
+
+        <!-- No mention → all respond -->
+        <line x1="250" y1="168" x2="110" y2="168" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="180" y="161" fill="var(--tg-red)" font-size="10" font-family="var(--mono)">none</text>
+        <rect x="20" y="152" width="90" height="32" rx="8" fill="rgba(79,174,78,0.15)" stroke="var(--tg-green)" stroke-opacity=".4"/>
+        <text x="65" y="173" text-anchor="middle" fill="var(--tg-green)" font-size="11" font-family="var(--mono)">ALL RESPOND</text>
+
+        <!-- Has mention → mentions me? -->
+        <line x1="340" y1="186" x2="340" y2="222" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="350" y="208" fill="var(--tg-green)" font-size="10" font-family="var(--mono)">has @mention</text>
+        <rect x="262" y="222" width="156" height="36" rx="18" fill="var(--surface2)" stroke="var(--border)"/>
+        <text x="340" y="245" text-anchor="middle" fill="var(--text-muted)" font-size="12" font-family="var(--sans)">Mentions me?</text>
+
+        <!-- Mentions me → respond -->
+        <line x1="262" y1="240" x2="130" y2="240" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="196" y="233" fill="var(--tg-green)" font-size="10" font-family="var(--mono)">yes</text>
+        <rect x="40" y="224" width="90" height="32" rx="8" fill="rgba(79,174,78,0.15)" stroke="var(--tg-green)" stroke-opacity=".4"/>
+        <text x="85" y="245" text-anchor="middle" fill="var(--tg-green)" font-size="11" font-family="var(--mono)">RESPOND</text>
+
+        <!-- Not me → mentions someone else? -->
+        <line x1="340" y1="258" x2="340" y2="294" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="350" y="280" fill="var(--tg-red)" font-size="10" font-family="var(--mono)">no</text>
+        <rect x="240" y="294" width="200" height="36" rx="18" fill="var(--surface2)" stroke="var(--border)"/>
+        <text x="340" y="317" text-anchor="middle" fill="var(--text-muted)" font-size="12" font-family="var(--sans)">Mentions someone else?</text>
+
+        <!-- Someone else → YIELD -->
+        <line x1="440" y1="312" x2="530" y2="312" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="480" y="305" fill="var(--tg-green)" font-size="10" font-family="var(--mono)">yes</text>
+        <rect x="530" y="296" width="110" height="32" rx="8" fill="rgba(229,84,84,0.15)" stroke="var(--tg-red)" stroke-opacity=".4" stroke-dasharray="4 3"/>
+        <text x="585" y="317" text-anchor="middle" fill="var(--tg-red)" font-size="12" font-family="var(--mono)">YIELD 🔇</text>
+
+        <!-- No one else → respond -->
+        <line x1="240" y1="312" x2="150" y2="312" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="196" y="305" fill="var(--tg-red)" font-size="10" font-family="var(--mono)">no</text>
+        <rect x="40" y="296" width="110" height="32" rx="8" fill="rgba(79,174,78,0.15)" stroke="var(--tg-green)" stroke-opacity=".4"/>
+        <text x="95" y="317" text-anchor="middle" fill="var(--tg-green)" font-size="12" font-family="var(--mono)">RESPOND</text>
+      </svg>
+    </div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- CONFIG -->
+<section>
+  <div class="content reveal">
+    <span class="section-num" data-i18n="s04_num">04 — Cấu hình</span>
+    <h2 data-i18n="s04_title" data-i18n-html="1">Một dòng <span class="hl">config</span></h2>
+
+    <div class="config-block">
+      <div class="config-header"><span class="cfg-dot" style="background:var(--tg-green);"></span> config.json5</div>
+      <div class="config-body"><pre>{
+  <span class="ck">"channels"</span>: {
+    <span class="ck">"telegram"</span>: {
+      <span class="ck">"token"</span>: <span class="cv">"BOT_TOKEN"</span>,
+      <span class="ck">"mention_mode"</span>: <span class="cv">"yield"</span>,     <span class="cc">// ← Bật yield mode</span>
+      <span class="ck">"require_mention"</span>: <span class="cv">false</span>      <span class="cc">// yield ghi đè setting này</span>
+    }
+  }
+}</pre></div>
+    </div>
+
+    <h3 data-i18n="modes_title">Hai chế độ</h3>
+    <div class="mode-cards">
+      <div class="mode-card">
+        <h4><code>strict</code> <span class="tag tag-default" data-i18n="tag_default">mặc định</span></h4>
+        <p data-i18n="mode_strict">Tuân theo require_mention. Bật = phải mention, Tắt = trả lời tất cả.</p>
+      </div>
+      <div class="mode-card active-mode">
+        <h4><code>yield</code> <span class="tag tag-new">NEW</span></h4>
+        <p data-i18n="mode_yield">Trả lời mọi tin nhắn, nhường khi có @mention bot/user khác.</p>
+      </div>
+    </div>
+
+    <h3 data-i18n="cascade_title">Config Resolution Cascade</h3>
+    <div class="cascade">
+      <div class="cas-box cas-ch"><h5>Channel</h5><p>strict</p></div>
+      <span class="cas-arrow">→</span>
+      <div class="cas-box cas-gr"><h5>Group</h5><p>yield</p></div>
+      <span class="cas-arrow">→</span>
+      <div class="cas-box cas-tp"><h5>Topic</h5><p>strict</p></div>
+    </div>
+    <p style="text-align: center; font-size: 14px;" data-i18n="cascade_desc">Topic > Group > Channel default</p>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- USE CASES -->
+<section>
+  <div class="content reveal">
+    <span class="section-num">05 — Use Cases</span>
+    <h2 data-i18n="s05_title" data-i18n-html="1">Ứng dụng <span class="hl">thực tế</span></h2>
+
+    <div class="uc-grid">
+      <div class="uc-card">
+        <div class="uc-icon i-blue">🏢</div>
+        <div>
+          <h4 data-i18n="uc1_h">Team AI Workspace</h4>
+          <p data-i18n="uc1_p">Group làm "AI workspace" cho team. Mọi người chat bình thường → tất cả bot lắng nghe. Cần deploy? @devops_bot deploy staging.</p>
+          <div class="uc-bots"><span class="uc-bot">@assistant_bot</span><span class="uc-bot">@devops_bot</span><span class="uc-bot">@analytics_bot</span></div>
+        </div>
+      </div>
+      <div class="uc-card">
+        <div class="uc-icon i-green">🌐</div>
+        <div>
+          <h4 data-i18n="uc2_h">Multi-language Support</h4>
+          <p data-i18n="uc2_p">Hai bot ngôn ngữ. Mặc định cả hai respond. Muốn chỉ tiếng Việt? @vi_bot giải thích cái này.</p>
+          <div class="uc-bots"><span class="uc-bot">@en_bot</span><span class="uc-bot">@vi_bot</span></div>
+        </div>
+      </div>
+      <div class="uc-card">
+        <div class="uc-icon i-purple">💬</div>
+        <div>
+          <h4 data-i18n="uc3_h">Phòng họp AI</h4>
+          <p data-i18n="uc3_p">Group discussion nơi mọi bot đều contribute ý kiến. Khi cần ý kiến cụ thể: mention trực tiếp.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- UPGRADE -->
+<section>
+  <div class="content reveal">
+    <span class="section-num" data-i18n="s06_num">06 — Nâng cấp</span>
+    <h2 data-i18n="s06_title" data-i18n-html="1">Bắt đầu <span class="hl">ngay</span></h2>
+
+    <div class="upgrade-box">
+      <h4 data-i18n="upgrade_h">Zero migration</h4>
+      <p data-i18n="upgrade_p">Không cần migration database. Chỉ cần cập nhật config hoặc bật trên Web UI: <strong>Channels → Telegram → Group Response Behavior → "Multi-bot"</strong>.</p>
+      <div class="config-block" style="margin-top: 12px; border-color: var(--border);">
+        <div class="config-header"><span class="cfg-dot" style="background:var(--tg-green);"></span> terminal</div>
+        <div class="config-body"><pre>git pull origin main
+go build -o goclaw .
+<span class="cc"># Thêm mention_mode: "yield" vào config</span>
+<span class="cc"># Hoặc cấu hình trên Web UI</span></pre></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <p data-i18n="footer_text" data-i18n-html="1">Yield Mention Mode biến Telegram group từ nơi các bot "tranh nhau nói" thành workspace có trật tự — mọi bot đều sẵn sàng, nhưng biết khi nào nên <span class="hl">lùi lại</span>.</p>
+  <div class="flink"><a href="https://goclaw.sh">goclaw.sh</a></div>
+</footer>
+
+<script>
+const T = {
+  vi: {
+    hero_sub: 'Cho nhiều bot cùng chung sống trong một Telegram group — mỗi bot biết khi nào nên nhường nhau.',
+    hero_hand: '"Bot nào cũng sẵn sàng, nhưng biết khi nào nên im lặng"',
+    s01_num: '01 — Vấn đề', s01_title: '"Ai cũng muốn <span class="hl">trả lời</span>"',
+    s01_desc: 'Hình dung bạn có 3 AI bot trong một Telegram group: <strong>@writer_bot</strong>, <strong>@code_bot</strong>, và <strong>@research_bot</strong>. Trước v2.24.0, bạn chỉ có 2 lựa chọn tệ:',
+    cmp_config: 'Cấu hình', cmp_behavior: 'Hành vi', cmp_problem: 'Vấn đề',
+    cmp1_b: 'Bot trả lời <strong>mọi</strong> tin nhắn', cmp1_p: 'Cả 3 bot đều nhảy vào trả lời',
+    cmp2_b: 'Bot chỉ trả lời khi được mention', cmp2_p: 'Phải luôn gõ @bot_name — mệt mỏi',
+    s02_num: '02 — Giải pháp', s02_title: 'Yield <span class="hl">Mode</span>',
+    s02_rule: '<strong>Nguyên tắc:</strong> Trả lời mọi tin nhắn, TRỪ KHI ai đó đang mention bot/user khác.',
+    chat_members: '3 bots, 5 thành viên',
+    chat1_msg: 'Viết cho mình bài review sản phẩm X', chat1_r1: 'Tôi sẽ viết bài review cho bạn...', chat1_r2: 'Tôi có thể giúp phân tích kỹ thuật...', chat1_r3: 'Tôi tìm được thông tin về sản phẩm X...',
+    chat1_note: '↑ Không mention ai → tất cả trả lời',
+    chat2_msg: '<strong>@writer_bot</strong> viết cho mình bài review sản phẩm X', chat2_r1: 'Vâng, tôi sẽ viết bài review ngay!',
+    chat2_note: '↑ Mention @writer_bot → chỉ writer trả lời, còn lại yield',
+    s03_num: '03 — Luồng quyết định', s03_title: 'Yield hay <span class="hl">respond</span>?',
+    s04_num: '04 — Cấu hình', s04_title: 'Một dòng <span class="hl">config</span>',
+    modes_title: 'Hai chế độ', tag_default: 'mặc định',
+    mode_strict: 'Tuân theo require_mention. Bật = phải mention, Tắt = trả lời tất cả.',
+    mode_yield: 'Trả lời mọi tin nhắn, nhường khi có @mention bot/user khác.',
+    cascade_title: 'Config Resolution Cascade', cascade_desc: 'Topic > Group > Channel default',
+    s05_title: 'Ứng dụng <span class="hl">thực tế</span>',
+    uc1_h: 'Team AI Workspace', uc1_p: 'Group làm "AI workspace" cho team. Mọi người chat bình thường → tất cả bot lắng nghe. Cần deploy? @devops_bot deploy staging.',
+    uc2_h: 'Multi-language Support', uc2_p: 'Hai bot ngôn ngữ. Mặc định cả hai respond. Muốn chỉ tiếng Việt? @vi_bot giải thích cái này.',
+    uc3_h: 'Phòng họp AI', uc3_p: 'Group discussion nơi mọi bot đều contribute ý kiến. Khi cần ý kiến cụ thể: mention trực tiếp.',
+    s06_num: '06 — Nâng cấp', s06_title: 'Bắt đầu <span class="hl">ngay</span>',
+    upgrade_h: 'Zero migration', upgrade_p: 'Không cần migration database. Chỉ cần cập nhật config hoặc bật trên Web UI: <strong>Channels → Telegram → Group Response Behavior → "Multi-bot"</strong>.',
+    footer_text: 'Yield Mention Mode biến Telegram group từ nơi các bot "tranh nhau nói" thành workspace có trật tự — mọi bot đều sẵn sàng, nhưng biết khi nào nên <span class="hl">lùi lại</span>.',
+  },
+  en: {
+    hero_sub: 'Let multiple bots coexist in one Telegram group — each bot knows when to step back.',
+    hero_hand: '"Every bot is ready, but knows when to stay silent"',
+    s01_num: '01 — Problem', s01_title: '"Everyone wants to <span class="hl">answer</span>"',
+    s01_desc: 'Imagine 3 AI bots in one Telegram group: <strong>@writer_bot</strong>, <strong>@code_bot</strong>, and <strong>@research_bot</strong>. Before v2.24.0, you had only 2 bad choices:',
+    cmp_config: 'Config', cmp_behavior: 'Behavior', cmp_problem: 'Problem',
+    cmp1_b: 'Bot responds to <strong>every</strong> message', cmp1_p: 'All 3 bots jump in to answer',
+    cmp2_b: 'Bot only responds when mentioned', cmp2_p: 'Must always type @bot_name — tedious',
+    s02_num: '02 — Solution', s02_title: 'Yield <span class="hl">Mode</span>',
+    s02_rule: '<strong>Rule:</strong> Respond to all messages, UNLESS someone is mentioning another bot/user.',
+    chat_members: '3 bots, 5 members',
+    chat1_msg: 'Write me a product review for X', chat1_r1: "I'll write the review for you...", chat1_r2: 'I can help with technical analysis...', chat1_r3: 'I found information about product X...',
+    chat1_note: '↑ No mention → all bots respond',
+    chat2_msg: '<strong>@writer_bot</strong> write me a product review for X', chat2_r1: "Sure, I'll write the review right away!",
+    chat2_note: '↑ Mention @writer_bot → only writer responds, others yield',
+    s03_num: '03 — Decision Flow', s03_title: 'Yield or <span class="hl">respond</span>?',
+    s04_num: '04 — Configuration', s04_title: 'One line of <span class="hl">config</span>',
+    modes_title: 'Two modes', tag_default: 'default',
+    mode_strict: 'Follows require_mention. On = must mention, Off = respond to all.',
+    mode_yield: 'Respond to all messages, yield when someone @mentions another bot/user.',
+    cascade_title: 'Config Resolution Cascade', cascade_desc: 'Topic > Group > Channel default',
+    s05_title: 'Real-world <span class="hl">use cases</span>',
+    uc1_h: 'Team AI Workspace', uc1_p: 'A group as "AI workspace" for the team. Everyone chats normally → all bots listen. Need deploy? @devops_bot deploy staging.',
+    uc2_h: 'Multi-language Support', uc2_p: 'Two language bots. Both respond by default. Want only Vietnamese? @vi_bot explain this.',
+    uc3_h: 'AI Meeting Room', uc3_p: 'Group discussion where all bots contribute opinions. Need specific input: mention directly.',
+    s06_num: '06 — Upgrade', s06_title: 'Get started <span class="hl">now</span>',
+    upgrade_h: 'Zero migration', upgrade_p: 'No database migration needed. Just update config or enable on Web UI: <strong>Channels → Telegram → Group Response Behavior → "Multi-bot"</strong>.',
+    footer_text: 'Yield Mention Mode transforms a Telegram group from bots "fighting to speak" into an organized workspace — every bot is ready, but knows when to <span class="hl">step back</span>.',
+  },
+  zh: {
+    hero_sub: '让多个 Bot 在同一个 Telegram 群组中和谐共存 — 每个 Bot 都知道何时退让。',
+    hero_hand: '"每个 Bot 都随时待命，但知道何时保持沉默"',
+    s01_num: '01 — 问题', s01_title: '"所有人都想<span class="hl">回答</span>"',
+    s01_desc: '想象一下 Telegram 群组中有 3 个 AI Bot：<strong>@writer_bot</strong>、<strong>@code_bot</strong> 和 <strong>@research_bot</strong>。在 v2.24.0 之前只有两个糟糕的选择：',
+    cmp_config: '配置', cmp_behavior: '行为', cmp_problem: '问题',
+    cmp1_b: 'Bot 回复<strong>所有</strong>消息', cmp1_p: '3 个 Bot 全部跳出来回复',
+    cmp2_b: 'Bot 仅在被提及时回复', cmp2_p: '必须始终输入 @bot_name — 很累',
+    s02_num: '02 — 解决方案', s02_title: 'Yield <span class="hl">Mode</span>',
+    s02_rule: '<strong>规则：</strong>回复所有消息，除非有人正在提及其他 Bot/用户。',
+    chat_members: '3 个 Bot，5 名成员',
+    chat1_msg: '帮我写一篇产品 X 的评测', chat1_r1: '我来为您写评测...', chat1_r2: '我可以帮助技术分析...', chat1_r3: '我找到了关于产品 X 的信息...',
+    chat1_note: '↑ 没有提及任何人 → 所有 Bot 回复',
+    chat2_msg: '<strong>@writer_bot</strong> 帮我写一篇产品 X 的评测', chat2_r1: '好的，我马上写评测！',
+    chat2_note: '↑ 提及 @writer_bot → 只有 writer 回复，其余 yield',
+    s03_num: '03 — 决策流程', s03_title: 'Yield 还是<span class="hl">回复</span>？',
+    s04_num: '04 — 配置', s04_title: '一行<span class="hl">配置</span>',
+    modes_title: '两种模式', tag_default: '默认',
+    mode_strict: '遵循 require_mention。开启 = 必须提及，关闭 = 回复所有。',
+    mode_yield: '回复所有消息，当有人 @提及其他 Bot/用户时让步。',
+    cascade_title: '配置解析级联', cascade_desc: 'Topic > Group > Channel 默认',
+    s05_title: '实际<span class="hl">应用</span>',
+    uc1_h: '团队 AI 工作区', uc1_p: '群组作为团队的"AI 工作区"。正常聊天 → 所有 Bot 监听。需要部署？@devops_bot deploy staging。',
+    uc2_h: '多语言支持', uc2_p: '两个语言 Bot。默认都回复。只要越南语？@vi_bot 解释一下这个。',
+    uc3_h: 'AI 会议室', uc3_p: '群组讨论中所有 Bot 都贡献意见。需要特定意见：直接提及。',
+    s06_num: '06 — 升级', s06_title: '立即<span class="hl">开始</span>',
+    upgrade_h: '零迁移', upgrade_p: '无需数据库迁移。只需更新配置或在 Web UI 开启：<strong>Channels → Telegram → Group Response Behavior → "Multi-bot"</strong>。',
+    footer_text: 'Yield Mention Mode 将 Telegram 群组从 Bot"争相发言"变成有序的工作空间 — 每个 Bot 都准备就绪，但知道何时<span class="hl">退让</span>。',
+  },
+  ja: {
+    hero_sub: '複数のボットが一つの Telegram グループで共存 — 各ボットは引くべき時を知っている。',
+    hero_hand: '"どのボットも準備万端、でも沈黙すべき時を心得ている"',
+    s01_num: '01 — 課題', s01_title: '"全員が<span class="hl">答えたい</span>"',
+    s01_desc: 'Telegram グループに 3 つの AI ボット：<strong>@writer_bot</strong>、<strong>@code_bot</strong>、<strong>@research_bot</strong>。v2.24.0 以前は 2 つの悪い選択肢しかありませんでした：',
+    cmp_config: '設定', cmp_behavior: '動作', cmp_problem: '問題',
+    cmp1_b: 'ボットが<strong>全ての</strong>メッセージに返信', cmp1_p: '3 つのボット全てが返信に飛び込む',
+    cmp2_b: 'メンションされた時のみ返信', cmp2_p: '常に @bot_name を入力 — 面倒',
+    s02_num: '02 — 解決策', s02_title: 'Yield <span class="hl">Mode</span>',
+    s02_rule: '<strong>ルール：</strong>全メッセージに返信、ただし誰かが他のボット/ユーザーをメンションしている場合を除く。',
+    chat_members: '3 ボット、5 メンバー',
+    chat1_msg: '製品 X のレビューを書いて', chat1_r1: 'レビューを書きます...', chat1_r2: '技術分析をお手伝いできます...', chat1_r3: '製品 X の情報を見つけました...',
+    chat1_note: '↑ メンションなし → 全ボットが返信',
+    chat2_msg: '<strong>@writer_bot</strong> 製品 X のレビューを書いて', chat2_r1: 'はい、すぐにレビューを書きます！',
+    chat2_note: '↑ @writer_bot をメンション → writer のみ返信、他は yield',
+    s03_num: '03 — 判定フロー', s03_title: 'Yield か<span class="hl">返信</span>か？',
+    s04_num: '04 — 設定', s04_title: '1 行の<span class="hl">設定</span>',
+    modes_title: '2 つのモード', tag_default: 'デフォルト',
+    mode_strict: 'require_mention に従う。ON = メンション必須、OFF = 全てに返信。',
+    mode_yield: '全メッセージに返信、他のボット/ユーザーの @メンション時は譲る。',
+    cascade_title: '設定解決カスケード', cascade_desc: 'Topic > Group > Channel デフォルト',
+    s05_title: '実際の<span class="hl">活用例</span>',
+    uc1_h: 'チーム AI ワークスペース', uc1_p: 'チームの「AI ワークスペース」としてのグループ。通常チャット → 全ボットが聴取。デプロイが必要？@devops_bot deploy staging。',
+    uc2_h: '多言語サポート', uc2_p: '2 つの言語ボット。デフォルトは両方返信。ベトナム語だけ？@vi_bot これを説明して。',
+    uc3_h: 'AI 会議室', uc3_p: '全ボットが意見を出すグループ討論。特定の意見が必要：直接メンション。',
+    s06_num: '06 — アップグレード', s06_title: '今すぐ<span class="hl">始める</span>',
+    upgrade_h: 'ゼロマイグレーション', upgrade_p: 'データベースマイグレーション不要。設定更新または Web UI で有効化：<strong>Channels → Telegram → Group Response Behavior → "Multi-bot"</strong>。',
+    footer_text: 'Yield Mention Mode は Telegram グループをボットが「発言を奪い合う」場所から秩序あるワークスペースに変える — 全ボットが準備万端、でも<span class="hl">引くべき時</span>を心得ている。',
+  }
+};
+
+let currentLang = 'vi';
+function setLang(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const val = T[lang]?.[el.dataset.i18n];
+    if (val) el.innerHTML = val;
+  });
+}
+document.querySelectorAll('.lang-btn').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
+
+// Scroll reveal
+const obs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } }), { threshold: .15 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
