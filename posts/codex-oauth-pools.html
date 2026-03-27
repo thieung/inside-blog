@@ -655,6 +655,10 @@ document.querySelectorAll('.lang-btn').forEach(btn => {
   btn.addEventListener('click', () => setLang(btn.dataset.lang));
 });
 
+// Read lang from URL query param
+const urlLang = new URLSearchParams(window.location.search).get('lang');
+if (urlLang && ['vi','en','zh','ja'].includes(urlLang)) setLang(urlLang);
+
 // Scroll reveal
 const reveals = document.querySelectorAll('.reveal');
 const observer = new IntersectionObserver((entries) => {

@@ -561,6 +561,10 @@ function setLang(lang) {
 }
 document.querySelectorAll('.lang-btn').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
 
+// Read lang from URL query param
+const urlLang = new URLSearchParams(window.location.search).get('lang');
+if (urlLang && ['vi','en','zh','ja'].includes(urlLang)) setLang(urlLang);
+
 // Scroll reveal
 const obs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } }), { threshold: .15 });
 document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
