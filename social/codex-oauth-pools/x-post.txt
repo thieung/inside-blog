@@ -1,0 +1,21 @@
+1/ Managing multiple OpenAI Codex accounts is painful. Hit rate limit on account A, manually switch to B, lose track of who has quota left.
+
+With a team of 8 sharing 3 Codex Pro subscriptions, it gets worse fast.
+
+---
+
+2/ GoClaw v2.34.0 introduces Codex OAuth Pools — combine multiple accounts into one unified pool with automatic request routing.
+
+Three strategies: round_robin, priority_order, or primary_first with failover.
+
+---
+
+3/ The nice part: agents just set override_mode: "inherit" and pick up pool config from the provider. Change pool membership once at provider level, every agent updates automatically.
+
+Real-time quota monitoring per account via OpenAI Usage API.
+
+---
+
+4/ Result: 8 users, 1 agent, 3 accounts pooled. Requests distribute evenly, auto-failover on quota exhaustion. Zero manual intervention.
+
+https://goclaw.ai/posts/codex-oauth-pools

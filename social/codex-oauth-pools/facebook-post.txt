@@ -1,0 +1,16 @@
+Ai dùng nhiều tài khoản OpenAI Codex chắc hiểu cảm giác này — hết quota account A, phải chuyển sang account B, rồi lại không biết account nào còn dư bao nhiêu 😅
+
+Team mình 8 người dùng chung 3 tài khoản Codex Pro. Trước đây admin phải rotate key thủ công, tạo 3 agent riêng cho 3 account rồi bắt user tự chọn. UX tệ lắm.
+
+Nên mình làm thêm tính năng Codex OAuth Pools trong GoClaw v2.34.0 — gộp nhiều tài khoản thành một pool thống nhất:
+
+- Đăng ký OAuth cho mỗi tài khoản → tự refresh token
+- Gộp vào pool, chọn strategy phân bổ request (round robin, priority order, hoặc primary first)
+- Agent chỉ cần set "inherit" là tự nhận config từ pool
+- Dashboard theo dõi quota real-time cho từng account
+
+Kết quả: 8 người dùng 1 agent duy nhất, request tự phân bổ đều qua 3 account. Hết quota account này thì tự chuyển sang account khác, không ai phải làm gì cả.
+
+Có ai đang gặp bài toán tương tự không? Link chi tiết ở comment nhé
+
+#GoClaw #OpenAICodex

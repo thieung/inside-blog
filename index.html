@@ -256,12 +256,50 @@
   .footer-link { font-size: 12px; color: var(--text-dim); text-decoration: none; transition: color 0.2s; }
   .footer-link:hover { color: var(--text-muted); }
 
+  /* SEARCH */
+  .search-wrap { position: relative; }
+  .search-input {
+    width: 140px; padding: 6px 10px 6px 30px; height: 30px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); font-family: var(--body);
+    font-size: 12px; outline: none; transition: all 0.2s;
+  }
+  .search-input::placeholder { color: var(--text-dim); }
+  .search-input:focus { border-color: var(--amber); width: 200px; }
+  .search-icon {
+    position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+    color: var(--text-dim); pointer-events: none;
+  }
+  .no-results {
+    text-align: center; padding: 40px 0; color: var(--text-dim);
+    font-size: 14px; display: none;
+  }
+
+  /* PAGINATION */
+  .pagination {
+    display: flex; justify-content: center; align-items: center;
+    gap: 8px; margin-top: 32px;
+  }
+  .page-btn {
+    padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border-subtle);
+    background: transparent; color: var(--text-muted); font-family: var(--mono);
+    font-size: 12px; cursor: pointer; transition: all 0.2s;
+  }
+  .page-btn:hover { border-color: var(--amber); color: var(--text); }
+  .page-btn.active { background: var(--amber); color: #fff; border-color: var(--amber); }
+  .page-btn:disabled { opacity: 0.3; cursor: default; }
+  .page-btn:disabled:hover { border-color: var(--border-subtle); color: var(--text-muted); }
+  .page-info { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+
   /* RESPONSIVE */
   @media (max-width: 640px) {
     .nav { padding: 0 16px; height: 52px; }
     .nav-tag { display: none; }
     .nav-dot { display: none; }
     .nav-right { gap: 8px; }
+    .search-input { width: 60px; font-size: 11px; padding-left: 24px; }
+    .search-input:focus { width: 110px; }
+    .search-icon svg { width: 11px; height: 11px; }
     .lang-btn { padding: 4px 7px; font-size: 10px; }
     .nav-gh > span { display: none; }
     .nav-gh { padding: 6px 8px; }
@@ -312,6 +350,10 @@
     <span class="nav-tag">contributor notes</span>
   </div>
   <div class="nav-right">
+    <div class="search-wrap">
+      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input class="search-input" type="text" data-ph-vi="Tìm kiếm..." data-ph-en="Search..." data-ph-zh="搜索..." data-ph-ja="検索..." placeholder="Tìm kiếm...">
+    </div>
     <div class="lang-switch">
       <button class="lang-btn active" data-lang="vi">VI</button>
       <button class="lang-btn" data-lang="en">EN</button>
@@ -357,6 +399,13 @@
 
 <!-- POSTS -->
 <main class="posts">
+  <div class="no-results">
+    <span data-vi>Không tìm thấy bài viết nào.</span>
+    <span data-en hidden>No posts found.</span>
+    <span data-zh hidden>未找到文章。</span>
+    <span data-ja hidden>記事が見つかりません。</span>
+  </div>
+  <div class="posts-list">
 
   <!-- POST: Codex OAuth Pools -->
   <a class="post-card" href="/posts/codex-oauth-pools">
@@ -418,6 +467,8 @@
     </div>
   </a>
 
+  </div><!-- .posts-list -->
+  <div class="pagination"></div>
 </main>
 
 <!-- FOOTER -->
@@ -446,6 +497,9 @@ function switchLang(lang) {
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
   document.documentElement.lang = lang === 'zh' ? 'zh-CN' : lang === 'ja' ? 'ja' : lang;
   localStorage.setItem('goclaw-blog-lang', lang);
+  // Update search placeholder
+  const si = document.querySelector('.search-input');
+  if (si) si.placeholder = si.getAttribute('data-ph-' + lang) || si.placeholder;
   // Update post card links with lang param
   document.querySelectorAll('.post-card').forEach(a => {
     const base = a.href.split('?')[0];
@@ -457,6 +511,57 @@ document.querySelectorAll('.lang-btn').forEach(btn => {
 });
 const saved = localStorage.getItem('goclaw-blog-lang');
 if (saved) switchLang(saved);
+
+// Search & Pagination
+const POSTS_PER_PAGE = 5;
+let currentPage = 1;
+const searchInput = document.querySelector('.search-input');
+const postsList = document.querySelector('.posts-list');
+const allCards = Array.from(postsList.querySelectorAll('.post-card'));
+const noResults = document.querySelector('.no-results');
+const paginationEl = document.querySelector('.pagination');
+
+function getVisibleCards() {
+  const q = searchInput.value.toLowerCase().trim();
+  return allCards.filter(card => {
+    if (!q) return true;
+    const text = card.textContent.toLowerCase();
+    return text.includes(q);
+  });
+}
+
+function renderPage() {
+  const visible = getVisibleCards();
+  const totalPages = Math.max(1, Math.ceil(visible.length / POSTS_PER_PAGE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage - 1) * POSTS_PER_PAGE;
+  const end = start + POSTS_PER_PAGE;
+
+  allCards.forEach(c => c.style.display = 'none');
+  visible.forEach((c, i) => c.style.display = (i >= start && i < end) ? '' : 'none');
+  noResults.style.display = visible.length === 0 ? 'block' : 'none';
+
+  // Pagination buttons
+  if (totalPages <= 1) { paginationEl.innerHTML = ''; return; }
+  let html = `<button class="page-btn" data-page="prev" ${currentPage === 1 ? 'disabled' : ''}>&larr;</button>`;
+  for (let i = 1; i <= totalPages; i++) {
+    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+  }
+  html += `<button class="page-btn" data-page="next" ${currentPage === totalPages ? 'disabled' : ''}>&rarr;</button>`;
+  paginationEl.innerHTML = html;
+  paginationEl.querySelectorAll('.page-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = btn.dataset.page;
+      if (p === 'prev') currentPage--;
+      else if (p === 'next') currentPage++;
+      else currentPage = parseInt(p);
+      renderPage();
+    });
+  });
+}
+
+searchInput.addEventListener('input', () => { currentPage = 1; renderPage(); });
+renderPage();
 
 // Theme toggle
 const themeToggle = document.querySelector('.theme-toggle');
