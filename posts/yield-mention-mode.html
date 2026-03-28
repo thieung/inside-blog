@@ -121,21 +121,35 @@
     .hero { min-height: auto; padding: 80px 16px 40px; }
     .hero h1 { font-size: clamp(28px, 8vw, 36px); }
     .hero-sub { font-size: 15px; margin-top: 16px; }
-    .hero-hand { font-size: 14px; }
+    .hero-hand { font-size: 14px; padding: 0 16px; }
+    .hero-badge { font-size: 11px; padding: 5px 12px; }
     section { padding: 48px 0; }
     .content { padding: 0 16px; }
     h2 { font-size: clamp(24px, 6vw, 32px); }
-    .cmp-table { font-size: 12px; }
-    .cmp-table th, .cmp-table td { padding: 8px 10px; }
+    p { font-size: 15px; }
+    .cmp-table { display: block; overflow-x: auto; font-size: 12px; }
+    .cmp-table th, .cmp-table td { padding: 8px 10px; white-space: normal; }
     .mode-cards { grid-template-columns: 1fr; }
+    .mode-card { padding: 16px; }
     .chat-sim { padding: 12px; }
-    .msg { max-width: 92%; font-size: 13px; }
-    .flow-wrap { padding: 16px 8px; overflow-x: auto; }
-    .flow-svg { min-width: 580px; }
-    .config-wrap { padding: 16px; }
-    .uc-card { flex-direction: column; }
-    .cas-box { min-width: auto; }
+    .chat-row { gap: 8px; }
+    .msg { max-width: 95%; font-size: 13px; padding: 8px 12px; }
+    .msg .msg-name { font-size: 11px; }
+    .flow-wrap { padding: 12px 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .flow-svg { min-width: 560px; }
+    .cascade { flex-direction: column; gap: 0; }
+    .cas-box { min-width: auto; width: 100%; }
+    .cas-arrow { transform: rotate(90deg); }
+    .config-wrap { padding: 12px; }
+    .config-wrap pre { font-size: 11px; }
+    .uc-grid { gap: 10px; }
+    .uc-card { flex-direction: column; padding: 16px; }
+    .uc-icon { width: 36px; height: 36px; }
+    .code-snippet { padding: 12px; }
+    .code-snippet code { font-size: 11px; }
+    .upgrade-box { padding: 16px; }
     .footer { padding: 32px 16px; }
+    .footer p { font-size: 14px; }
   }
   .mode-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
   .mode-card.active-mode { border-color: var(--tg-blue); }
