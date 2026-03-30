@@ -24,9 +24,47 @@ End-to-end workflow from GoClaw release analysis to published blog post.
 ```
 /blog --scan                    # Scan releases, find new blog-worthy topics
 /blog --version v2.XX.0         # Analyze specific version, draft article
+/blog --version v2.XX.0 --pr URL # Analyze version with specific PR context
 /blog --draft <slug>            # Generate full article + social for existing draft
 /blog --publish <slug>          # Move draft to posts/, add to index.html, push
 /blog --status                  # Show pipeline status (drafts, pending review, published)
+```
+
+## Usage Examples
+
+### Example 1: Write blog for a new release with PR
+```
+/blog --version v2.47.0 --pr https://github.com/nextlevelbuilder/goclaw/pull/572
+```
+This will:
+1. Fetch PR #572 details (title, description, changed files)
+2. Read changed files in `../goclaw/` codebase
+3. Generate analysis report → `plans/reports/researcher-{date}-v247-analysis.md`
+4. Draft visual HTML article → `drafts/<slug>.html`
+5. Generate social content → `social/<slug>/` (FB, Threads, X, thumbnails)
+6. Post enters review queue → view at `http://localhost:PORT/drafts/review`
+
+### Example 2: Scan for uncovered releases
+```
+/blog --scan
+```
+Compares all GoClaw versions against existing posts/drafts, identifies gaps.
+
+### Example 3: Publish an approved draft
+```
+/blog --publish force-directed-knowledge-graphs
+```
+Moves draft → posts/, adds to index.html, commits and pushes.
+
+### Review Portal
+```bash
+# Start server
+npx serve . -l 4447
+# Open review portal
+open http://localhost:4447/drafts/review
+# Open social export tool
+npx serve social/ -l 4446
+open http://localhost:4446/export
 ```
 
 ## Pipeline Stages
