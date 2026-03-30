@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<title>GoClaw v2.47.0 — Force-Directed Knowledge Graphs</title>
+<title>GoClaw v2.47.0 — Knowledge Graph gets a visual upgrade</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -32,7 +32,6 @@
     justify-content: center; align-items: center; text-align: center;
     padding: 80px 24px; position: relative; overflow: hidden;
   }
-  /* Animated constellation canvas */
   #constellation { position: absolute; inset: 0; pointer-events: none; opacity: 0.55; }
   .hero-radial {
     position: absolute; inset: 0; pointer-events: none;
@@ -52,7 +51,7 @@
   .hero-version .vdot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); animation: pulse 2s infinite; }
   @keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,212,255,0.4)} 50%{opacity:0.6;box-shadow:0 0 0 5px rgba(0,212,255,0)} }
   .hero h1 {
-    font-size: clamp(40px, 8vw, 88px); font-weight: 700; line-height: 1.04;
+    font-size: clamp(36px, 7vw, 80px); font-weight: 700; line-height: 1.06;
     color: #fff; max-width: 860px; letter-spacing: -0.02em;
     animation: fadeUp 0.9s ease 0.1s both;
   }
@@ -116,7 +115,7 @@
     display: flex; align-items: center; gap: 8px;
   }
   .section-eyebrow::before { content:''; display:block; width:24px; height:1px; background:var(--cyan); }
-  h2 { font-size: clamp(28px, 4.5vw, 48px); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 20px; letter-spacing: -0.02em; }
+  h2 { font-size: clamp(26px, 4.5vw, 44px); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 20px; letter-spacing: -0.02em; }
   h2 .hl { color: var(--cyan); }
   h3 { font-size: 20px; font-weight: 600; color: #fff; margin-bottom: 12px; letter-spacing: -0.01em; }
   p { font-size: 16px; color: rgba(255,255,255,0.65); margin-bottom: 14px; font-weight: 400; }
@@ -124,12 +123,25 @@
   code { font-family: var(--mono); font-size: 13px; background: rgba(0,212,255,0.08); padding: 2px 8px; border-radius: 5px; color: var(--cyan); }
   .divider { width: 1px; height: 40px; background: linear-gradient(to bottom, transparent, var(--border), transparent); margin: 0 auto; }
 
-  /* ── PROBLEM CARDS ── */
-  .problem-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); border-radius: 18px; overflow: hidden; margin: 32px 0; }
-  @media(max-width:640px){.problem-grid{grid-template-columns:1fr}}
-  .problem-card { background: var(--card); padding: 28px 22px; }
-  .problem-card .pval { font-family: var(--mono); font-size: 40px; font-weight: 700; line-height: 1; margin-bottom: 10px; background: linear-gradient(135deg, var(--cyan), var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .problem-card p { font-size: 14px; margin: 0; }
+  /* ── CARDS ── */
+  .card-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); border-radius: 18px; overflow: hidden; margin: 32px 0; }
+  @media(max-width:640px){ .card-grid { grid-template-columns: 1fr; } }
+  .card { background: var(--card); padding: 28px 22px; }
+  .card .cval { font-family: var(--mono); font-size: 36px; font-weight: 700; line-height: 1; margin-bottom: 10px; background: linear-gradient(135deg, var(--cyan), var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .card p { font-size: 14px; margin: 0; }
+
+  /* ── BEFORE/AFTER ── */
+  .ba-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 32px 0; }
+  @media(max-width:600px){ .ba-grid { grid-template-columns: 1fr; } }
+  .ba-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+  .ba-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 16px; }
+  .ba-before .ba-label { color: rgba(255,255,255,0.3); }
+  .ba-after .ba-label { color: var(--cyan); }
+  .ba-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+  .ba-dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+  .ba-before .ba-dot { background: rgba(255,255,255,0.2); }
+  .ba-after .ba-dot { background: var(--cyan); }
+  .ba-item p { font-size: 14px; margin: 0; }
 
   /* ── FORCE DIAGRAM ── */
   .force-wrap {
@@ -144,12 +156,12 @@
   }
   .force-center-visual {
     display: flex; align-items: center; justify-content: center;
-    position: relative; height: 240px; margin: 24px 0;
+    position: relative; height: 260px; margin: 24px 0;
   }
   .fc-hub {
     width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--purple);
     background: rgba(139,92,246,0.15); display: flex; align-items: center; justify-content: center;
-    font-family: var(--mono); font-size: 11px; color: var(--violet); text-align: center;
+    font-family: var(--mono); font-size: 10px; color: var(--violet); text-align: center;
     box-shadow: 0 0 32px rgba(139,92,246,0.25); position: relative; z-index: 2;
     animation: breathe 3s ease-in-out infinite;
   }
@@ -166,796 +178,784 @@
     padding: 5px 12px; white-space: nowrap; border: 1px solid;
     backdrop-filter: blur(8px);
   }
-  .fc-n1 { top:20px; left:50%; transform:translateX(-50%); background:rgba(232,93,36,0.12); border-color:rgba(232,93,36,0.4); color:#f4a574; }
-  .fc-n2 { top:50%; right:16px; transform:translateY(-50%); background:rgba(34,197,94,0.12); border-color:rgba(34,197,94,0.4); color:#86efac; }
-  .fc-n3 { bottom:20px; left:50%; transform:translateX(-50%); background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.4); color:#fcd34d; }
-  .fc-n4 { top:50%; left:16px; transform:translateY(-50%); background:rgba(20,184,166,0.12); border-color:rgba(20,184,166,0.4); color:#5eead4; }
+  .fc-n1 { top:16px; left:50%; transform:translateX(-50%); background:rgba(232,93,36,0.12); border-color:rgba(232,93,36,0.4); color:#f4a574; }
+  .fc-n2 { top:50%; right:8px; transform:translateY(-50%); background:rgba(34,197,94,0.12); border-color:rgba(34,197,94,0.4); color:#86efac; }
+  .fc-n3 { bottom:16px; left:50%; transform:translateX(-50%); background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.4); color:#fcd34d; }
+  .fc-n4 { top:50%; left:8px; transform:translateY(-50%); background:rgba(20,184,166,0.12); border-color:rgba(20,184,166,0.4); color:#5eead4; }
+  .fc-edge { position:absolute; width:1px; background:linear-gradient(to bottom,rgba(139,92,246,0.4),rgba(0,212,255,0.2)); transform-origin:top center; }
+
+  /* Force legend - 2 columns on desktop */
   .force-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 24px; }
-  @media(max-width:540px){.force-legend{grid-template-columns:1fr}}
+  @media(max-width:540px){ .force-legend { grid-template-columns: 1fr; } }
   .fl-item {
     display: flex; align-items: flex-start; gap: 10px;
     background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
     border-radius: 12px; padding: 14px 16px;
   }
-  .fl-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .fl-icon svg { width: 16px; height: 16px; }
-  .fl-name { font-family: var(--mono); font-size: 12px; color: #fff; margin-bottom: 3px; font-weight: 600; }
-  .fl-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .fl-icon { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .fl-item h4 { font-size: 13px; color: #fff; font-weight: 600; margin-bottom: 3px; }
+  .fl-item p { font-size: 12px; margin: 0; }
+  .fl-params { font-family: var(--mono); font-size: 11px; color: var(--cyan); margin-top: 4px; }
 
-  /* ── MASS TABLE ── */
-  .mass-grid { display: flex; flex-direction: column; gap: 6px; margin: 24px 0; }
-  .mass-row { display: flex; align-items: center; gap: 12px; }
-  .mass-type { font-family: var(--mono); font-size: 12px; min-width: 120px; color: rgba(255,255,255,0.7); }
-  .mass-bar-wrap { flex: 1; height: 28px; background: rgba(255,255,255,0.04); border-radius: 8px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.06); }
-  .mass-bar-fill { height: 100%; border-radius: 8px; display: flex; align-items: center; padding-left: 10px; font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.8); font-weight: 600; transition: width 1.2s cubic-bezier(0.22,1,0.36,1); }
-  .mass-val { font-family: var(--mono); font-size: 12px; min-width: 32px; text-align: right; color: var(--muted); }
+  /* ── NODE COLOR PALETTE ── */
+  .palette-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin: 24px 0; }
+  @media(max-width:560px){ .palette-grid { grid-template-columns: repeat(2,1fr); } }
+  .palette-item { border-radius: 12px; padding: 14px 12px; border: 1px solid; }
+  .palette-item .ptype { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; opacity: 0.7; }
+  .palette-item .pname { font-size: 13px; font-weight: 600; }
+  .palette-item .pmass { font-family: var(--mono); font-size: 10px; opacity: 0.5; margin-top: 4px; }
 
-  /* ── PERF TABLE ── */
-  .perf-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; margin: 28px 0; }
-  .perf-header { display: grid; grid-template-columns: 1fr 1fr 1fr; background: rgba(255,255,255,0.04); padding: 12px 20px; }
-  .perf-header span { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
-  .perf-row { display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.05); align-items: center; }
-  .perf-row:hover { background: rgba(255,255,255,0.02); }
-  .perf-metric { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; }
-  .perf-before { font-family: var(--mono); font-size: 14px; color: rgba(239,68,68,0.8); }
-  .perf-after { font-family: var(--mono); font-size: 14px; color: #4ade80; display: flex; align-items: center; gap: 6px; }
-  .perf-badge { font-size: 10px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.2); border-radius: 100px; padding: 2px 8px; color: #4ade80; font-family: var(--mono); }
+  /* ── EDGE SELECTION MOCKUP ── */
+  .edge-mockup {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 32px; margin: 32px 0; overflow: hidden; position: relative;
+  }
+  .edge-mockup::before {
+    content:''; position:absolute; inset:0;
+    background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(139,92,246,0.06), transparent 70%);
+    pointer-events:none;
+  }
+  .graph-canvas {
+    position: relative; height: 220px; margin-bottom: 20px;
+  }
+  .gn { /* graph node */
+    position: absolute; border-radius: 100px; font-family: var(--mono); font-size: 11px;
+    padding: 7px 16px; border: 1px solid; white-space: nowrap; cursor: pointer;
+    backdrop-filter: blur(8px); transition: all 0.3s;
+  }
+  .gn-selected {
+    border-color: rgba(0,212,255,0.8); background: rgba(0,212,255,0.15);
+    color: #fff; box-shadow: 0 0 16px rgba(0,212,255,0.3);
+  }
+  .gn-connected {
+    border-color: rgba(139,92,246,0.6); background: rgba(139,92,246,0.12); color: rgba(255,255,255,0.85);
+  }
+  .gn-faded {
+    border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.03);
+    color: rgba(255,255,255,0.25); opacity: 0.4;
+  }
+  /* SVG overlay for edges */
+  .graph-svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+  .edge-selected { stroke: #00d4ff; stroke-width: 2; opacity: 0.9; animation: dashMove 1.2s linear infinite; stroke-dasharray: 6 4; }
+  .edge-faded { stroke: rgba(255,255,255,0.12); stroke-width: 1.5; opacity: 0.25; }
+  @keyframes dashMove { to { stroke-dashoffset: -20; } }
+  .edge-label { font-family: var(--mono); font-size: 9px; fill: var(--cyan); }
+  .mockup-legend { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 4px; }
+  .ml-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: rgba(255,255,255,0.5); }
+  .ml-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid; }
+
+  /* ── PERFORMANCE TABLE ── */
+  .perf-table-wrap { margin: 32px 0; overflow-x: auto; }
+  .perf-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 13px; }
+  .perf-table th { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); color: rgba(255,255,255,0.35); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .perf-table td { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+  .perf-table tr:last-child td { border-bottom: none; }
+  .perf-table .td-metric { color: rgba(255,255,255,0.7); font-size: 13px; }
+  .perf-table .td-before { color: rgba(255,80,80,0.8); }
+  .perf-table .td-after { color: var(--cyan); }
+  .perf-table .td-technique { color: rgba(255,255,255,0.4); font-size: 11px; }
+  .perf-badge { display: inline-block; background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.25); color: var(--cyan); border-radius: 6px; padding: 2px 8px; font-size: 11px; white-space: nowrap; }
 
   /* ── CODE BLOCK ── */
   .code-block {
-    background: #080d18; border: 1px solid rgba(0,212,255,0.1);
-    border-radius: 16px; overflow: hidden; margin: 24px 0;
+    background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 24px; margin: 20px 0;
+    overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.7;
+    color: rgba(255,255,255,0.75);
   }
-  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(255,255,255,0.02); }
-  .code-lang { font-family: var(--mono); font-size: 10px; color: var(--cyan); letter-spacing: 0.1em; text-transform: uppercase; }
-  .code-dots { display: flex; gap: 5px; }
-  .code-dots span { width: 9px; height: 9px; border-radius: 50%; }
-  .code-dots .dr { background: #ef4444; opacity: 0.6; }
-  .code-dots .dy { background: #f59e0b; opacity: 0.6; }
-  .code-dots .dg { background: #22c55e; opacity: 0.6; }
-  pre { padding: 22px 20px; overflow-x: auto; }
-  pre code { background: none; padding: 0; font-size: 13px; line-height: 1.75; color: rgba(255,255,255,0.75); }
-  .tk-k { color: #c792ea; } /* keyword */
-  .tk-f { color: #82aaff; } /* function */
-  .tk-s { color: #c3e88d; } /* string */
-  .tk-n { color: #f78c6c; } /* number */
-  .tk-c { color: rgba(255,255,255,0.3); font-style: italic; } /* comment */
-  .tk-t { color: #89ddff; } /* type */
-  .tk-p { color: var(--cyan); } /* prop */
+  .code-block .kw { color: var(--violet); }
+  .code-block .fn { color: var(--cyan); }
+  .code-block .num { color: #f4a574; }
+  .code-block .cm { color: rgba(255,255,255,0.3); font-style: italic; }
+  .code-block .str { color: #86efac; }
 
-  /* ── NODE TYPE PALETTE ── */
-  .palette-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin: 24px 0; }
-  .palette-item {
-    border-radius: 12px; padding: 14px 16px; border: 1px solid;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .palette-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-  .palette-name { font-family: var(--mono); font-size: 12px; font-weight: 600; }
-  .palette-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
-
-  /* ── SELECTION FLOW DIAGRAM ── */
-  .sel-diagram { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 32px; margin: 24px 0; }
-  .sel-step { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
-  .sel-step:last-child { margin-bottom: 0; }
-  .sel-num { width: 28px; height: 28px; border-radius: 8px; background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.25); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 12px; color: var(--cyan); flex-shrink: 0; font-weight: 700; }
-  .sel-content h4 { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px; }
-  .sel-content p { font-size: 13px; color: var(--muted); margin: 0; line-height: 1.5; }
-  .sel-connector { width: 1px; height: 16px; background: rgba(0,212,255,0.15); margin-left: 13px; margin-bottom: 0; }
+  /* ── CONFIG TABLE ── */
+  .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 28px 0; }
+  @media(max-width:580px){ .config-grid { grid-template-columns: 1fr; } }
+  .config-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+  .config-card h4 { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--purple); margin-bottom: 12px; }
+  .config-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .config-row:last-child { border-bottom: none; }
+  .config-key { font-family: var(--mono); font-size: 12px; color: rgba(255,255,255,0.5); }
+  .config-val { font-family: var(--mono); font-size: 12px; color: var(--cyan); text-align: right; }
+  .config-hint { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 2px; }
 
   /* ── USE CASES ── */
-  .usecase-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0; }
-  @media(max-width:580px){.usecase-grid{grid-template-columns:1fr}}
-  .usecase-card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 16px; padding: 24px 20px; transition: border-color 0.25s, transform 0.25s;
-  }
-  .usecase-card:hover { border-color: rgba(0,212,255,0.25); transform: translateY(-2px); }
-  .usecase-icon { width: 36px; height: 36px; border-radius: 10px; background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
-  .usecase-icon svg { width: 18px; height: 18px; color: var(--cyan); }
-  .usecase-card h4 { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 8px; }
-  .usecase-card p { font-size: 13px; color: var(--muted); margin: 0; line-height: 1.55; }
+  .use-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin: 28px 0; }
+  @media(max-width:700px){ .use-grid { grid-template-columns: 1fr; } }
+  .use-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px; }
+  .use-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.3); display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+  .use-icon svg { width: 20px; height: 20px; stroke: var(--violet); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .use-card h4 { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+  .use-card p { font-size: 13px; margin: 0; line-height: 1.55; }
+
+  /* ── NOTICE BOX ── */
+  .notice { background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.25); border-radius: 14px; padding: 18px 20px; margin: 20px 0; display: flex; gap: 12px; }
+  .notice-icon { flex-shrink: 0; margin-top: 2px; }
+  .notice-icon svg { width: 18px; height: 18px; stroke: var(--violet); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .notice p { font-size: 14px; margin: 0; color: rgba(255,255,255,0.65); }
+  .notice a { color: var(--cyan); text-decoration: none; border-bottom: 1px solid rgba(0,212,255,0.3); }
+  .notice a:hover { border-color: var(--cyan); }
 
   /* ── FOOTER ── */
-  .post-footer { border-top: 1px solid var(--border); padding: 60px 0 80px; text-align: center; }
-  .post-footer .tag-list { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 32px; }
-  .tag { font-family: var(--mono); font-size: 11px; padding: 5px 14px; border: 1px solid var(--border); border-radius: 100px; color: rgba(255,255,255,0.4); letter-spacing: 0.05em; }
-  .post-footer p { font-size: 14px; color: rgba(255,255,255,0.2); }
+  footer { padding: 60px 0; text-align: center; border-top: 1px solid var(--border); }
+  .footer-logo { font-family: var(--mono); font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+  .footer-logo span { color: var(--cyan); }
+  footer p { font-size: 13px; color: rgba(255,255,255,0.25); }
+  footer a { color: var(--cyan); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  .footer-links { display: flex; gap: 24px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+  .footer-links a { font-size: 13px; color: rgba(255,255,255,0.35); text-decoration: none; font-family: var(--mono); }
+  .footer-links a:hover { color: var(--cyan); }
 
-  /* ── HIDDEN LANG CONTENT ── */
-  [data-lang] { display: none; }
-  [data-lang].active { display: block; }
-  [data-lang-inline] { display: none; }
-  [data-lang-inline].active { display: inline; }
+  /* ── RESPONSIVE ── */
+  @media(max-width:390px) {
+    .content { padding: 0 16px; }
+    section { padding: 56px 0; }
+    h2 { font-size: 24px; }
+    .force-wrap { padding: 24px 16px; }
+  }
 </style>
 </head>
 <body>
 
-<!-- Floating home -->
+<!-- Lang switcher -->
+<div class="lang-bar" role="navigation" aria-label="Language switcher">
+  <button class="lang-btn active" onclick="setLang('vi')" aria-label="Tiếng Việt">VI</button>
+  <button class="lang-btn" onclick="setLang('en')" aria-label="English">EN</button>
+  <button class="lang-btn" onclick="setLang('zh')" aria-label="中文">CN</button>
+  <button class="lang-btn" onclick="setLang('jp')" aria-label="日本語">JP</button>
+</div>
+
+<!-- Float home -->
 <a href="/" class="float-home" aria-label="Home">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-    <polyline points="9 22 9 12 15 12 15 22"/>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
   </svg>
 </a>
 
-<!-- Language switcher -->
-<div class="lang-bar">
-  <button class="lang-btn active" onclick="setLang('vi')">VI</button>
-  <button class="lang-btn" onclick="setLang('en')">EN</button>
-  <button class="lang-btn" onclick="setLang('zh')">CN</button>
-  <button class="lang-btn" onclick="setLang('ja')">JP</button>
-</div>
-
-<!-- ── HERO ── -->
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
 <section class="hero">
   <canvas id="constellation"></canvas>
   <div class="hero-radial"></div>
 
   <div class="hero-version">
     <span class="vdot"></span>
-    <span>v2.47.0</span>
-    <span style="opacity:0.3">·</span>
-    <span>2026-03-30</span>
+    <span>GoClaw v2.47.0</span>
   </div>
 
-  <!-- VI -->
-  <h1 data-lang="vi" class="active">
-    <span class="hlp">Force-Directed</span><br>
-    <span class="hl">Knowledge Graphs</span>
+  <h1 class="i18n" data-vi="Knowledge Graph <span class='hlp'>được nâng cấp</span> <span class='hl'>giao diện</span>" data-en="Knowledge Graph gets a <span class='hlp'>visual</span> <span class='hl'>upgrade</span>" data-zh="知识图谱 <span class='hlp'>视觉</span> <span class='hl'>全面升级</span>" data-jp="ナレッジグラフの<span class='hlp'>ビジュアル</span><span class='hl'>強化</span>">
+    Knowledge Graph <span class="hlp">được nâng cấp</span> <span class="hl">giao diện</span>
   </h1>
-  <p class="hero-sub" data-lang="vi" class="active">
-    Trực quan hóa tri thức như một mạng lưới sao — mỗi thực thể tự tìm vị trí của mình qua mô phỏng lực vật lý. Và nhanh hơn 5x so với trước.
-  </p>
 
-  <!-- EN -->
-  <h1 data-lang="en">
-    <span class="hlp">Force-Directed</span><br>
-    <span class="hl">Knowledge Graphs</span>
-  </h1>
-  <p class="hero-sub" data-lang="en">
-    Visualize knowledge like a constellation — each entity finds its own place through physics simulation. And 5x faster than before.
-  </p>
-
-  <!-- ZH -->
-  <h1 data-lang="zh">
-    <span class="hlp">力导向</span><br>
-    <span class="hl">知识图谱</span>
-  </h1>
-  <p class="hero-sub" data-lang="zh">
-    如星座般可视化知识——每个实体通过物理模拟找到自己的位置。速度提升5倍。
-  </p>
-
-  <!-- JA -->
-  <h1 data-lang="ja">
-    <span class="hlp">力指向型</span><br>
-    <span class="hl">知識グラフ</span>
-  </h1>
-  <p class="hero-sub" data-lang="ja">
-    知識を星座のように可視化——各エンティティが物理シミュレーションで自分の位置を見つけます。従来比5倍高速。
+  <p class="hero-sub i18n"
+    data-vi="v2.47.0 mang đến bộ render đồ thị lực hướng hoàn toàn mới — hiệu ứng chiều sâu, phân cấp hub, tương tác chọn nút, và tối ưu INP từ 920ms xuống ~100ms."
+    data-en="v2.47.0 ships an all-new force-directed graph renderer — atmospheric depth, hub highlighting, click-to-reveal edges, and INP reduced from 920ms to ~100ms."
+    data-zh="v2.47.0 全新力导向图渲染器——深度效果、中心节点高亮、点击展示边标签，INP 从 920ms 优化至 ~100ms。"
+    data-jp="v2.47.0 は新しい力指向グラフレンダラーを搭載。深度エフェクト、ハブ強調、クリックでエッジ表示、INP 920ms → ~100ms を実現。">
+    v2.47.0 mang đến bộ render đồ thị lực hướng hoàn toàn mới — hiệu ứng chiều sâu, phân cấp hub, tương tác chọn nút, và tối ưu INP từ 920ms xuống ~100ms.
   </p>
 
   <div class="hero-meta">
-    <span class="hero-tag"><span class="tdot"></span> <span data-lang="vi" class="active">Trực quan hóa dữ liệu</span><span data-lang="en">Data Visualization</span><span data-lang="zh">数据可视化</span><span data-lang="ja">データ可視化</span></span>
-    <span class="hero-tag"><span class="tdot"></span> <span data-lang="vi" class="active">Tối ưu React</span><span data-lang="en">React Performance</span><span data-lang="zh">React 性能</span><span data-lang="ja">Reactパフォーマンス</span></span>
-    <span class="hero-tag"><span class="tdot"></span> d3-force + ReactFlow</span>
+    <span class="hero-tag"><span class="tdot"></span> d3-force</span>
+    <span class="hero-tag"><span class="tdot"></span> ReactFlow</span>
+    <span class="hero-tag"><span class="tdot"></span> useTransition</span>
+    <span class="hero-tag"><span class="tdot"></span> PR #572</span>
   </div>
 
-  <span class="hero-scroll">scroll to explore</span>
+  <span class="hero-scroll i18n" data-vi="CUỘN XUỐNG" data-en="SCROLL DOWN" data-zh="向下滚动" data-jp="スクロール">CUỘN XUỐNG</span>
 </section>
 
 <div class="content">
 
-  <!-- ── PROBLEM ── -->
-  <section>
-    <span class="section-eyebrow" data-lang="vi" class="active">Vấn đề</span>
-    <span class="section-eyebrow" data-lang="en">The Problem</span>
-    <span class="section-eyebrow" data-lang="zh">问题</span>
-    <span class="section-eyebrow" data-lang="ja">課題</span>
+<!-- ═══════════════════════ CONTEXT ═══════════════════════ -->
+<section>
+  <p class="section-eyebrow i18n" data-vi="BỐI CẢNH" data-en="CONTEXT" data-zh="背景" data-jp="背景">BỐI CẢNH</p>
+  <h2 class="i18n" data-vi="Knowledge Graph ra mắt từ <span class='hl'>v2.15.0</span>" data-en="Knowledge Graph launched in <span class='hl'>v2.15.0</span>" data-zh="知识图谱首发于 <span class='hl'>v2.15.0</span>" data-jp="ナレッジグラフは <span class='hl'>v2.15.0</span> で登場">
+    Knowledge Graph ra mắt từ <span class="hl">v2.15.0</span>
+  </h2>
+  <p class="i18n"
+    data-vi="v2.15.0 đã giới thiệu tính năng Knowledge Graph — khả năng trích xuất thực thể và mối quan hệ từ bộ nhớ agent, lưu trữ dưới dạng đồ thị entity-relation. Đây là nền tảng cho phép agent nhớ về người, tổ chức, dự án và sự kiện theo ngữ cảnh."
+    data-en="v2.15.0 introduced the Knowledge Graph feature — extracting entities and relations from agent memory and storing them as an entity-relation graph. This foundation lets agents remember people, organizations, projects and events in context."
+    data-zh="v2.15.0 引入了知识图谱功能——从 agent 记忆中提取实体与关系，以实体关系图形式存储，使 agent 能够记住人物、组织、项目和事件的上下文关系。"
+    data-jp="v2.15.0 でナレッジグラフ機能を導入。エージェントのメモリから実体と関係を抽出し、エンティティ関係グラフとして保存。人物・組織・プロジェクト・イベントをコンテキスト付きで記憶できます。">
+    v2.15.0 đã giới thiệu tính năng Knowledge Graph — khả năng trích xuất thực thể và mối quan hệ từ bộ nhớ agent, lưu trữ dưới dạng đồ thị entity-relation. Đây là nền tảng cho phép agent nhớ về người, tổ chức, dự án và sự kiện theo ngữ cảnh.
+  </p>
+  <p class="i18n"
+    data-vi="v2.47.0 không thêm tính năng mới cho Knowledge Graph. Đây là bản phát hành tập trung hoàn toàn vào <strong>cách hiển thị đồ thị</strong>: render lực hướng, hiệu ứng chiều sâu, tương tác thông minh và tối ưu hóa hiệu suất. Kết quả: graph view từ thứ yếu thành tính năng production-grade."
+    data-en="v2.47.0 adds no new Knowledge Graph capabilities. This release focuses entirely on <strong>how the graph is rendered</strong>: force-directed layout, atmospheric depth, smart interaction, and performance engineering. Result: graph view goes from secondary to production-grade."
+    data-zh="v2.47.0 没有新增知识图谱功能，而是专注于<strong>图的渲染方式</strong>：力导向布局、深度效果、智能交互和性能优化。结果：图视图从辅助功能升级为生产级功能。"
+    data-jp="v2.47.0 はナレッジグラフの機能追加ではなく、<strong>グラフの描画方法</strong>に特化したリリースです。力指向レイアウト、深度エフェクト、スマートな操作性、パフォーマンス最適化により、グラフビューが本番品質に到達しました。">
+    v2.47.0 không thêm tính năng mới cho Knowledge Graph. Đây là bản phát hành tập trung hoàn toàn vào <strong>cách hiển thị đồ thị</strong>: render lực hướng, hiệu ứng chiều sâu, tương tác thông minh và tối ưu hóa hiệu suất. Kết quả: graph view từ thứ yếu thành tính năng production-grade.
+  </p>
 
-    <h2 data-lang="vi" class="active">Tại sao <span class="hl">Force-Directed?</span></h2>
-    <h2 data-lang="en">Why <span class="hl">Force-Directed?</span></h2>
-    <h2 data-lang="zh">为何使用<span class="hl">力导向布局？</span></h2>
-    <h2 data-lang="ja">なぜ<span class="hl">力指向レイアウト？</span></h2>
-
-    <p data-lang="vi" class="active">Đồ thị tri thức (Knowledge Graph) trong GoClaw chứa các thực thể — người, tổ chức, dự án, khái niệm — liên kết với nhau qua nhiều mối quan hệ. Grid layout cứng nhắc và tree layout theo cấp bậc đều thất bại khi dữ liệu có nhiều chu trình và kết nối đan xen. Force-directed layout giải quyết vấn đề này bằng cách mô phỏng lực vật lý để tự tổ chức.</p>
-    <p data-lang="en">The Knowledge Graph in GoClaw holds entities — people, organizations, projects, concepts — connected through rich relationships. Rigid grid and hierarchical tree layouts both fail when data has cycles and complex cross-connections. Force-directed layout solves this by simulating physical forces for self-organization.</p>
-    <p data-lang="zh">GoClaw 的知识图谱包含实体——人物、组织、项目、概念——通过丰富的关系相互连接。当数据存在环路和复杂交叉连接时，固定网格和层次树状布局都会失效。力导向布局通过模拟物理力来自我组织，解决了这个问题。</p>
-    <p data-lang="ja">GoClaw の知識グラフにはエンティティ（人物、組織、プロジェクト、概念）が豊富な関係で繋がっています。データにサイクルや複雑な交差接続がある場合、固定グリッドや階層ツリーレイアウトはどちらも失敗します。力指向レイアウトは物理力をシミュレートして自己組織化することでこの問題を解決します。</p>
-
-    <div class="problem-grid">
-      <div class="problem-card">
-        <div class="pval">30–50</div>
-        <p data-lang="vi" class="active">Thực thể bị render chậm trước đây</p>
-        <p data-lang="en">Entities rendered slowly before</p>
-        <p data-lang="zh">之前渲染缓慢的实体数</p>
-        <p data-lang="ja">以前の低速レンダリングのエンティティ数</p>
-      </div>
-      <div class="problem-card">
-        <div class="pval">920ms</div>
-        <p data-lang="vi" class="active">INP ban đầu — gây lag giao diện</p>
-        <p data-lang="en">Initial INP — causing UI jank</p>
-        <p data-lang="zh">初始 INP——导致界面卡顿</p>
-        <p data-lang="ja">初期 INP — UI のジャンクを引き起こす</p>
-      </div>
-      <div class="problem-card">
-        <div class="pval">584ms</div>
-        <p data-lang="vi" class="active">Độ trễ thêm khi hover vào handle</p>
-        <p data-lang="en">Extra delay on handle hover</p>
-        <p data-lang="zh">悬停句柄时的额外延迟</p>
-        <p data-lang="ja">ハンドルホバー時の追加遅延</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── FORCE SIMULATION ── -->
-  <section>
-    <span class="section-eyebrow" data-lang="vi" class="active">Kiến trúc</span>
-    <span class="section-eyebrow" data-lang="en">Architecture</span>
-    <span class="section-eyebrow" data-lang="zh">架构</span>
-    <span class="section-eyebrow" data-lang="ja">アーキテクチャ</span>
-
-    <h2 data-lang="vi" class="active">7 Lực <span class="hl">mô phỏng vật lý</span></h2>
-    <h2 data-lang="en">7 Forces of <span class="hl">Physics Simulation</span></h2>
-    <h2 data-lang="zh">7个<span class="hl">物理模拟力</span></h2>
-    <h2 data-lang="ja">物理シミュレーションの<span class="hl">7つの力</span></h2>
-
-    <div class="force-wrap">
-      <div class="force-center-visual">
-        <div class="fc-orbit o1"></div>
-        <div class="fc-orbit o2"></div>
-        <div class="fc-hub">forceCenter<br>w/2, h/2</div>
-        <div class="fc-node fc-n1">Organization</div>
-        <div class="fc-node fc-n2">Person</div>
-        <div class="fc-node fc-n3">Task</div>
-        <div class="fc-node fc-n4">Concept</div>
-      </div>
-
-      <div class="force-legend">
-        <div class="fl-item">
-          <div class="fl-icon" style="background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.25)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-          </div>
-          <div>
-            <div class="fl-name">forceCenter</div>
-            <div class="fl-desc" data-lang="vi" class="active">Kéo tất cả node về trung tâm canvas (w/2, h/2)</div>
-            <div class="fl-desc" data-lang="en">Pulls all nodes toward canvas center (w/2, h/2)</div>
-            <div class="fl-desc" data-lang="zh">将所有节点拉向画布中心</div>
-            <div class="fl-desc" data-lang="ja">全ノードをキャンバス中央に引き付ける</div>
-          </div>
-        </div>
-        <div class="fl-item">
-          <div class="fl-icon" style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.2)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-          </div>
-          <div>
-            <div class="fl-name">forceLink</div>
-            <div class="fl-desc" data-lang="vi" class="active">Khoảng cách 220px, độ mạnh 0.4 — giữ edge đúng tầm</div>
-            <div class="fl-desc" data-lang="en">220px distance, 0.4 strength — keeps edges at target length</div>
-            <div class="fl-desc" data-lang="zh">220px 距离，强度 0.4——保持边在目标长度</div>
-            <div class="fl-desc" data-lang="ja">220px距離、強度0.4——エッジを目標長に保つ</div>
-          </div>
-        </div>
-        <div class="fl-item">
-          <div class="fl-icon" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="8" cy="12" r="3"/><circle cx="16" cy="12" r="3"/><path d="M11 12h2"/></svg>
-          </div>
-          <div>
-            <div class="fl-name">forceManyBody</div>
-            <div class="fl-desc" data-lang="vi" class="active">Lực đẩy: -300 × mass. Node nặng đẩy mạnh hơn</div>
-            <div class="fl-desc" data-lang="en">Repulsion: -300 × mass. Heavier nodes push harder</div>
-            <div class="fl-desc" data-lang="zh">斥力：-300 × 质量。较重节点推力更强</div>
-            <div class="fl-desc" data-lang="ja">斥力: -300 × 質量。重いノードほど強く押す</div>
-          </div>
-        </div>
-        <div class="fl-item">
-          <div class="fl-icon" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>
-          </div>
-          <div>
-            <div class="fl-name">forceCollide</div>
-            <div class="fl-desc" data-lang="vi" class="active">Bán kính va chạm: 55 + mass×5. Node không chồng lên nhau</div>
-            <div class="fl-desc" data-lang="en">Collision radius: 55 + mass×5. Nodes never overlap</div>
-            <div class="fl-desc" data-lang="zh">碰撞半径：55 + mass×5。节点互不重叠</div>
-            <div class="fl-desc" data-lang="ja">衝突半径: 55 + mass×5。ノードは重ならない</div>
-          </div>
-        </div>
-        <div class="fl-item">
-          <div class="fl-icon" style="background:rgba(14,165,233,0.1);border:1px solid rgba(14,165,233,0.2)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><path d="M12 3v18M3 12h18"/><path d="m16 8 4 4-4 4M8 8 4 12l4 4"/></svg>
-          </div>
-          <div>
-            <div class="fl-name">forceX / forceY</div>
-            <div class="fl-desc" data-lang="vi" class="active">Lực về tâm nhẹ: strength 0.03. Giảm node bay ra ngoài màn hình</div>
-            <div class="fl-desc" data-lang="en">Gentle centering: strength 0.03. Prevents nodes flying off screen</div>
-            <div class="fl-desc" data-lang="zh">轻柔居中：强度 0.03。防止节点飞出屏幕</div>
-            <div class="fl-desc" data-lang="ja">穏やかな中央寄せ: 強度0.03。ノードが画面外に飛ぶのを防ぐ</div>
-          </div>
-        </div>
-        <div class="fl-item">
-          <div class="fl-icon" style="background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.2)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M12 22V12M12 12 7 7M12 12l5-5M2 17l5-5 5 5 5-5 5 5"/></svg>
-          </div>
-          <div>
-            <div class="fl-name">alpha decay</div>
-            <div class="fl-desc" data-lang="vi" class="active"><code>.stop()</code> + tick cố định — không có animation vô hạn, tốn CPU</div>
-            <div class="fl-desc" data-lang="en"><code>.stop()</code> + fixed ticks — no infinite animation consuming CPU</div>
-            <div class="fl-desc" data-lang="zh"><code>.stop()</code> + 固定迭代——无无限动画消耗 CPU</div>
-            <div class="fl-desc" data-lang="ja"><code>.stop()</code> + 固定ティック——CPUを消費する無限アニメーションなし</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Force simulation code -->
-    <div class="code-block">
-      <div class="code-header">
-        <div class="code-dots"><span class="dr"></span><span class="dy"></span><span class="dg"></span></div>
-        <span class="code-lang">TypeScript — d3-force simulation</span>
-      </div>
-      <pre><code><span class="tk-k">const</span> simulation = <span class="tk-f">forceSimulation</span>(simNodes)
-  .<span class="tk-f">force</span>(<span class="tk-s">"link"</span>,
-    <span class="tk-f">forceLink</span>(simLinks)
-      .<span class="tk-f">id</span>(d => d.id)
-      .<span class="tk-f">distance</span>(<span class="tk-n">220</span>)      <span class="tk-c">// Target link length in px</span>
-      .<span class="tk-f">strength</span>(<span class="tk-n">0.4</span>)     <span class="tk-c">// Link rigidity</span>
-  )
-  .<span class="tk-f">force</span>(<span class="tk-s">"charge"</span>,
-    <span class="tk-f">forceManyBody</span>()
-      .<span class="tk-f">strength</span>(d => <span class="tk-n">-300</span> * (d.mass ?? <span class="tk-n">1</span>))  <span class="tk-c">// Repulsion × mass</span>
-  )
-  .<span class="tk-f">force</span>(<span class="tk-s">"center"</span>, <span class="tk-f">forceCenter</span>(w/<span class="tk-n">2</span>, h/<span class="tk-n">2</span>))
-  .<span class="tk-f">force</span>(<span class="tk-s">"collide"</span>,
-    <span class="tk-f">forceCollide</span>()
-      .<span class="tk-f">radius</span>(d => <span class="tk-n">55</span> + (d.mass ?? <span class="tk-n">1</span>) * <span class="tk-n">5</span>)
-      .<span class="tk-f">strength</span>(<span class="tk-n">0.8</span>)
-  )
-  .<span class="tk-f">stop</span>();  <span class="tk-c">// Run fixed iterations instead of continuous loop</span></code></pre>
-    </div>
-  </section>
-
-  <!-- ── MASS HIERARCHY ── -->
-  <section>
-    <span class="section-eyebrow" data-lang="vi" class="active">Phân cấp</span>
-    <span class="section-eyebrow" data-lang="en">Hierarchy</span>
-    <span class="section-eyebrow" data-lang="zh">层级</span>
-    <span class="section-eyebrow" data-lang="ja">階層</span>
-
-    <h2 data-lang="vi" class="active">Mass <span class="hl">Hierarchy</span> — Orbital Layout</h2>
-    <h2 data-lang="en">Mass <span class="hl">Hierarchy</span> — Orbital Layout</h2>
-    <h2 data-lang="zh">质量<span class="hl">层级</span>——轨道布局</h2>
-    <h2 data-lang="ja">質量<span class="hl">階層</span>——軌道レイアウト</h2>
-
-    <p data-lang="vi" class="active">Mỗi loại thực thể được gán một khối lượng (mass). Mass lớn hơn đồng nghĩa lực đẩy mạnh hơn — node nặng hơn sẽ ở trung tâm, còn các task nhỏ xoay quanh vòng ngoài như hành tinh.</p>
-    <p data-lang="en">Each entity type has an assigned mass. Greater mass means stronger repulsion — heavier nodes stay central while lightweight tasks orbit the periphery like planets.</p>
-    <p data-lang="zh">每种实体类型都有指定的质量。质量越大，斥力越强——较重的节点保持在中心，而轻量级任务像行星一样在外围轨道运行。</p>
-    <p data-lang="ja">各エンティティタイプには質量が割り当てられています。質量が大きいほど斥力が強く——重いノードが中央に留まり、軽量なタスクが惑星のように外周を周回します。</p>
-
-    <div class="mass-grid">
-      <div class="mass-row">
-        <span class="mass-type">organization</span>
-        <div class="mass-bar-wrap"><div class="mass-bar-fill" style="width:100%;background:linear-gradient(90deg,rgba(239,68,68,0.3),rgba(239,68,68,0.6))">mass = 8</div></div>
-        <span class="mass-val">8</span>
-      </div>
-      <div class="mass-row">
-        <span class="mass-type">project</span>
-        <div class="mass-bar-wrap"><div class="mass-bar-fill" style="width:75%;background:linear-gradient(90deg,rgba(34,197,94,0.3),rgba(34,197,94,0.6))">mass = 6</div></div>
-        <span class="mass-val">6</span>
-      </div>
-      <div class="mass-row">
-        <span class="mass-type">person</span>
-        <div class="mass-bar-wrap"><div class="mass-bar-fill" style="width:50%;background:linear-gradient(90deg,rgba(232,93,36,0.3),rgba(232,93,36,0.6))">mass = 4</div></div>
-        <span class="mass-val">4</span>
-      </div>
-      <div class="mass-row">
-        <span class="mass-type">concept</span>
-        <div class="mass-bar-wrap"><div class="mass-bar-fill" style="width:37.5%;background:linear-gradient(90deg,rgba(167,139,250,0.3),rgba(167,139,250,0.6))">mass = 3</div></div>
-        <span class="mass-val">3</span>
-      </div>
-      <div class="mass-row">
-        <span class="mass-type">location</span>
-        <div class="mass-bar-wrap"><div class="mass-bar-fill" style="width:37.5%;background:linear-gradient(90deg,rgba(20,184,166,0.3),rgba(20,184,166,0.6))">mass = 3</div></div>
-        <span class="mass-val">3</span>
-      </div>
-      <div class="mass-row">
-        <span class="mass-type">event</span>
-        <div class="mass-bar-wrap"><div class="mass-bar-fill" style="width:25%;background:linear-gradient(90deg,rgba(236,72,153,0.3),rgba(236,72,153,0.6))">mass = 2</div></div>
-        <span class="mass-val">2</span>
-      </div>
-      <div class="mass-row">
-        <span class="mass-type">task</span>
-        <div class="mass-bar-wrap"><div class="mass-bar-fill" style="width:18.75%;background:linear-gradient(90deg,rgba(245,158,11,0.3),rgba(245,158,11,0.6))">mass = 1.5</div></div>
-        <span class="mass-val">1.5</span>
-      </div>
-    </div>
-
-    <!-- Node type palette -->
-    <div class="palette-grid">
-      <div class="palette-item" style="background:rgba(232,93,36,0.08);border-color:rgba(232,93,36,0.3)">
-        <div class="palette-dot" style="background:#E85D24"></div>
-        <div><div class="palette-name" style="color:#f4a574">person</div><div class="palette-sub">#E85D24</div></div>
-      </div>
-      <div class="palette-item" style="background:rgba(34,197,94,0.08);border-color:rgba(34,197,94,0.3)">
-        <div class="palette-dot" style="background:#22c55e"></div>
-        <div><div class="palette-name" style="color:#86efac">project</div><div class="palette-sub">#22c55e</div></div>
-      </div>
-      <div class="palette-item" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.3)">
-        <div class="palette-dot" style="background:#f59e0b"></div>
-        <div><div class="palette-name" style="color:#fcd34d">task</div><div class="palette-sub">#f59e0b</div></div>
-      </div>
-      <div class="palette-item" style="background:rgba(236,72,153,0.08);border-color:rgba(236,72,153,0.3)">
-        <div class="palette-dot" style="background:#ec4899"></div>
-        <div><div class="palette-name" style="color:#f9a8d4">event</div><div class="palette-sub">#ec4899</div></div>
-      </div>
-      <div class="palette-item" style="background:rgba(167,139,250,0.08);border-color:rgba(167,139,250,0.3)">
-        <div class="palette-dot" style="background:#a78bfa"></div>
-        <div><div class="palette-name" style="color:#c4b5fd">concept</div><div class="palette-sub">#a78bfa</div></div>
-      </div>
-      <div class="palette-item" style="background:rgba(20,184,166,0.08);border-color:rgba(20,184,166,0.3)">
-        <div class="palette-dot" style="background:#14b8a6"></div>
-        <div><div class="palette-name" style="color:#5eead4">location</div><div class="palette-sub">#14b8a6</div></div>
-      </div>
-      <div class="palette-item" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.3)">
-        <div class="palette-dot" style="background:#ef4444"></div>
-        <div><div class="palette-name" style="color:#fca5a5">organization</div><div class="palette-sub">#ef4444</div></div>
-      </div>
-    </div>
-
-    <!-- Hub detection code -->
-    <div class="code-block">
-      <div class="code-header">
-        <div class="code-dots"><span class="dr"></span><span class="dy"></span><span class="dg"></span></div>
-        <span class="code-lang">TypeScript — Hub detection + glow</span>
-      </div>
-      <pre><code><span class="tk-c">// degree >= 4 connections = hub node</span>
-<span class="tk-k">const</span> isHub = data.degree >= <span class="tk-n">4</span>;
-
-<span class="tk-c">// Hub nodes get glow shadow for visual prominence</span>
-<span class="tk-p">boxShadow</span>: isHub ? <span class="tk-s">`0 0 8px </span><span class="tk-t">${</span>tc.border<span class="tk-t">}</span><span class="tk-s">40`</span> : <span class="tk-k">undefined</span>,
-
-<span class="tk-c">// memo wrapping prevents re-render on pan/zoom</span>
-<span class="tk-k">const</span> EntityNode = <span class="tk-f">memo</span>(<span class="tk-k">function</span> <span class="tk-f">EntityNode</span>({ data }) {
-  <span class="tk-c">// Only re-renders when data props actually change</span>
-  <span class="tk-c">// NOT on ReactFlow pan/zoom state changes</span>
-});</code></pre>
-    </div>
-  </section>
-
-  <!-- ── SELECTION INTERACTION ── -->
-  <section>
-    <span class="section-eyebrow" data-lang="vi" class="active">Tương tác</span>
-    <span class="section-eyebrow" data-lang="en">Interaction</span>
-    <span class="section-eyebrow" data-lang="zh">交互</span>
-    <span class="section-eyebrow" data-lang="ja">インタラクション</span>
-
-    <h2 data-lang="vi" class="active">Click-to-Reveal <span class="hl">Edge Labels</span></h2>
-    <h2 data-lang="en">Click-to-Reveal <span class="hl">Edge Labels</span></h2>
-    <h2 data-lang="zh">点击显示<span class="hl">边标签</span></h2>
-    <h2 data-lang="ja">クリックで<span class="hl">エッジラベル</span>を表示</h2>
-
-    <p data-lang="vi" class="active">Thay vì hiển thị tất cả nhãn cạnh cùng một lúc gây quá tải thông tin, v2.47.0 ẩn tất cả nhãn theo mặc định và chỉ hiển thị các cạnh kết nối khi người dùng click vào một node.</p>
-    <p data-lang="en">Instead of showing all edge labels simultaneously causing cognitive overload, v2.47.0 hides all labels by default and only reveals connected edges when a user clicks a node.</p>
-    <p data-lang="zh">v2.47.0 默认隐藏所有标签，避免信息过载，只在用户点击节点时显示相连的边。</p>
-    <p data-lang="ja">v2.47.0はすべてのラベルをデフォルトで非表示にし、ユーザーがノードをクリックしたときのみ接続エッジを表示します。</p>
-
-    <div class="sel-diagram">
-      <div class="sel-step">
-        <div class="sel-num">1</div>
-        <div class="sel-content">
-          <h4 data-lang="vi" class="active">Người dùng click vào node</h4>
-          <h4 data-lang="en">User clicks a node</h4>
-          <h4 data-lang="zh">用户点击节点</h4>
-          <h4 data-lang="ja">ユーザーがノードをクリック</h4>
-          <p data-lang="vi" class="active"><code>startTransition(() => setSelectedNodeId(node.id))</code> — cập nhật low-priority</p>
-          <p data-lang="en"><code>startTransition(() => setSelectedNodeId(node.id))</code> — low-priority update</p>
-          <p data-lang="zh"><code>startTransition(() => setSelectedNodeId(node.id))</code> — 低优先级更新</p>
-          <p data-lang="ja"><code>startTransition(() => setSelectedNodeId(node.id))</code> — 低優先度更新</p>
-        </div>
-      </div>
-      <div class="sel-connector"></div>
-      <div class="sel-step">
-        <div class="sel-num">2</div>
-        <div class="sel-content">
-          <h4 data-lang="vi" class="active">useEffect kích hoạt</h4>
-          <h4 data-lang="en">useEffect triggers</h4>
-          <h4 data-lang="zh">useEffect 触发</h4>
-          <h4 data-lang="ja">useEffect が発火</h4>
-          <p data-lang="vi" class="active">Map tất cả edges: xác định connected vs unconnected</p>
-          <p data-lang="en">Maps all edges: identifies connected vs unconnected</p>
-          <p data-lang="zh">映射所有边：识别已连接与未连接</p>
-          <p data-lang="ja">全エッジをマップ：接続済みと未接続を識別</p>
-        </div>
-      </div>
-      <div class="sel-connector"></div>
-      <div class="sel-step">
-        <div class="sel-num">3</div>
-        <div class="sel-content">
-          <h4 data-lang="vi" class="active">Connected edges — glow + label</h4>
-          <h4 data-lang="en">Connected edges — glow + label</h4>
-          <h4 data-lang="zh">已连接边——发光 + 标签</h4>
-          <h4 data-lang="ja">接続エッジ——グロー + ラベル</h4>
-          <p data-lang="vi" class="active"><code>animated: true</code>, <code>opacity: 0.9</code>, label visible, màu theo type</p>
-          <p data-lang="en"><code>animated: true</code>, <code>opacity: 0.9</code>, label visible, type-based color</p>
-          <p data-lang="zh"><code>animated: true</code>, <code>opacity: 0.9</code>，标签可见，按类型着色</p>
-          <p data-lang="ja"><code>animated: true</code>, <code>opacity: 0.9</code>、ラベル表示、タイプ別色</p>
-        </div>
-      </div>
-      <div class="sel-connector"></div>
-      <div class="sel-step">
-        <div class="sel-num">4</div>
-        <div class="sel-content">
-          <h4 data-lang="vi" class="active">Unconnected edges — fade</h4>
-          <h4 data-lang="en">Unconnected edges — fade</h4>
-          <h4 data-lang="zh">未连接边——淡出</h4>
-          <h4 data-lang="ja">未接続エッジ——フェード</h4>
-          <p data-lang="vi" class="active"><code>animated: false</code>, <code>opacity: 0.25</code>, label: undefined</p>
-          <p data-lang="en"><code>animated: false</code>, <code>opacity: 0.25</code>, label: undefined</p>
-          <p data-lang="zh"><code>animated: false</code>, <code>opacity: 0.25</code>，无标签</p>
-          <p data-lang="ja"><code>animated: false</code>, <code>opacity: 0.25</code>、ラベルなし</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── PERFORMANCE ── -->
-  <section>
-    <span class="section-eyebrow" data-lang="vi" class="active">Hiệu năng</span>
-    <span class="section-eyebrow" data-lang="en">Performance</span>
-    <span class="section-eyebrow" data-lang="zh">性能</span>
-    <span class="section-eyebrow" data-lang="ja">パフォーマンス</span>
-
-    <h2 data-lang="vi" class="active">Từ <span class="hl">920ms</span> xuống 100ms</h2>
-    <h2 data-lang="en">From <span class="hl">920ms</span> to 100ms</h2>
-    <h2 data-lang="zh">从 <span class="hl">920ms</span> 降至 100ms</h2>
-    <h2 data-lang="ja"><span class="hl">920ms</span> から 100ms へ</h2>
-
-    <div class="perf-wrap">
-      <div class="perf-header">
-        <span data-lang="vi" class="active">Chỉ số</span><span data-lang="en">Metric</span><span data-lang="zh">指标</span><span data-lang="ja">指標</span>
-        <span>v2.46.0</span>
-        <span>v2.47.0</span>
-      </div>
-      <div class="perf-row">
-        <span class="perf-metric" data-lang="vi" class="active">Tải ban đầu (INP)</span>
-        <span class="perf-metric" data-lang="en">Initial load (INP)</span>
-        <span class="perf-metric" data-lang="zh">初始加载 (INP)</span>
-        <span class="perf-metric" data-lang="ja">初期ロード (INP)</span>
-        <span class="perf-before">920ms</span>
-        <span class="perf-after">~100ms <span class="perf-badge">9.2x</span></span>
-      </div>
-      <div class="perf-row">
-        <span class="perf-metric" data-lang="vi" class="active">Node click (INP)</span>
-        <span class="perf-metric" data-lang="en">Node click (INP)</span>
-        <span class="perf-metric" data-lang="zh">节点点击 (INP)</span>
-        <span class="perf-metric" data-lang="ja">ノードクリック (INP)</span>
-        <span class="perf-before">568ms</span>
-        <span class="perf-after">160ms <span class="perf-badge">3.5x</span></span>
-      </div>
-      <div class="perf-row">
-        <span class="perf-metric" data-lang="vi" class="active">Handle hover delay</span>
-        <span class="perf-metric" data-lang="en">Handle hover delay</span>
-        <span class="perf-metric" data-lang="zh">句柄悬停延迟</span>
-        <span class="perf-metric" data-lang="ja">ハンドルホバー遅延</span>
-        <span class="perf-before">+584ms</span>
-        <span class="perf-after">0ms <span class="perf-badge">eliminated</span></span>
-      </div>
-    </div>
-
-    <!-- Deferred layout code -->
-    <div class="code-block">
-      <div class="code-header">
-        <div class="code-dots"><span class="dr"></span><span class="dy"></span><span class="dg"></span></div>
-        <span class="code-lang">TypeScript — Deferred layout + useTransition</span>
-      </div>
-      <pre><code><span class="tk-c">// setTimeout(0) yields to browser paint FIRST</span>
-<span class="tk-c">// then computes force layout — eliminates initial jank</span>
-<span class="tk-k">const</span> timer = <span class="tk-f">setTimeout</span>(() => {
-  <span class="tk-k">const</span> positioned = <span class="tk-f">computeForceLayout</span>(rawNodes, rawEdges, entities);
-  <span class="tk-f">setLayoutNodes</span>(positioned);
-  <span class="tk-f">setNodes</span>(positioned);
-  <span class="tk-f">requestAnimationFrame</span>(() => <span class="tk-f">fitView</span>({ padding: <span class="tk-n">0.15</span> }));
-}, <span class="tk-n">0</span>);  <span class="tk-c">// The magic: yield to paint before compute</span>
-
-<span class="tk-c">// useTransition marks edge re-styling as low-priority</span>
-<span class="tk-c">// React renders UI interactions first, styles after</span>
-<span class="tk-k">const</span> [isPending, startTransition] = <span class="tk-f">useTransition</span>();
-
-<span class="tk-k">const</span> <span class="tk-f">handleNodeClick</span> = <span class="tk-f">useCallback</span>((node) => {
-  <span class="tk-f">startTransition</span>(() => <span class="tk-f">setSelectedNodeId</span>(node.id));
-}, []);</code></pre>
-    </div>
-  </section>
-
-  <!-- ── USE CASES ── -->
-  <section>
-    <span class="section-eyebrow" data-lang="vi" class="active">Ứng dụng</span>
-    <span class="section-eyebrow" data-lang="en">Use Cases</span>
-    <span class="section-eyebrow" data-lang="zh">应用场景</span>
-    <span class="section-eyebrow" data-lang="ja">ユースケース</span>
-
-    <h2 data-lang="vi" class="active">Hơn cả <span class="hl">Knowledge Graph</span></h2>
-    <h2 data-lang="en">Beyond the <span class="hl">Knowledge Graph</span></h2>
-    <h2 data-lang="zh">超越<span class="hl">知识图谱</span></h2>
-    <h2 data-lang="ja"><span class="hl">知識グラフ</span>を超えて</h2>
-
-    <div class="usecase-grid">
-      <div class="usecase-card">
-        <div class="usecase-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M12 2a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/>
-            <path d="M12 22a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/>
-            <path d="M2 12a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/>
-            <path d="M18 12a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/>
-            <path d="M5.6 5.6 8.5 8.5M15.5 15.5l2.9 2.9M5.6 18.4l2.9-2.9M15.5 8.5l2.9-2.9"/>
-          </svg>
-        </div>
-        <h4 data-lang="vi" class="active">Bộ nhớ Agent AI</h4>
-        <h4 data-lang="en">AI Agent Memory</h4>
-        <h4 data-lang="zh">AI 智能体记忆</h4>
-        <h4 data-lang="ja">AIエージェントメモリ</h4>
-        <p data-lang="vi" class="active">Trực quan hóa tri thức tích lũy của agent — người dùng, dự án, ngữ cảnh hội thoại — như một mạng lưới thực thể.</p>
-        <p data-lang="en">Visualize accumulated agent knowledge — users, projects, conversation context — as an interconnected entity network.</p>
-        <p data-lang="zh">将智能体积累的知识——用户、项目、对话上下文——可视化为相互连接的实体网络。</p>
-        <p data-lang="ja">エージェントが蓄積した知識（ユーザー、プロジェクト、会話コンテキスト）を相互接続エンティティネットワークとして可視化。</p>
-      </div>
-      <div class="usecase-card">
-        <div class="usecase-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <rect x="2" y="7" width="6" height="10" rx="2"/>
-            <rect x="9" y="2" width="6" height="10" rx="2"/>
-            <rect x="16" y="7" width="6" height="10" rx="2"/>
-            <path d="M8 12h1M15 12h1"/>
-          </svg>
-        </div>
-        <h4 data-lang="vi" class="active">Cơ cấu tổ chức</h4>
-        <h4 data-lang="en">Org Structure</h4>
-        <h4 data-lang="zh">组织结构</h4>
-        <h4 data-lang="ja">組織構造</h4>
-        <p data-lang="vi" class="active">Phân cấp mass tự nhiên đặt Organization ở trung tâm, nhân viên ở vòng giữa, và các task ở vùng ngoại vi.</p>
-        <p data-lang="en">Mass hierarchy naturally places Organizations at center, employees in mid-ring, and tasks on the periphery.</p>
-        <p data-lang="zh">质量层级自然地将组织置于中心，员工在中环，任务在外围。</p>
-        <p data-lang="ja">質量階層により、組織が中央、従業員が中間リング、タスクが外周に自然に配置されます。</p>
-      </div>
-      <div class="usecase-card">
-        <div class="usecase-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/>
-          </svg>
-        </div>
-        <h4 data-lang="vi" class="active">Mạng lưới quan hệ</h4>
-        <h4 data-lang="en">Relationship Networks</h4>
-        <h4 data-lang="zh">关系网络</h4>
-        <h4 data-lang="ja">関係ネットワーク</h4>
-        <p data-lang="vi" class="active">Chuỗi cung ứng, mạng hợp đồng, đồ thị xã hội — bất kỳ graph nào có chu trình và phân nhánh phức tạp.</p>
-        <p data-lang="en">Supply chains, contract networks, social graphs — any graph with cycles and complex branching.</p>
-        <p data-lang="zh">供应链、合同网络、社交图——任何有环路和复杂分支的图。</p>
-        <p data-lang="ja">サプライチェーン、契約ネットワーク、ソーシャルグラフ——サイクルと複雑な分岐を持つあらゆるグラフ。</p>
-      </div>
-      <div class="usecase-card">
-        <div class="usecase-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-          </svg>
-        </div>
-        <h4 data-lang="vi" class="active">Bản đồ khái niệm học tập</h4>
-        <h4 data-lang="en">Concept Maps</h4>
-        <h4 data-lang="zh">概念图谱</h4>
-        <h4 data-lang="ja">概念マップ</h4>
-        <p data-lang="vi" class="active">Sinh viên khám phá các khái niệm liên kết — click để lộ mối quan hệ từng bước, giảm tải nhận thức.</p>
-        <p data-lang="en">Students explore interconnected concepts — click to incrementally reveal relationships, reducing cognitive load.</p>
-        <p data-lang="zh">学生探索相互关联的概念——点击逐步揭示关系，减轻认知负担。</p>
-        <p data-lang="ja">学習者が相互に関連する概念を探索——クリックで段階的に関係を明らかにし、認知負荷を軽減。</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── FOOTER ── -->
-  <div class="post-footer">
-    <div class="tag-list">
-      <span class="tag">knowledge-graph</span>
-      <span class="tag">force-directed-graph</span>
-      <span class="tag">react-performance</span>
-      <span class="tag">d3-force</span>
-      <span class="tag">data-visualization</span>
-      <span class="tag">ui-optimization</span>
-      <span class="tag">agent-memory</span>
-      <span class="tag">goclaw</span>
-    </div>
-    <p>GoClaw v2.47.0 · PR #572 · 2026-03-30</p>
+  <div class="notice">
+    <span class="notice-icon">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </span>
+    <p class="i18n"
+      data-vi="Để bật và sử dụng Knowledge Graph, xem tài liệu tại <a href='https://docs.goclaw.dev/knowledge-graph'>docs.goclaw.dev/knowledge-graph</a>. Bài viết này tập trung vào cải tiến trực quan trong v2.47.0."
+      data-en="To enable and use Knowledge Graph, see the documentation at <a href='https://docs.goclaw.dev/knowledge-graph'>docs.goclaw.dev/knowledge-graph</a>. This post focuses on the v2.47.0 visualization improvements."
+      data-zh="启用知识图谱请参阅 <a href='https://docs.goclaw.dev/knowledge-graph'>docs.goclaw.dev/knowledge-graph</a>。本文专注于 v2.47.0 的可视化改进。"
+      data-jp="ナレッジグラフの有効化については <a href='https://docs.goclaw.dev/knowledge-graph'>docs.goclaw.dev/knowledge-graph</a> を参照。この記事は v2.47.0 の可視化改善に焦点を当てています。">
+      Để bật và sử dụng Knowledge Graph, xem tài liệu tại <a href="https://docs.goclaw.dev/knowledge-graph">docs.goclaw.dev/knowledge-graph</a>. Bài viết này tập trung vào cải tiến trực quan trong v2.47.0.
+    </p>
   </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════ BEFORE / AFTER ═══════════════════════ -->
+<section>
+  <p class="section-eyebrow i18n" data-vi="THAY ĐỔI" data-en="WHAT CHANGED" data-zh="变化对比" data-jp="変更点">THAY ĐỔI</p>
+  <h2 class="i18n" data-vi="Trước và <span class='hl'>sau</span> v2.47.0" data-en="Before and <span class='hl'>after</span> v2.47.0" data-zh="v2.47.0 <span class='hl'>前后对比</span>" data-jp="v2.47.0 <span class='hl'>前後の比較</span>">
+    Trước và <span class="hl">sau</span> v2.47.0
+  </h2>
+
+  <div class="ba-grid">
+    <div class="ba-panel ba-before">
+      <div class="ba-label i18n" data-vi="TRƯỚC — v2.46.0" data-en="BEFORE — v2.46.0" data-zh="之前 — v2.46.0" data-jp="以前 — v2.46.0">TRƯỚC — v2.46.0</div>
+      <div class="ba-item"><span class="ba-dot"></span><p class="i18n" data-vi="Nền trắng/xám, không có chiều sâu" data-en="Flat white/gray background, no depth" data-zh="平面白/灰背景，无深度感" data-jp="フラットな白/グレー背景、奥行きなし">Nền trắng/xám, không có chiều sâu</p></div>
+      <div class="ba-item"><span class="ba-dot"></span><p class="i18n" data-vi="Tất cả nhãn cạnh hiển thị cùng lúc — rối mắt" data-en="All edge labels visible simultaneously — cluttered" data-zh="所有边标签同时显示——杂乱" data-jp="すべてのエッジラベルが同時表示——混雑">Tất cả nhãn cạnh hiển thị cùng lúc — rối mắt</p></div>
+      <div class="ba-item"><span class="ba-dot"></span><p class="i18n" data-vi="Không phân biệt hub và nút thường" data-en="No visual distinction between hub nodes and regular nodes" data-zh="中心节点与普通节点无视觉区分" data-jp="ハブノードと通常ノードの視覚的な区別なし">Không phân biệt hub và nút thường</p></div>
+      <div class="ba-item"><span class="ba-dot"></span><p class="i18n" data-vi="INP tải ban đầu: 920ms" data-en="Initial load INP: 920ms" data-zh="初始加载 INP：920ms" data-jp="初期ロード INP：920ms">INP tải ban đầu: 920ms</p></div>
+      <div class="ba-item"><span class="ba-dot"></span><p class="i18n" data-vi="Hover trên handle gây jank +584ms" data-en="Hovering handles caused +584ms jank" data-zh="悬停句柄导致 +584ms 卡顿" data-jp="ハンドルホバーで +584ms のジャンク">Hover trên handle gây jank +584ms</p></div>
+    </div>
+
+    <div class="ba-panel ba-after">
+      <div class="ba-label i18n" data-vi="SAU — v2.47.0" data-en="AFTER — v2.47.0" data-zh="之后 — v2.47.0" data-jp="以降 — v2.47.0">SAU — v2.47.0</div>
+      <div class="ba-item"><span class="ba-dot"></span><p class="i18n" data-vi="Canvas tối với gradient tím radial, tạo cảm giác không gian" data-en="Dark canvas with radial purple gradient, creating depth illusion" data-zh="深色画布配合径向紫色渐变，营造空间深度感" data-jp="放射状パープルグラデーションの暗いキャンバスで奥行き感">Canvas tối với gradient tím radial, tạo cảm giác không gian</p></div>
+      <div class="ba-item"><span class="ba-dot"></span><p class="i18n" data-vi="Nhãn cạnh ẩn mặc định — chỉ hiện khi chọn nút" data-en="Edge labels hidden by default — revealed only on node selection" data-zh="边标签默认隐藏——仅在选择节点时显示" data-jp="エッジラベルはデフォルト非表示——ノード選択時のみ表示">Nhãn cạnh ẩn mặc định — chỉ hiện khi chọn nút</p></div>
+      <div class="ba-item"><span class="ba-dot"></span><p class="i18n" data-vi="Hub (4+ kết nối) được khuếch đại với glow shadow" data-en="Hub nodes (4+ connections) amplified with glow shadow" data-zh="中心节点（4+ 连接）通过发光阴影突出显示" data-jp="ハブノード（4+接続）はグローシャドウで強調">Hub (4+ kết nối) được khuếch đại với glow shadow</p></div>
+      <div class="ba-item"><span class="ba-dot"></span><p class="i18n" data-vi="INP tải ban đầu: ~100ms (9x nhanh hơn)" data-en="Initial load INP: ~100ms (9x faster)" data-zh="初始加载 INP：~100ms（快 9 倍）" data-jp="初期ロード INP：~100ms（9倍高速）">INP tải ban đầu: ~100ms (9x nhanh hơn)</p></div>
+      <div class="ba-item"><span class="ba-dot"></span><p class="i18n" data-vi="Hover handle: 0ms (vô hiệu hóa hoàn toàn)" data-en="Handle hover: 0ms (completely eliminated)" data-zh="句柄悬停：0ms（完全消除）" data-jp="ハンドルホバー：0ms（完全排除）">Hover handle: 0ms (vô hiệu hóa hoàn toàn)</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════ FORCE SIMULATION ═══════════════════════ -->
+<section>
+  <p class="section-eyebrow i18n" data-vi="KIẾN TRÚC" data-en="ARCHITECTURE" data-zh="架构" data-jp="アーキテクチャ">KIẾN TRÚC</p>
+  <h2 class="i18n" data-vi="6 lực định hình <span class='hl'>mọi đồ thị</span>" data-en="6 forces that shape <span class='hl'>every graph</span>" data-zh="定义每个图形的 <span class='hl'>6 种力</span>" data-jp="すべてのグラフを形成する <span class='hl'>6 つの力</span>">
+    6 lực định hình <span class="hl">mọi đồ thị</span>
+  </h2>
+  <p class="i18n"
+    data-vi="GoClaw sử dụng d3-force để tính toán vị trí các nút trước khi render. Mỗi lực giải quyết một bài toán riêng — kết hợp lại tạo ra bố cục tự nhiên, có tổ chức."
+    data-en="GoClaw uses d3-force to compute node positions before rendering. Each force solves a specific problem — together they produce a natural, organized layout."
+    data-zh="GoClaw 使用 d3-force 在渲染前计算节点位置。每种力解决一个特定问题——组合在一起形成自然、有序的布局。"
+    data-jp="GoClaw は d3-force を使用してレンダリング前にノード位置を計算します。各力が特定の問題を解決し、自然で整理されたレイアウトを生み出します。">
+    GoClaw sử dụng d3-force để tính toán vị trí các nút trước khi render. Mỗi lực giải quyết một bài toán riêng — kết hợp lại tạo ra bố cục tự nhiên, có tổ chức.
+  </p>
+
+  <div class="force-wrap">
+    <!-- animated visualization -->
+    <div class="force-center-visual">
+      <div class="fc-orbit o1"></div>
+      <div class="fc-orbit o2"></div>
+      <div class="fc-hub i18n" data-vi="Org<br>mass=8" data-en="Org<br>mass=8" data-zh="组织<br>mass=8" data-jp="組織<br>mass=8">Org<br>mass=8</div>
+      <div class="fc-node fc-n1 i18n" data-vi="Person (mass=4)" data-en="Person (mass=4)" data-zh="人物 (mass=4)" data-jp="人物 (mass=4)">Person (mass=4)</div>
+      <div class="fc-node fc-n2 i18n" data-vi="Project (mass=6)" data-en="Project (mass=6)" data-zh="项目 (mass=6)" data-jp="プロジェクト (mass=6)">Project (mass=6)</div>
+      <div class="fc-node fc-n3 i18n" data-vi="Task (mass=1.5)" data-en="Task (mass=1.5)" data-zh="任务 (mass=1.5)" data-jp="タスク (mass=1.5)">Task (mass=1.5)</div>
+      <div class="fc-node fc-n4 i18n" data-vi="Event (mass=2)" data-en="Event (mass=2)" data-zh="事件 (mass=2)" data-jp="イベント (mass=2)">Event (mass=2)</div>
+    </div>
+
+    <div class="force-legend">
+      <div class="fl-item">
+        <div class="fl-icon" style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+        <div>
+          <h4 class="i18n" data-vi="forceLink — kéo nút lại gần" data-en="forceLink — pulls nodes together" data-zh="forceLink — 拉近节点" data-jp="forceLink — ノードを引き寄せる">forceLink — kéo nút lại gần</h4>
+          <p class="i18n" data-vi="Giữ các nút có kết nối ở khoảng cách mục tiêu" data-en="Maintains connected nodes at target distance" data-zh="保持连接节点在目标距离" data-jp="接続ノードをターゲット距離に保持">Giữ các nút có kết nối ở khoảng cách mục tiêu</p>
+          <p class="fl-params">distance(220) · strength(0.4)</p>
+        </div>
+      </div>
+      <div class="fl-item">
+        <div class="fl-icon" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.25);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div>
+          <h4 class="i18n" data-vi="forceManyBody — đẩy nút ra xa" data-en="forceManyBody — pushes nodes apart" data-zh="forceManyBody — 节点间排斥" data-jp="forceManyBody — ノードを押し離す">forceManyBody — đẩy nút ra xa</h4>
+          <p class="i18n" data-vi="Lực đẩy tỷ lệ theo mass — nút lớn chiếm không gian hơn" data-en="Repulsion scales with mass — heavier nodes claim more space" data-zh="斥力按质量缩放——重节点占据更多空间" data-jp="反発力はmassに比例——重いノードはより多くの空間を確保">Lực đẩy tỷ lệ theo mass — nút lớn chiếm không gian hơn</p>
+          <p class="fl-params">strength(d =&gt; -300 * mass)</p>
+        </div>
+      </div>
+      <div class="fl-item">
+        <div class="fl-icon" style="background:rgba(14,165,233,0.1);border:1px solid rgba(14,165,233,0.25);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/></svg>
+        </div>
+        <div>
+          <h4 class="i18n" data-vi="forceCenter — neo đồ thị vào giữa" data-en="forceCenter — anchors graph to center" data-zh="forceCenter — 图形居中锚定" data-jp="forceCenter — グラフを中央に固定">forceCenter — neo đồ thị vào giữa</h4>
+          <p class="i18n" data-vi="Kéo toàn bộ đồ thị về trung tâm canvas" data-en="Pulls the entire graph toward the canvas center" data-zh="将整个图形拉向画布中心" data-jp="グラフ全体をキャンバス中央に引き寄せる">Kéo toàn bộ đồ thị về trung tâm canvas</p>
+          <p class="fl-params">forceCenter(w/2, h/2) · canvas 600×400</p>
+        </div>
+      </div>
+      <div class="fl-item">
+        <div class="fl-icon" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        </div>
+        <div>
+          <h4 class="i18n" data-vi="forceX / forceY — giữ nút không trôi" data-en="forceX / forceY — prevent drift" data-zh="forceX / forceY — 防止漂移" data-jp="forceX / forceY — ドリフト防止">forceX / forceY — giữ nút không trôi</h4>
+          <p class="i18n" data-vi="Lực nhẹ kéo về trung tâm theo từng trục — tránh nút bị trôi ra ngoài" data-en="Gentle per-axis centering — prevents nodes drifting off-canvas" data-zh="轴向轻微居中——防止节点漂出画布" data-jp="軸ごとの穏やかなセンタリング——ノードのキャンバス外漂流を防止">Lực nhẹ kéo về trung tâm theo từng trục — tránh nút bị trôi ra ngoài</p>
+          <p class="fl-params">forceX(w/2).strength(0.03) · forceY(h/2).strength(0.03)</p>
+        </div>
+      </div>
+      <div class="fl-item" style="grid-column: 1 / -1;">
+        <div class="fl-icon" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+        </div>
+        <div>
+          <h4 class="i18n" data-vi="forceCollide — ngăn nút chồng lên nhau" data-en="forceCollide — prevents node overlap" data-zh="forceCollide — 防止节点重叠" data-jp="forceCollide — ノードの重なりを防止">forceCollide — ngăn nút chồng lên nhau</h4>
+          <p class="i18n" data-vi="Bán kính va chạm tỷ lệ theo mass — nút lớn có vùng riêng lớn hơn. Kết hợp với forceManyBody tạo phân cấp không gian tự nhiên." data-en="Collision radius scales with mass — heavier nodes hold larger personal space. Combined with forceManyBody, this creates natural spatial hierarchy." data-zh="碰撞半径按质量缩放——重节点占据更大的个人空间。与 forceManyBody 结合，形成自然的空间层次。" data-jp="衝突半径はmassに比例——重いノードはより大きな個人空間を確保。forceManyBodyと組み合わせて自然な空間階層を形成。">
+            Bán kính va chạm tỷ lệ theo mass — nút lớn có vùng riêng lớn hơn. Kết hợp với forceManyBody tạo phân cấp không gian tự nhiên.
+          </p>
+          <p class="fl-params">radius(d =&gt; 55 + mass*5) · strength(0.8)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════ NODE STYLING ═══════════════════════ -->
+<section>
+  <p class="section-eyebrow i18n" data-vi="THIẾT KẾ NÚT" data-en="NODE DESIGN" data-zh="节点设计" data-jp="ノードデザイン">THIẾT KẾ NÚT</p>
+  <h2 class="i18n" data-vi="Màu sắc theo loại, <span class='hl'>phân cấp theo mass</span>" data-en="Type-based colors, <span class='hl'>mass-based hierarchy</span>" data-zh="类型颜色编码，<span class='hl'>质量层级结构</span>" data-jp="タイプ別カラー、<span class='hl'>mass による階層</span>">
+    Màu sắc theo loại, <span class="hl">phân cấp theo mass</span>
+  </h2>
+  <p class="i18n"
+    data-vi="Mỗi loại thực thể có bộ màu riêng (border, nền tối, nền sáng). Mass xác định vị trí trong đồ thị: nút mass cao ở trung tâm, mass thấp quỹ đạo ra ngoài."
+    data-en="Each entity type has its own color set (border, dark background, light background). Mass determines position in the graph: high-mass nodes stay central, low-mass nodes orbit outward."
+    data-zh="每种实体类型有独立的颜色集（边框、深色背景、浅色背景）。质量决定图中位置：高质量节点居中，低质量节点向外轨道运行。"
+    data-jp="各エンティティタイプには固有のカラーセット（ボーダー、ダーク背景、ライト背景）があります。massがグラフ内の位置を決定します：高massノードは中央、低massノードは外側を周回。">
+    Mỗi loại thực thể có bộ màu riêng (border, nền tối, nền sáng). Mass xác định vị trí trong đồ thị: nút mass cao ở trung tâm, mass thấp quỹ đạo ra ngoài.
+  </p>
+
+  <div class="palette-grid">
+    <div class="palette-item" style="background:rgba(232,93,36,0.1);border-color:rgba(232,93,36,0.35);color:#f4a574;">
+      <div class="ptype">Person</div>
+      <div class="pname">#E85D24</div>
+      <div class="pmass">mass = 4</div>
+    </div>
+    <div class="palette-item" style="background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.35);color:#86efac;">
+      <div class="ptype">Project</div>
+      <div class="pname">#22c55e</div>
+      <div class="pmass">mass = 6</div>
+    </div>
+    <div class="palette-item" style="background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.35);color:#fcd34d;">
+      <div class="ptype">Task</div>
+      <div class="pname">#f59e0b</div>
+      <div class="pmass">mass = 1.5</div>
+    </div>
+    <div class="palette-item" style="background:rgba(236,72,153,0.1);border-color:rgba(236,72,153,0.35);color:#f9a8d4;">
+      <div class="ptype">Event</div>
+      <div class="pname">#ec4899</div>
+      <div class="pmass">mass = 2</div>
+    </div>
+    <div class="palette-item" style="background:rgba(167,139,250,0.1);border-color:rgba(167,139,250,0.35);color:#c4b5fd;">
+      <div class="ptype">Concept</div>
+      <div class="pname">#a78bfa</div>
+      <div class="pmass">mass = 3</div>
+    </div>
+    <div class="palette-item" style="background:rgba(20,184,166,0.1);border-color:rgba(20,184,166,0.35);color:#5eead4;">
+      <div class="ptype">Location</div>
+      <div class="pname">#14b8a6</div>
+      <div class="pmass">mass = 3</div>
+    </div>
+    <div class="palette-item" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.35);color:#fca5a5;">
+      <div class="ptype">Organization</div>
+      <div class="pname">#ef4444</div>
+      <div class="pmass">mass = 8</div>
+    </div>
+    <div class="palette-item" style="background:rgba(139,92,246,0.08);border-color:rgba(139,92,246,0.2);color:rgba(255,255,255,0.3);">
+      <div class="ptype i18n" data-vi="Tùy chỉnh" data-en="Custom" data-zh="自定义" data-jp="カスタム">Tùy chỉnh</div>
+      <div class="pname" style="font-size:11px;" class="i18n" data-vi="TYPE_COLORS mở rộng" data-en="Extend TYPE_COLORS" data-zh="扩展 TYPE_COLORS" data-jp="TYPE_COLORS を拡張">TYPE_COLORS</div>
+      <div class="pmass">mass = ?</div>
+    </div>
+  </div>
+
+  <p class="i18n"
+    data-vi="Hub detection: nút có từ 4 kết nối trở lên tự động nhận <code>boxShadow: 0 0 8px {color}40</code> — ánh sáng phát ra giúp phân biệt với nút thường ngay lập tức."
+    data-en="Hub detection: nodes with 4+ connections automatically receive <code>boxShadow: 0 0 8px {color}40</code> — the emitted glow immediately distinguishes them from regular nodes."
+    data-zh="中心检测：4+连接的节点自动获得 <code>boxShadow: 0 0 8px {color}40</code>——发光效果使其立即与普通节点区分开来。"
+    data-jp="ハブ検出：4+接続のノードは自動的に <code>boxShadow: 0 0 8px {color}40</code> を付与——グローエフェクトで通常ノードとの区別が一目瞭然。">
+    Hub detection: nút có từ 4 kết nối trở lên tự động nhận <code>boxShadow: 0 0 8px {color}40</code> — ánh sáng phát ra giúp phân biệt với nút thường ngay lập tức.
+  </p>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════ EDGE SELECTION ═══════════════════════ -->
+<section>
+  <p class="section-eyebrow i18n" data-vi="TƯƠNG TÁC" data-en="INTERACTION" data-zh="交互" data-jp="インタラクション">TƯƠNG TÁC</p>
+  <h2 class="i18n" data-vi="Click để <span class='hl'>khám phá mối quan hệ</span>" data-en="Click to <span class='hl'>reveal relationships</span>" data-zh="点击<span class='hl'>展示关系</span>" data-jp="クリックで<span class='hl'>関係を表示</span>">
+    Click để <span class="hl">khám phá mối quan hệ</span>
+  </h2>
+  <p class="i18n"
+    data-vi="Mặc định, tất cả nhãn cạnh bị ẩn để giảm tải nhận thức. Khi click một nút: các cạnh kết nối phát sáng + hiển thị nhãn, các cạnh còn lại mờ xuống 15% độ mờ đục."
+    data-en="By default, all edge labels are hidden to reduce cognitive load. Click a node: connected edges glow and reveal their labels, unconnected edges fade to 15% opacity."
+    data-zh="默认情况下，所有边标签隐藏以减少认知负荷。点击节点：连接的边发光并显示标签，其他边淡化至 15% 不透明度。"
+    data-jp="デフォルトでは、認知負荷を減らすためすべてのエッジラベルが非表示です。ノードをクリックすると、接続エッジが発光してラベルを表示し、非接続エッジは15%の不透明度に薄まります。">
+    Mặc định, tất cả nhãn cạnh bị ẩn để giảm tải nhận thức. Khi click một nút: các cạnh kết nối phát sáng + hiển thị nhãn, các cạnh còn lại mờ xuống 15% độ mờ đục.
+  </p>
+
+  <div class="edge-mockup">
+    <!-- SVG graph mockup -->
+    <div class="graph-canvas">
+      <svg class="graph-svg" viewBox="0 0 780 220" preserveAspectRatio="xMidYMid meet">
+        <!-- Faded edges (unconnected) -->
+        <line class="edge-faded" x1="580" y1="60" x2="640" y2="130"/>
+        <line class="edge-faded" x1="580" y1="60" x2="500" y2="150"/>
+        <!-- Selected edges (connected to Alice) -->
+        <line class="edge-selected" x1="200" y1="80" x2="370" y2="110"/>
+        <line class="edge-selected" x1="200" y1="80" x2="90" y2="150"/>
+        <line class="edge-selected" x1="200" y1="80" x2="310" y2="30"/>
+        <!-- Edge labels on selected edges -->
+        <text class="edge-label" x="275" y="87">works_at</text>
+        <text class="edge-label" x="120" y="104">manages</text>
+        <text class="edge-label" x="235" y="43">owns</text>
+      </svg>
+
+      <!-- Nodes -->
+      <div class="gn gn-selected" style="left:148px;top:58px;">Alice</div>
+      <div class="gn gn-connected" style="left:326px;top:88px;">GoClaw</div>
+      <div class="gn gn-connected" style="left:40px;top:128px;">Team Alpha</div>
+      <div class="gn gn-connected" style="left:262px;top:10px;">Project X</div>
+      <div class="gn gn-faded" style="left:536px;top:38px;">Bob</div>
+      <div class="gn gn-faded" style="left:600px;top:108px;">Concept A</div>
+      <div class="gn gn-faded" style="left:448px;top:128px;">Location B</div>
+    </div>
+
+    <div class="mockup-legend">
+      <div class="ml-item">
+        <span class="ml-dot" style="background:rgba(0,212,255,0.3);border-color:rgba(0,212,255,0.8);"></span>
+        <span class="i18n" data-vi="Nút đang chọn" data-en="Selected node" data-zh="已选节点" data-jp="選択ノード">Nút đang chọn</span>
+      </div>
+      <div class="ml-item">
+        <span class="ml-dot" style="background:rgba(139,92,246,0.2);border-color:rgba(139,92,246,0.6);"></span>
+        <span class="i18n" data-vi="Nút kết nối — nhãn hiển thị" data-en="Connected node — label revealed" data-zh="连接节点——标签显示" data-jp="接続ノード——ラベル表示">Nút kết nối — nhãn hiển thị</span>
+      </div>
+      <div class="ml-item">
+        <span class="ml-dot" style="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.15);"></span>
+        <span class="i18n" data-vi="Nút không liên quan — mờ 15%" data-en="Unrelated node — faded to 15%" data-zh="无关节点——淡化至 15%" data-jp="無関係ノード——15%に薄まる">Nút không liên quan — mờ 15%</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="i18n"
+    data-vi="Cơ chế này hoạt động nhờ <code>useTransition</code> — React đánh dấu việc cập nhật trạng thái cạnh là ưu tiên thấp, giữ UI phản hồi ngay cả khi đồ thị có 50+ nút."
+    data-en="This works via <code>useTransition</code> — React marks edge state updates as low priority, keeping the UI responsive even on graphs with 50+ nodes."
+    data-zh="这通过 <code>useTransition</code> 实现——React 将边状态更新标记为低优先级，即使在 50+ 节点的图形上也能保持 UI 响应。"
+    data-jp="これは <code>useTransition</code> で実現——Reactがエッジ状態更新を低優先度としてマークし、50+ノードのグラフでもUIの応答性を維持します。">
+    Cơ chế này hoạt động nhờ <code>useTransition</code> — React đánh dấu việc cập nhật trạng thái cạnh là ưu tiên thấp, giữ UI phản hồi ngay cả khi đồ thị có 50+ nút.
+  </p>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════ PERFORMANCE ═══════════════════════ -->
+<section>
+  <p class="section-eyebrow i18n" data-vi="HIỆU SUẤT" data-en="PERFORMANCE" data-zh="性能" data-jp="パフォーマンス">HIỆU SUẤT</p>
+  <h2 class="i18n" data-vi="Ba cải tiến, <span class='hl'>ba kỹ thuật khác nhau</span>" data-en="Three improvements, <span class='hl'>three different techniques</span>" data-zh="三项改进，<span class='hl'>三种不同技术</span>" data-jp="3つの改善、<span class='hl'>3つの異なる技術</span>">
+    Ba cải tiến, <span class="hl">ba kỹ thuật khác nhau</span>
+  </h2>
+  <p class="i18n"
+    data-vi="Không có dependency mới nào được thêm vào — toàn bộ cải tiến từ cách dùng đúng các primitive có sẵn của React và browser."
+    data-en="No new dependencies added — all improvements come from using existing React and browser primitives correctly."
+    data-zh="没有添加新的依赖——所有改进来自于正确使用现有的 React 和浏览器原语。"
+    data-jp="新しい依存関係なし——すべての改善は既存のReactとブラウザプリミティブを正しく使用することによって実現。">
+    Không có dependency mới nào được thêm vào — toàn bộ cải tiến từ cách dùng đúng các primitive có sẵn của React và browser.
+  </p>
+
+  <div class="perf-table-wrap">
+    <table class="perf-table">
+      <thead>
+        <tr>
+          <th class="i18n" data-vi="Tác vụ" data-en="Metric" data-zh="指标" data-jp="メトリック">Tác vụ</th>
+          <th class="i18n" data-vi="Trước" data-en="Before" data-zh="之前" data-jp="以前">Trước</th>
+          <th class="i18n" data-vi="Sau" data-en="After" data-zh="之后" data-jp="以降">Sau</th>
+          <th class="i18n" data-vi="Kỹ thuật" data-en="Technique" data-zh="技术" data-jp="技術">Kỹ thuật</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="td-metric i18n" data-vi="Tải ban đầu (INP)" data-en="Initial load (INP)" data-zh="初始加载 (INP)" data-jp="初期ロード (INP)">Tải ban đầu (INP)</td>
+          <td class="td-before">920ms</td>
+          <td class="td-after">~100ms <span class="perf-badge">9x</span></td>
+          <td class="td-technique"><code>setTimeout(0)</code></td>
+        </tr>
+        <tr>
+          <td class="td-metric i18n" data-vi="Click chọn nút" data-en="Node click response" data-zh="节点点击响应" data-jp="ノードクリック応答">Click chọn nút</td>
+          <td class="td-before">568ms</td>
+          <td class="td-after">160ms <span class="perf-badge">3.5x</span></td>
+          <td class="td-technique"><code>useTransition</code></td>
+        </tr>
+        <tr>
+          <td class="td-metric i18n" data-vi="Hover trên handle" data-en="Handle hover delay" data-zh="句柄悬停延迟" data-jp="ハンドルホバー遅延">Hover trên handle</td>
+          <td class="td-before">+584ms</td>
+          <td class="td-after">0ms <span class="perf-badge">elim.</span></td>
+          <td class="td-technique"><code>pointerEvents: none</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="code-block">
+<span class="cm">// 1. Deferred layout — yields to paint before computing positions</span>
+<span class="kw">const</span> timer = <span class="fn">setTimeout</span>(() =&gt; {
+  <span class="kw">const</span> positioned = <span class="fn">computeForceLayout</span>(rawNodes, rawEdges, entities);
+  <span class="fn">setNodes</span>(positioned);
+  <span class="fn">setLayoutReady</span>(<span class="kw">true</span>);
+  <span class="fn">requestAnimationFrame</span>(() =&gt; <span class="fn">fitView</span>({ padding: <span class="num">0.15</span> }));
+}, <span class="num">0</span>); <span class="cm">// 0ms = next task, after paint</span>
+
+<span class="cm">// 2. Low-priority edge updates on node click</span>
+<span class="fn">startTransition</span>(() =&gt; {
+  <span class="fn">setSelectedNodeId</span>(node.id);
+});
+
+<span class="cm">// 3. Eliminate handle interactions (read-only graph)</span>
+handles.style.pointerEvents = <span class="str">'none'</span>;
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════ CONFIGURATION ═══════════════════════ -->
+<section>
+  <p class="section-eyebrow i18n" data-vi="CẤU HÌNH" data-en="CONFIGURATION" data-zh="配置" data-jp="設定">CẤU HÌNH</p>
+  <h2 class="i18n" data-vi="Tham số <span class='hl'>có thể điều chỉnh</span>" data-en="Tunable <span class='hl'>parameters</span>" data-zh="<span class='hl'>可调整</span>参数" data-jp="調整可能な<span class='hl'>パラメータ</span>">
+    Tham số <span class="hl">có thể điều chỉnh</span>
+  </h2>
+  <p class="i18n"
+    data-vi="Đồ thị lực hướng không phải one-size-fits-all. Các tham số sau có thể điều chỉnh để phù hợp với số lượng nút và mật độ kết nối khác nhau."
+    data-en="Force-directed graphs are not one-size-fits-all. The following parameters can be tuned to fit different node counts and connection densities."
+    data-zh="力导向图不是一刀切的。以下参数可根据不同的节点数量和连接密度进行调整。"
+    data-jp="力指向グラフは万能ではありません。以下のパラメータは異なるノード数と接続密度に合わせて調整できます。">
+    Đồ thị lực hướng không phải one-size-fits-all. Các tham số sau có thể điều chỉnh để phù hợp với số lượng nút và mật độ kết nối khác nhau.
+  </p>
+
+  <div class="config-grid">
+    <div class="config-card">
+      <h4 class="i18n" data-vi="Tham số lực" data-en="Force Parameters" data-zh="力参数" data-jp="力パラメータ">Tham số lực</h4>
+      <div class="config-row">
+        <span class="config-key">link distance</span>
+        <span class="config-val">220px</span>
+      </div>
+      <div class="config-hint i18n" data-vi="Tăng → dãn rộng, giảm → co cụm" data-en="Increase = spread out, decrease = cluster" data-zh="增大=分散，减小=聚集" data-jp="増加=広げる、減少=クラスター">Tăng → dãn rộng, giảm → co cụm</div>
+      <div class="config-row">
+        <span class="config-key">link strength</span>
+        <span class="config-val">0.4</span>
+      </div>
+      <div class="config-hint i18n" data-vi="Tăng → cứng, giảm → linh hoạt" data-en="Increase = rigid, decrease = loose" data-zh="增大=刚性，减小=松散" data-jp="増加=硬直、減少=柔軟">Tăng → cứng, giảm → linh hoạt</div>
+      <div class="config-row">
+        <span class="config-key">repulsion</span>
+        <span class="config-val">-300 × mass</span>
+      </div>
+      <div class="config-hint i18n" data-vi="Tăng → nút cách xa nhau hơn" data-en="Increase = nodes farther apart" data-zh="增大=节点间距更大" data-jp="増加=ノード間距離が大きくなる">Tăng → nút cách xa nhau hơn</div>
+      <div class="config-row">
+        <span class="config-key">collision radius</span>
+        <span class="config-val">55 + mass×5</span>
+      </div>
+      <div class="config-hint i18n" data-vi="Tăng → nút có khoảng cách riêng lớn hơn" data-en="Increase = larger personal space per node" data-zh="增大=每个节点更大的个人空间" data-jp="増加=ノードごとの個人空間が大きくなる">Tăng → nút có khoảng cách riêng lớn hơn</div>
+    </div>
+
+    <div class="config-card">
+      <h4 class="i18n" data-vi="Canvas &amp; Giới hạn" data-en="Canvas &amp; Limits" data-zh="画布与限制" data-jp="キャンバスと制限">Canvas &amp; Giới hạn</h4>
+      <div class="config-row">
+        <span class="config-key">canvas size</span>
+        <span class="config-val">600 × 400</span>
+      </div>
+      <div class="config-hint i18n" data-vi="Kích thước tính toán bố cục ban đầu" data-en="Initial layout computation size" data-zh="初始布局计算尺寸" data-jp="初期レイアウト計算サイズ">Kích thước tính toán bố cục ban đầu</div>
+      <div class="config-row">
+        <span class="config-key">GRAPH_LIMIT</span>
+        <span class="config-val">50 nodes</span>
+      </div>
+      <div class="config-hint i18n" data-vi="KG lớn hơn hiển thị dạng bảng" data-en="Larger KGs fall back to table view" data-zh="较大的 KG 回退到表格视图" data-jp="大きなKGはテーブルビューに切り替わる">KG lớn hơn hiển thị dạng bảng</div>
+      <div class="config-row">
+        <span class="config-key">hub threshold</span>
+        <span class="config-val">degree &gt;= 4</span>
+      </div>
+      <div class="config-hint i18n" data-vi="Nút có 4+ kết nối nhận glow shadow" data-en="Nodes with 4+ connections get glow shadow" data-zh="4+连接的节点获得发光阴影" data-jp="4+接続のノードにグローシャドウ付与">Nút có 4+ kết nối nhận glow shadow</div>
+      <div class="config-row">
+        <span class="config-key">x/y centering</span>
+        <span class="config-val">strength 0.03</span>
+      </div>
+      <div class="config-hint i18n" data-vi="Lực nhẹ — đủ giữ nút trong canvas" data-en="Gentle — enough to keep nodes in-canvas" data-zh="轻柔——足以将节点保持在画布内" data-jp="穏やか——ノードをキャンバス内に収めるのに十分">Lực nhẹ — đủ giữ nút trong canvas</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════ USE CASES ═══════════════════════ -->
+<section>
+  <p class="section-eyebrow i18n" data-vi="ỨNG DỤNG" data-en="USE CASES" data-zh="使用场景" data-jp="ユースケース">ỨNG DỤNG</p>
+  <h2 class="i18n" data-vi="Khi nào <span class='hl'>visualization này giúp ích</span>" data-en="When this <span class='hl'>visualization helps</span>" data-zh="<span class='hl'>此可视化</span>的适用场景" data-jp="この<span class='hl'>可視化が役立つ</span>場面">
+    Khi nào <span class="hl">visualization này giúp ích</span>
+  </h2>
+
+  <div class="use-grid">
+    <div class="use-card">
+      <div class="use-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      </div>
+      <h4 class="i18n" data-vi="Khám phá bộ nhớ agent" data-en="Exploring agent memory" data-zh="探索 Agent 记忆" data-jp="エージェントメモリの探索">Khám phá bộ nhớ agent</h4>
+      <p class="i18n"
+        data-vi="Hiểu agent đã học được gì — ai liên quan đến ai, dự án nào kết nối với sự kiện nào. Đồ thị giúp phát hiện mối quan hệ ẩn mà bảng dữ liệu không thể hiện."
+        data-en="Understand what the agent has learned — who connects to whom, which projects link to which events. The graph reveals hidden relationships invisible in tabular data."
+        data-zh="了解 agent 学到了什么——谁与谁相连，哪个项目与哪个事件相关。图形揭示了表格数据中无法看到的隐藏关系。"
+        data-jp="エージェントが何を学習したかを理解——誰が誰とつながり、どのプロジェクトがどのイベントと関連するか。グラフは表形式データでは見えない隠れた関係を明らかにします。">
+        Hiểu agent đã học được gì — ai liên quan đến ai, dự án nào kết nối với sự kiện nào. Đồ thị giúp phát hiện mối quan hệ ẩn mà bảng dữ liệu không thể hiện.
+      </p>
+    </div>
+
+    <div class="use-card">
+      <div class="use-icon">
+        <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+      </div>
+      <h4 class="i18n" data-vi="Cấu trúc tổ chức" data-en="Organizational structure" data-zh="组织结构" data-jp="組織構造">Cấu trúc tổ chức</h4>
+      <p class="i18n"
+        data-vi="Render đồ thị org — team, thành viên, vai trò, dự án đang chạy. Organization node (mass=8) tự nhiên chiếm trung tâm, các thành viên quỹ đạo xung quanh."
+        data-en="Render org graphs — teams, members, roles, running projects. Organization nodes (mass=8) naturally hold center, members orbit around them."
+        data-zh="渲染组织图——团队、成员、角色、运行中的项目。组织节点 (mass=8) 自然居于中心，成员节点围绕其运行。"
+        data-jp="組織図をレンダリング——チーム、メンバー、役割、実行中プロジェクト。組織ノード (mass=8) が自然に中央を確保し、メンバーが周回。">
+        Render đồ thị org — team, thành viên, vai trò, dự án đang chạy. Organization node (mass=8) tự nhiên chiếm trung tâm, các thành viên quỹ đạo xung quanh.
+      </p>
+    </div>
+
+    <div class="use-card">
+      <div class="use-icon">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <h4 class="i18n" data-vi="Phân tích mạng quan hệ" data-en="Relationship network analysis" data-zh="关系网络分析" data-jp="関係ネットワーク分析">Phân tích mạng quan hệ</h4>
+      <p class="i18n"
+        data-vi="Hub detection tự động xác định điểm trung tâm trong mạng — người có nhiều kết nối nhất, dự án phụ thuộc nhiều nhất. Hữu ích cho contract network, supply chain."
+        data-en="Hub detection automatically identifies central nodes in a network — the most-connected person, the most-depended project. Useful for contract networks, supply chains."
+        data-zh="中心检测自动识别网络中的核心节点——连接最多的人、依赖最多的项目。适用于合同网络、供应链。"
+        data-jp="ハブ検出がネットワーク内の中心ノードを自動識別——最も接続の多い人、最も依存されるプロジェクト。契約ネットワーク、サプライチェーンに有効。">
+        Hub detection tự động xác định điểm trung tâm trong mạng — người có nhiều kết nối nhất, dự án phụ thuộc nhiều nhất. Hữu ích cho contract network, supply chain.
+      </p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+<footer class="content">
+  <div class="footer-logo">Go<span>Claw</span></div>
+  <p class="i18n"
+    data-vi="Bản phát hành v2.47.0 — Force-Directed Knowledge Graph Visualization"
+    data-en="Release v2.47.0 — Force-Directed Knowledge Graph Visualization"
+    data-zh="发布 v2.47.0 — 力导向知识图谱可视化"
+    data-jp="リリース v2.47.0 — 力指向ナレッジグラフ可視化">
+    Bản phát hành v2.47.0 — Force-Directed Knowledge Graph Visualization
+  </p>
+  <div class="footer-links">
+    <a href="https://github.com/clawfamily/goclaw" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://docs.goclaw.dev" target="_blank" rel="noopener">Docs</a>
+    <a href="https://docs.goclaw.dev/knowledge-graph" target="_blank" rel="noopener">Knowledge Graph</a>
+    <a href="/">Blog</a>
+  </div>
+</footer>
 
 </div><!-- /content -->
 
 <script>
-// ── Language switcher ──
-function setLang(lang) {
-  document.querySelectorAll('[data-lang]').forEach(el => {
-    el.classList.toggle('active', el.dataset.lang === lang);
-  });
-  document.querySelectorAll('.lang-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.textContent.toLowerCase() === lang ||
-      (lang === 'zh' && btn.textContent === 'CN') ||
-      (lang === 'ja' && btn.textContent === 'JP'));
-  });
-  document.documentElement.lang = lang;
-}
-
-// ── Constellation animation ──
-(function() {
+// ── Constellation canvas ──
+(function(){
   const canvas = document.getElementById('constellation');
+  if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  let W, H, nodes, animId;
+  let W, H, stars = [], RAF;
 
   function resize() {
     W = canvas.width = canvas.offsetWidth;
     H = canvas.height = canvas.offsetHeight;
   }
 
-  function init() {
-    resize();
-    const count = Math.min(60, Math.floor((W * H) / 18000));
-    nodes = Array.from({ length: count }, () => ({
-      x: Math.random() * W,
-      y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 0.3,
-      vy: (Math.random() - 0.5) * 0.3,
-      r: Math.random() * 2 + 1,
-      color: Math.random() > 0.5 ? '#00d4ff' : '#8b5cf6',
-    }));
+  function initStars(n) {
+    stars = [];
+    for (let i = 0; i < n; i++) {
+      stars.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.2 + 0.3,
+        vx: (Math.random() - 0.5) * 0.12,
+        vy: (Math.random() - 0.5) * 0.12,
+        alpha: Math.random()
+      });
+    }
   }
 
   function draw() {
     ctx.clearRect(0, 0, W, H);
-
-    // Draw edges between nearby nodes
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i + 1; j < nodes.length; j++) {
-        const dx = nodes[i].x - nodes[j].x;
-        const dy = nodes[i].y - nodes[j].y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 120) {
+    stars.forEach(s => {
+      s.x += s.vx; s.y += s.vy;
+      if (s.x < 0) s.x = W; if (s.x > W) s.x = 0;
+      if (s.y < 0) s.y = H; if (s.y > H) s.y = 0;
+      s.alpha += (Math.random() - 0.5) * 0.015;
+      s.alpha = Math.max(0.05, Math.min(0.7, s.alpha));
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(167,139,250,${s.alpha})`;
+      ctx.fill();
+    });
+    // draw connections
+    const maxDist = 100;
+    for (let i = 0; i < stars.length; i++) {
+      for (let j = i + 1; j < stars.length; j++) {
+        const dx = stars[i].x - stars[j].x;
+        const dy = stars[i].y - stars[j].y;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        if (d < maxDist) {
           ctx.beginPath();
-          ctx.moveTo(nodes[i].x, nodes[i].y);
-          ctx.lineTo(nodes[j].x, nodes[j].y);
-          ctx.strokeStyle = `rgba(139,92,246,${0.15 * (1 - dist / 120)})`;
-          ctx.lineWidth = 0.8;
+          ctx.moveTo(stars[i].x, stars[i].y);
+          ctx.lineTo(stars[j].x, stars[j].y);
+          ctx.strokeStyle = `rgba(139,92,246,${(1 - d/maxDist) * 0.12})`;
+          ctx.lineWidth = 0.5;
           ctx.stroke();
         }
       }
     }
-
-    // Draw nodes
-    nodes.forEach(n => {
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-      ctx.fillStyle = n.color + '99';
-      ctx.fill();
-
-      // Glow
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, n.r * 2.5, 0, Math.PI * 2);
-      ctx.fillStyle = n.color + '22';
-      ctx.fill();
-
-      // Move
-      n.x += n.vx;
-      n.y += n.vy;
-      if (n.x < 0 || n.x > W) n.vx *= -1;
-      if (n.y < 0 || n.y > H) n.vy *= -1;
-    });
-
-    animId = requestAnimationFrame(draw);
+    RAF = requestAnimationFrame(draw);
   }
 
-  init();
+  resize();
+  initStars(60);
   draw();
-
-  window.addEventListener('resize', () => {
-    cancelAnimationFrame(animId);
-    init();
-    draw();
-  });
+  window.addEventListener('resize', () => { resize(); initStars(60); });
 })();
+
+// ── Language switcher ──
+const LANGS = ['vi','en','zh','jp'];
+let currentLang = 'vi';
+
+function setLang(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang;
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.trim().toLowerCase() === (lang === 'jp' ? 'jp' : lang));
+  });
+
+  document.querySelectorAll('.i18n').forEach(el => {
+    const val = el.getAttribute('data-' + lang);
+    if (val !== null) el.innerHTML = val;
+  });
+}
+
+// Init on load
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const map = { 'VI':'vi','EN':'en','CN':'zh','JP':'jp' };
+    setLang(map[btn.textContent.trim()] || 'vi');
+  });
+});
 </script>
 </body>
 </html>
