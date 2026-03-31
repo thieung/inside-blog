@@ -6,6 +6,7 @@
     "build": "turbo build",
     "check": "turbo check"
   },
+  "packageManager": "pnpm@10.26.2",
   "devDependencies": {
     "turbo": "^2"
   }
