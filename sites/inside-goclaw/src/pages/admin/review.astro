@@ -1,0 +1,217 @@
+---
+import statusData from '../../content/status.json';
+
+const posts = Object.entries(statusData as Record<string, { status: string; updated: string }>).map(
+  ([slug, meta]) => ({ slug, ...meta })
+);
+---
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Review Drafts</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f11; --surface: #18181b; --surface2: #222225; --border: #2e2e32;
+      --text: #e4e4e7; --muted: #71717a; --dim: #52525b;
+      --amber: #f59e0b; --green: #22c55e; --red: #ef4444; --blue: #3b82f6;
+      --sans: 'Outfit', system-ui, sans-serif; --mono: 'JetBrains Mono', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    nav.admin-nav {
+      padding: 0 32px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0; height: 48px; flex-shrink: 0;
+    }
+    .brand { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--amber); margin-right: 32px; }
+    .nav-item {
+      padding: 0 16px; height: 48px; display: flex; align-items: center;
+      font-family: var(--mono); font-size: 12px; color: var(--muted);
+      text-decoration: none; border-bottom: 2px solid transparent; transition: color 0.15s;
+    }
+    .nav-item:hover { color: var(--text); }
+    .nav-item.active { color: var(--amber); border-bottom-color: var(--amber); }
+    .layout { display: flex; flex: 1; overflow: hidden; height: calc(100vh - 48px); }
+    .sidebar { width: 300px; border-right: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; }
+    .sidebar-header {
+      padding: 10px 16px; font-family: var(--mono); font-size: 10px;
+      text-transform: uppercase; letter-spacing: 0.12em; color: var(--dim);
+      border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 1;
+    }
+    .draft-item {
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      cursor: pointer; transition: background 0.15s;
+    }
+    .draft-item:hover { background: var(--surface); }
+    .draft-item.active { background: var(--surface2); border-left: 3px solid var(--amber); }
+    .draft-slug { font-family: var(--mono); font-size: 11px; color: var(--dim); margin-bottom: 4px; }
+    .draft-title { font-size: 13px; font-weight: 500; line-height: 1.4; margin-bottom: 6px; }
+    .draft-badge {
+      display: inline-block; font-family: var(--mono); font-size: 10px;
+      padding: 2px 8px; border-radius: 4px; font-weight: 600;
+    }
+    .badge-draft { background: rgba(245,158,11,0.12); color: var(--amber); }
+    .badge-in-review { background: rgba(59,130,246,0.12); color: var(--blue); }
+    .badge-approved { background: rgba(34,197,94,0.12); color: var(--green); }
+    .badge-needs-update { background: rgba(239,68,68,0.12); color: var(--red); }
+    .badge-published { background: rgba(113,113,122,0.12); color: var(--muted); }
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .toolbar {
+      padding: 10px 16px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px; background: var(--surface); flex-shrink: 0;
+    }
+    .toolbar-title { font-size: 13px; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .view-toggle { display: flex; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+    .view-btn {
+      padding: 5px 12px; font-family: var(--mono); font-size: 11px;
+      background: transparent; color: var(--dim); border: none; cursor: pointer; transition: all 0.15s;
+    }
+    .view-btn.active { background: var(--surface2); color: var(--text); }
+    .sep { width: 1px; height: 20px; background: var(--border); }
+    .tbtn {
+      font-family: var(--mono); font-size: 11px; padding: 6px 14px;
+      border-radius: 6px; border: 1px solid var(--border);
+      background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s;
+    }
+    .tbtn:hover { color: var(--text); border-color: var(--muted); }
+    .tbtn.approve { border-color: var(--green); color: var(--green); }
+    .tbtn.approve:hover { background: var(--green); color: #000; }
+    .tbtn.needs-update { border-color: var(--red); color: var(--red); }
+    .tbtn.needs-update:hover { background: var(--red); color: #fff; }
+    .tbtn.start { border-color: var(--blue); color: var(--blue); }
+    .tbtn.start:hover { background: var(--blue); color: #fff; }
+    .preview-area { flex: 1; background: #000; overflow: hidden; position: relative; }
+    .preview-area iframe { width: 100%; height: 100%; border: none; }
+    .preview-mobile { display: flex; justify-content: center; align-items: flex-start; padding: 20px; overflow-y: auto; background: var(--bg); }
+    .mobile-frame {
+      width: 390px; height: 844px; border: 3px solid var(--border);
+      border-radius: 40px; overflow: hidden; flex-shrink: 0;
+    }
+    .mobile-frame iframe { width: 390px; height: 844px; border: none; }
+    .notes-panel {
+      border-top: 1px solid var(--border); padding: 10px 16px;
+      background: var(--surface); flex-shrink: 0;
+    }
+    .notes-label { font-family: var(--mono); font-size: 10px; color: var(--dim); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.1em; }
+    .notes-input {
+      width: 100%; padding: 8px 12px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-family: var(--sans); font-size: 13px;
+      resize: none; outline: none;
+    }
+    .notes-input:focus { border-color: var(--amber); }
+    .empty-state {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 12px; color: var(--dim);
+    }
+    .empty-state p { font-size: 14px; }
+  </style>
+</head>
+<body>
+  <nav class="admin-nav">
+    <span class="brand">GoClaw Admin</span>
+    <a href="/admin" class="nav-item">Dashboard</a>
+    <a href="/admin/review" class="nav-item active">Review</a>
+    <a href="/admin/export" class="nav-item">Export</a>
+    <a href="/admin/publish" class="nav-item">Publish</a>
+  </nav>
+
+  <div class="layout">
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header" id="sidebarCount">All Posts</div>
+      <!-- rendered by JS -->
+    </div>
+    <div class="main" id="main">
+      <div class="empty-state">
+        <p>Select a draft to review</p>
+      </div>
+    </div>
+  </div>
+
+  <script define:vars={{ posts }}>
+    let active = null;
+    let viewMode = 'desktop';
+
+    function getStatus(slug) {
+      return localStorage.getItem('admin-status-' + slug) ||
+        (posts.find(p => p.slug === slug)?.status) || 'draft';
+    }
+    function setStatus(slug, status) {
+      localStorage.setItem('admin-status-' + slug, status);
+      renderSidebar();
+      if (active === slug) renderMain(slug);
+    }
+    function getNotes(slug) { return localStorage.getItem('admin-notes-' + slug) || ''; }
+    function setNotes(slug, val) { localStorage.setItem('admin-notes-' + slug, val); }
+
+    function badgeClass(s) {
+      return { draft: 'badge-draft', 'in-review': 'badge-in-review', approved: 'badge-approved', 'needs-update': 'badge-needs-update', published: 'badge-published' }[s] || 'badge-draft';
+    }
+
+    function slugToTitle(slug) {
+      return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+
+    function renderSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const count = document.getElementById('sidebarCount');
+      count.textContent = `All Posts (${posts.length})`;
+      sidebar.innerHTML = '<div class="sidebar-header" id="sidebarCount">All Posts (' + posts.length + ')</div>' +
+        posts.map(p => {
+          const s = getStatus(p.slug);
+          return `<div class="draft-item${active === p.slug ? ' active' : ''}" data-slug="${p.slug}">
+            <div class="draft-slug">${p.slug}</div>
+            <div class="draft-title">${slugToTitle(p.slug)}</div>
+            <span class="draft-badge ${badgeClass(s)}">${s}</span>
+          </div>`;
+        }).join('');
+      sidebar.querySelectorAll('.draft-item').forEach(el => {
+        el.addEventListener('click', () => { active = el.dataset.slug; renderSidebar(); renderMain(active); });
+      });
+    }
+
+    function renderMain(slug) {
+      const s = getStatus(slug);
+      const isDraft = !['published'].includes(s);
+      // Determine path: published posts are in /posts/, drafts in /drafts/
+      const basePath = s === 'published' ? '/posts/' : '/drafts/';
+      const iframeSrc = basePath + slug + '.html';
+
+      document.getElementById('main').innerHTML = `
+        <div class="toolbar">
+          <div class="toolbar-title">${slugToTitle(slug)}</div>
+          <div class="view-toggle">
+            <button class="view-btn${viewMode === 'desktop' ? ' active' : ''}" onclick="setView('desktop')">Desktop</button>
+            <button class="view-btn${viewMode === 'mobile' ? ' active' : ''}" onclick="setView('mobile')">Mobile</button>
+          </div>
+          <div class="sep"></div>
+          ${s === 'draft' ? `<button class="tbtn start" onclick="setStatus('${slug}','in-review')">Start Review</button>` : ''}
+          ${['draft','in-review','needs-update'].includes(s) ? `<button class="tbtn approve" onclick="setStatus('${slug}','approved')">Approve</button>` : ''}
+          ${['in-review','draft'].includes(s) ? `<button class="tbtn needs-update" onclick="setStatus('${slug}','needs-update')">Needs Update</button>` : ''}
+          ${s === 'published' ? '<span style="font-family:var(--mono);font-size:11px;color:var(--muted)">PUBLISHED</span>' : ''}
+        </div>
+        <div class="preview-area${viewMode === 'mobile' ? ' preview-mobile' : ''}" id="previewWrap">
+          ${viewMode === 'mobile'
+            ? `<div class="mobile-frame"><iframe src="${iframeSrc}"></iframe></div>`
+            : `<iframe src="${iframeSrc}"></iframe>`}
+        </div>
+        <div class="notes-panel">
+          <div class="notes-label">Review Notes</div>
+          <textarea class="notes-input" rows="2" id="notesArea" placeholder="Add review notes…">${getNotes(slug)}</textarea>
+        </div>`;
+      document.getElementById('notesArea')?.addEventListener('input', e => setNotes(slug, e.target.value));
+    }
+
+    function setView(mode) {
+      viewMode = mode;
+      if (active) renderMain(active);
+    }
+
+    // expose to inline onclick
+    window.setStatus = setStatus;
+    window.setView = setView;
+
+    renderSidebar();
+  </script>
+</body>
+</html>

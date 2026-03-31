@@ -1,0 +1,12 @@
+{
+  "name": "blog-platform",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev --filter=inside-goclaw",
+    "build": "turbo build",
+    "check": "turbo check"
+  },
+  "devDependencies": {
+    "turbo": "^2"
+  }
+}

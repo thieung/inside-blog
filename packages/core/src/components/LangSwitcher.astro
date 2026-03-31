@@ -1,0 +1,31 @@
+---
+/**
+ * Language switcher — generates links to same page in other locales.
+ * Uses Astro built-in i18n routing (vi default, no prefix).
+ */
+interface Props {
+  slug: string;
+  langs?: string[];
+  /** Base path prefix, defaults to /posts */
+  basePath?: string;
+}
+
+const { slug, langs = ['vi', 'en', 'zh', 'ja'], basePath = '/posts' } = Astro.props;
+const currentLocale = Astro.currentLocale || 'vi';
+
+function localizedHref(lang: string): string {
+  const path = `${basePath}/${slug}`;
+  return lang === 'vi' ? path : `/${lang}${path}`;
+}
+---
+
+<div class="lang-switcher">
+  {langs.map((lang) => (
+    <a
+      class:list={['lang-btn', { active: lang === currentLocale }]}
+      href={localizedHref(lang)}
+    >
+      {lang.toUpperCase()}
+    </a>
+  ))}
+</div>

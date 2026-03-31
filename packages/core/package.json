@@ -1,0 +1,9 @@
+{
+  "name": "@blog/core",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "./components/*": "./src/components/*",
+    "./utils/*": "./src/utils/*"
+  }
+}

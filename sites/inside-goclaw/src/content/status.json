@@ -1,0 +1,16 @@
+{
+  "agent-teams-task-board": { "status": "draft", "updated": "2026-03-28" },
+  "browser-automation-resource-limits": { "status": "draft", "updated": "2026-03-29" },
+  "desktop-edition-goclaw-lite": { "status": "draft", "updated": "2026-03-28" },
+  "embedding-dimensions-multi-provider": { "status": "draft", "updated": "2026-03-29" },
+  "file-upload-workspace": { "status": "draft", "updated": "2026-03-29" },
+  "force-directed-knowledge-graphs": { "status": "published", "updated": "2026-03-31" },
+  "image-gallery-session-state": { "status": "draft", "updated": "2026-03-29" },
+  "knowledge-graph-integration": { "status": "draft", "updated": "2026-03-28" },
+  "realtime-team-task-notifications": { "status": "draft", "updated": "2026-03-29" },
+  "semantic-memory-chunk-overlap": { "status": "draft", "updated": "2026-03-29" },
+  "system-settings-dashboard": { "status": "draft", "updated": "2026-03-29" },
+  "task-lifecycle-state-machine": { "status": "draft", "updated": "2026-03-29" },
+  "codex-oauth-pools": { "status": "published", "updated": "2026-03-28" },
+  "yield-mention-mode": { "status": "published", "updated": "2026-03-27" }
+}

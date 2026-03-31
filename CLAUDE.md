@@ -50,6 +50,16 @@ Each post has social media content in `social/<slug>/`:
 - `x-post.txt`, `threads-post.txt`
 - `thumbnail-vi.html`, `thumbnail-en.html` (1200x630 OG images)
 
+## Vietnamese Writing Style (Social Posts)
+When writing Vietnamese social posts, translate tech terms to accessible Vietnamese:
+- extraction → trích xuất, storage → lưu trữ, visualization → trực quan hóa
+- entity → thực thể, relation → quan hệ, confidence scoring → chấm điểm độ tin cậy
+- fallback → cơ chế dự phòng, optimizations → cải tiến, memoization → ghi nhớ (add explanation)
+- depth traversal → duyệt sâu, max N hops → tối đa N bước nhảy
+- Keep as-is: PostgreSQL, pgvector, recursive CTE, KNN, O(1), Map, Three.js, INP
+- No double dashes (--), use commas/periods. Use 🔹 for FB list items.
+- English posts (X/Twitter) keep original technical terms.
+
 ## Directory Structure
 ```
 posts/          — published HTML posts
