@@ -917,7 +917,7 @@ li { margin-bottom: 7px; font-size: 15px; }
 
 <!-- Fixed Nav -->
 <div class="fixed-nav">
-  <a href="/" class="nav-btn" title="Home" aria-label="Home">&#x2302;</a>
+  <a href="/" class="nav-btn home-link" title="Home" aria-label="Home">&#x2302;</a>
   <button class="nav-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">&#x25D0;</button>
   <button class="nav-btn lang-btn" data-lang="vi" style="display:none;font-size:11px;font-family:var(--font-mono);width:auto;padding:0 8px;">VI</button>
   <button class="nav-btn lang-btn" data-lang="en" style="display:none;font-size:11px;font-family:var(--font-mono);width:auto;padding:0 8px;">EN</button>
@@ -1623,7 +1623,7 @@ if len(filtered) <= skillInlineMaxCount &&
   <p style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin:0;">
     <span data-i18n="footer_text">GoClaw v2.56.0 MCP Hybrid Search Mode</span><br>Built with Go &middot; BM25 &middot; MCP Protocol
   </p>
-  <a href="/" style="font-family:var(--font-mono);font-size:11px;color:var(--accent);text-decoration:none;border:1px solid var(--accent);padding:6px 14px;border-radius:var(--radius-sm);transition:background .15s;" onmouseover="this.style.background='var(--accent-dim)'" onmouseout="this.style.background='transparent'" data-i18n="footer_back">&larr; Back to blog</a>
+  <a href="/" class="home-link" style="font-family:var(--font-mono);font-size:11px;color:var(--accent);text-decoration:none;border:1px solid var(--accent);padding:6px 14px;border-radius:var(--radius-sm);transition:background .15s;" onmouseover="this.style.background='var(--accent-dim)'" onmouseout="this.style.background='transparent'" data-i18n="footer_back">&larr; Back to blog</a>
 </div>
 </div>
 </section>
@@ -2122,6 +2122,11 @@ const pathMatch = window.location.pathname.match(/^\/(en|zh|ja)\//);
 const urlLang = new URLSearchParams(window.location.search).get('lang');
 const detectedLang = urlLang || (pathMatch && pathMatch[1]) || null;
 if (detectedLang && ['vi','en','zh','ja'].includes(detectedLang)) setLang(detectedLang);
+
+// Update home links to preserve locale
+const localePrefix = window.location.pathname.match(/^\/(en|zh|ja)\//);
+const homeHref = localePrefix ? '/' + localePrefix[1] + '/' : '/';
+document.querySelectorAll('.home-link').forEach(a => a.href = homeHref);
 </script>
 
 </body>
