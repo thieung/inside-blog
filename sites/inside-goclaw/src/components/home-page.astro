@@ -57,6 +57,24 @@ interface Post {
 
 const posts: Post[] = [
   {
+    slug: 'mcp-hybrid-search-mode',
+    version: 'v2.56.0',
+    date: 'Apr 2, 2026',
+    tags: ['mcp', 'hybrid-search', 'bm25', 'tool-management'],
+    title: {
+      vi: 'MCP Hybrid Search Mode — Quản lý tool thông minh',
+      en: 'MCP Hybrid Search Mode — Smart Tool Management',
+      zh: 'MCP 混合搜索模式 — 智能工具管理',
+      ja: 'MCP ハイブリッド検索モード — スマートツール管理',
+    },
+    excerpt: {
+      vi: 'Giữ 40 tool inline, defer phần còn lại qua BM25 — cơ chế quản lý tool thông minh khi số lượng MCP tool vượt ngưỡng.',
+      en: 'Keep 40 tools inline, defer the rest via BM25 — smart tool management when MCP tool count exceeds the threshold.',
+      zh: '保留 40 个工具内联，其余通过 BM25 延迟加载 — MCP 工具数超过阈值时的智能管理机制。',
+      ja: '最初の40ツールをインラインに保持、残りをBM25で遅延読み込み — MCPツール数が閾値を超えたときのスマート管理。',
+    },
+  },
+  {
     slug: 'force-directed-knowledge-graphs',
     version: 'v2.47.0',
     date: 'Mar 31, 2026',
