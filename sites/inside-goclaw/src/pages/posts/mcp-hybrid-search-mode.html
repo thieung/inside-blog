@@ -2125,7 +2125,7 @@ if (detectedLang && ['vi','en','zh','ja'].includes(detectedLang)) setLang(detect
 
 // Update home links to preserve locale
 const localePrefix = window.location.pathname.match(/^\/(en|zh|ja)\//);
-const homeHref = localePrefix ? '/' + localePrefix[1] + '/' : '/';
+const homeHref = localePrefix ? '/' + localePrefix[1] : '/';
 document.querySelectorAll('.home-link').forEach(a => a.href = homeHref);
 </script>
 
