@@ -1,19 +1,23 @@
 ---
 import statusData from '../../content/status.json';
 
-// Compute counts at build time
-const counts = { draft: 0, 'in-review': 0, approved: 0, 'needs-update': 0, published: 0 };
+// Get posts sorted by update date
+const posts = Object.entries(statusData as Record<string, { status: string; updated: string }>)
+  .map(([slug, meta]) => ({ slug, ...meta }))
+  .sort((a, b) => b.updated.localeCompare(a.updated));
+
+// Compute counts
+const counts = { draft: 0, published: 0 };
 for (const entry of Object.values(statusData as Record<string, { status: string }>)) {
   const s = entry.status as keyof typeof counts;
   if (s in counts) counts[s]++;
 }
-const total = Object.values(counts).reduce((a, b) => a + b, 0);
 ---
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin — Dashboard</title>
+  <title>GoClaw Admin — Social & Thumbnails</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -24,154 +28,311 @@ const total = Object.values(counts).reduce((a, b) => a + b, 0);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; }
-    nav.admin-nav {
-      padding: 0 32px; border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; gap: 0; height: 48px;
+
+    /* Header */
+    header {
+      padding: 16px 32px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
     }
-    .brand { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--amber); margin-right: 32px; }
-    .nav-item {
-      padding: 0 16px; height: 48px; display: flex; align-items: center;
-      font-family: var(--mono); font-size: 12px; color: var(--muted);
-      text-decoration: none; border-bottom: 2px solid transparent; transition: color 0.15s;
+    .brand { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--amber); }
+    .stats { display: flex; gap: 16px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+    .stat { display: flex; gap: 6px; align-items: center; }
+    .stat-num { color: var(--text); font-weight: 600; }
+
+    /* Toolbar */
+    .toolbar {
+      padding: 12px 32px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 16px; background: var(--surface);
     }
-    .nav-item:hover { color: var(--text); }
-    .nav-item.active { color: var(--amber); border-bottom-color: var(--amber); }
-    .page { max-width: 960px; margin: 0 auto; padding: 40px 32px; }
-    h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
-    h1 span { color: var(--amber); }
-    .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
-    .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 40px; }
-    .stat-card {
+    .toolbar label { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--dim); }
+    .toolbar select {
+      font-family: var(--mono); font-size: 12px; padding: 6px 10px;
+      border-radius: 6px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text); cursor: pointer; outline: none;
+    }
+    .toolbar select:focus { border-color: var(--amber); }
+    .sep { width: 1px; height: 24px; background: var(--border); }
+
+    /* Main layout */
+    .main { display: grid; grid-template-columns: 1fr 420px; height: calc(100vh - 105px); }
+
+    /* Left panel - Social content */
+    .social-panel { padding: 24px 32px; overflow-y: auto; }
+
+    /* Platform tabs */
+    .platform-tabs { display: flex; gap: 0; margin-bottom: 16px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+    .platform-tab {
+      flex: 1; padding: 10px 16px; font-family: var(--mono); font-size: 11px;
+      background: transparent; color: var(--dim); border: none; cursor: pointer;
+      transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .platform-tab:not(:last-child) { border-right: 1px solid var(--border); }
+    .platform-tab:hover { color: var(--text); background: var(--surface); }
+    .platform-tab.active { background: var(--surface2); color: var(--amber); }
+
+    /* Content block */
+    .content-block {
       background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
-      padding: 16px; display: flex; flex-direction: column; gap: 8px;
+      margin-bottom: 16px; overflow: hidden;
     }
-    .stat-label { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--dim); }
-    .stat-count { font-size: 28px; font-weight: 700; font-family: var(--mono); }
-    .stat-count.draft { color: var(--amber); }
-    .stat-count.in-review { color: var(--blue); }
-    .stat-count.approved { color: var(--green); }
-    .stat-count.needs-update { color: var(--red); }
-    .stat-count.published { color: var(--muted); }
-    .nav-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 40px; }
-    .nav-card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
-      padding: 24px; text-decoration: none; color: var(--text); transition: border-color 0.15s;
-      display: flex; flex-direction: column; gap: 8px;
+    .content-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; background: var(--surface2); border-bottom: 1px solid var(--border);
     }
-    .nav-card:hover { border-color: var(--amber); }
-    .nav-card-icon { font-size: 24px; margin-bottom: 4px; }
-    .nav-card-title { font-size: 16px; font-weight: 600; }
-    .nav-card-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
-    .nav-card-link { font-family: var(--mono); font-size: 11px; color: var(--amber); margin-top: 8px; }
-    section.token-section {
-      background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px;
+    .content-label { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--dim); }
+    .copy-btn {
+      font-family: var(--mono); font-size: 10px; padding: 4px 12px;
+      border-radius: 4px; border: 1px solid var(--border);
+      background: transparent; color: var(--dim); cursor: pointer; transition: all 0.2s;
     }
-    .section-title { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--dim); margin-bottom: 16px; }
-    .token-row { display: flex; gap: 12px; align-items: center; }
-    .token-input {
-      flex: 1; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border);
-      border-radius: 6px; color: var(--text); font-family: var(--mono); font-size: 13px; outline: none;
+    .copy-btn:hover { border-color: var(--amber); color: var(--amber); }
+    .copy-btn.copied { border-color: var(--green); color: var(--green); }
+    .content-text {
+      padding: 16px; font-family: var(--sans); font-size: 13px; color: var(--text);
+      line-height: 1.7; white-space: pre-wrap; word-break: break-word;
+      min-height: 120px; max-height: 300px; overflow-y: auto;
     }
-    .token-input:focus { border-color: var(--amber); }
-    .btn {
-      padding: 10px 20px; border-radius: 6px; border: 1px solid var(--amber);
-      background: transparent; color: var(--amber); font-family: var(--mono); font-size: 12px;
-      cursor: pointer; transition: all 0.15s;
+    .empty-block { color: var(--dim); font-style: italic; }
+
+    /* URL section */
+    .url-section { margin-top: 16px; }
+    .url-row { display: flex; gap: 8px; align-items: center; }
+    .url-select {
+      font-family: var(--mono); font-size: 11px; padding: 6px 10px;
+      border-radius: 6px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text); cursor: pointer;
     }
-    .btn:hover { background: var(--amber); color: #000; }
-    .token-status { font-family: var(--mono); font-size: 11px; color: var(--dim); margin-top: 10px; }
+    .url-display {
+      flex: 1; padding: 8px 12px; font-family: var(--mono); font-size: 11px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+      color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* Right panel - Thumbnail */
+    .thumb-panel { border-left: 1px solid var(--border); display: flex; flex-direction: column; }
+    .thumb-header {
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      font-family: var(--mono); font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--dim); background: var(--surface);
+    }
+    .thumb-wrap {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      background: #000; overflow: hidden; padding: 16px;
+    }
+    .thumb-scaler { position: relative; transition: transform 0.2s; }
+    .thumb-scaler iframe { border: none; display: block; }
+    .no-thumb { color: var(--dim); font-family: var(--mono); font-size: 12px; text-align: center; }
+
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
-  <nav class="admin-nav">
+  <header>
     <span class="brand">GoClaw Admin</span>
-    <a href="/admin" class="nav-item active">Dashboard</a>
-    <a href="/admin/review" class="nav-item">Review</a>
-    <a href="/admin/export" class="nav-item">Export</a>
-    <a href="/admin/publish" class="nav-item">Publish</a>
-  </nav>
+    <div class="stats">
+      <span class="stat"><span class="stat-num">{counts.published}</span> published</span>
+      <span class="stat"><span class="stat-num">{counts.draft}</span> drafts</span>
+    </div>
+  </header>
 
-  <div class="page">
-    <h1>GoClaw Blog <span>Admin</span></h1>
-    <p class="subtitle">Content management dashboard — {total} posts tracked</p>
+  <div class="toolbar">
+    <label>Post</label>
+    <select id="postSel">
+      {posts.map(p => <option value={p.slug}>{p.slug}</option>)}
+    </select>
+  </div>
 
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-label">Draft</div>
-        <div class="stat-count draft">{counts.draft}</div>
+  <div class="main">
+    <!-- Left: Social Content -->
+    <div class="social-panel">
+      <div class="platform-tabs">
+        <button class="platform-tab active" data-platform="facebook">Facebook</button>
+        <button class="platform-tab" data-platform="threads">Threads</button>
+        <button class="platform-tab" data-platform="x">X / Twitter</button>
+        <button class="platform-tab" data-platform="linkedin">LinkedIn</button>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">In Review</div>
-        <div class="stat-count in-review">{counts['in-review']}</div>
+
+      <div class="content-block">
+        <div class="content-head">
+          <span class="content-label" id="platformLabel">Facebook Post</span>
+          <button class="copy-btn" id="copyBtn">Copy</button>
+        </div>
+        <pre class="content-text" id="contentText"><span class="empty-block">Select a post to view content</span></pre>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">Approved</div>
-        <div class="stat-count approved">{counts.approved}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Needs Update</div>
-        <div class="stat-count needs-update">{counts['needs-update']}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Published</div>
-        <div class="stat-count published">{counts.published}</div>
+
+      <div class="url-section">
+        <div class="content-head" style="border-radius: 8px 8px 0 0; border: 1px solid var(--border); border-bottom: none;">
+          <span class="content-label">Post URL</span>
+          <button class="copy-btn" id="copyUrlBtn">Copy URL</button>
+        </div>
+        <div class="url-row" style="background: var(--surface); padding: 12px; border: 1px solid var(--border); border-radius: 0 0 8px 8px;">
+          <select class="url-select" id="urlLangSel">
+            <option value="vi">Vietnamese</option>
+            <option value="en">English</option>
+            <option value="zh">Chinese</option>
+            <option value="ja">Japanese</option>
+          </select>
+          <div class="url-display" id="urlDisplay">—</div>
+        </div>
       </div>
     </div>
 
-    <div class="nav-cards">
-      <a href="/admin/review" class="nav-card">
-        <div class="nav-card-icon">📝</div>
-        <div class="nav-card-title">Review Drafts</div>
-        <div class="nav-card-desc">Preview drafts in desktop/mobile, approve or flag for updates.</div>
-        <div class="nav-card-link">→ /admin/review</div>
-      </a>
-      <a href="/admin/export" class="nav-card">
-        <div class="nav-card-icon">📤</div>
-        <div class="nav-card-title">Export Social</div>
-        <div class="nav-card-desc">Preview thumbnails and copy social media text for each post.</div>
-        <div class="nav-card-link">→ /admin/export</div>
-      </a>
-      <a href="/admin/publish" class="nav-card">
-        <div class="nav-card-icon">🚀</div>
-        <div class="nav-card-title">Publish</div>
-        <div class="nav-card-desc">Create GitHub PRs for approved drafts to trigger publishing.</div>
-        <div class="nav-card-link">→ /admin/publish</div>
-      </a>
-    </div>
-
-    <section class="token-section">
-      <div class="section-title">GitHub Token</div>
-      <div class="token-row">
-        <input type="password" class="token-input" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
-        <button class="btn" onclick="saveToken()">Save Token</button>
-        <button class="btn" style="border-color:var(--dim);color:var(--dim)" onclick="clearToken()">Clear</button>
+    <!-- Right: Thumbnail -->
+    <div class="thumb-panel">
+      <div class="thumb-header">Thumbnail Preview</div>
+      <div class="thumb-wrap" id="thumbWrap">
+        <div class="no-thumb">Select a post with thumbnail</div>
       </div>
-      <div class="token-status" id="tokenStatus"></div>
-    </section>
+    </div>
   </div>
 
   <script>
-    const input = document.getElementById('tokenInput');
-    const status = document.getElementById('tokenStatus');
-    const stored = localStorage.getItem('gh-token');
-    if (stored) {
-      input.value = stored;
-      status.textContent = 'Token saved — ' + stored.slice(0, 8) + '…';
-      status.style.color = 'var(--green)';
+    const postSel = document.getElementById('postSel');
+    const platformTabs = document.querySelectorAll('.platform-tab');
+    const platformLabel = document.getElementById('platformLabel');
+    const contentText = document.getElementById('contentText');
+    const copyBtn = document.getElementById('copyBtn');
+    const urlLangSel = document.getElementById('urlLangSel');
+    const urlDisplay = document.getElementById('urlDisplay');
+    const copyUrlBtn = document.getElementById('copyUrlBtn');
+    const thumbWrap = document.getElementById('thumbWrap');
+
+    let currentPlatform = 'facebook';
+    let socialData = null;
+
+    const platformLabels = {
+      facebook: 'Facebook Post',
+      threads: 'Threads Post',
+      x: 'X / Twitter Post',
+      linkedin: 'LinkedIn Post'
+    };
+
+    // Platform tab click
+    platformTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        platformTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentPlatform = tab.dataset.platform;
+        platformLabel.textContent = platformLabels[currentPlatform];
+        renderContent();
+      });
+    });
+
+    // Load social content
+    async function loadSocialContent(slug) {
+      try {
+        const res = await fetch(`/social/${slug}/content.json`);
+        if (!res.ok) {
+          socialData = null;
+          return;
+        }
+        socialData = await res.json();
+      } catch {
+        socialData = null;
+      }
     }
-    function saveToken() {
-      const val = input.value.trim();
-      if (!val) return;
-      localStorage.setItem('gh-token', val);
-      status.textContent = 'Saved — ' + val.slice(0, 8) + '…';
-      status.style.color = 'var(--green)';
+
+    // Render content for current platform
+    function renderContent() {
+      if (!socialData || !socialData.posts || !socialData.posts[currentPlatform]) {
+        contentText.innerHTML = '<span class="empty-block">No content available</span>';
+        return;
+      }
+      contentText.textContent = socialData.posts[currentPlatform].content;
     }
-    function clearToken() {
-      localStorage.removeItem('gh-token');
-      input.value = '';
-      status.textContent = 'Token cleared.';
-      status.style.color = 'var(--dim)';
+
+    // Render URL
+    function renderUrl() {
+      const slug = postSel.value;
+      const lang = urlLangSel.value;
+      const baseUrl = 'https://goclaw.thieunv.space';
+
+      if (socialData && socialData.urls && socialData.urls[lang]) {
+        urlDisplay.textContent = socialData.urls[lang];
+      } else {
+        // Fallback URL construction
+        const prefix = lang === 'vi' ? '' : `/${lang}`;
+        urlDisplay.textContent = `${baseUrl}${prefix}/posts/${slug}`;
+      }
     }
+
+    // Load thumbnail
+    function loadThumbnail(slug) {
+      const thumbSrc = `/social/${slug}/thumbnail.html`;
+
+      thumbWrap.innerHTML = '<div class="no-thumb">Loading...</div>';
+
+      // Check if thumbnail exists
+      fetch(thumbSrc, { method: 'HEAD' })
+        .then(res => {
+          if (!res.ok) {
+            thumbWrap.innerHTML = '<div class="no-thumb">No thumbnail available</div>';
+            return;
+          }
+
+          const W = 1200, H = 630;
+          const panelW = thumbWrap.clientWidth - 32;
+          const panelH = thumbWrap.clientHeight - 32;
+          const scale = Math.min(panelW / W, panelH / H, 1);
+
+          thumbWrap.innerHTML = `
+            <div class="thumb-scaler" style="width:${W * scale}px;height:${H * scale}px">
+              <iframe src="${thumbSrc}" style="width:${W}px;height:${H}px;transform:scale(${scale});transform-origin:top left;border:none"></iframe>
+            </div>
+          `;
+        })
+        .catch(() => {
+          thumbWrap.innerHTML = '<div class="no-thumb">No thumbnail available</div>';
+        });
+    }
+
+    // Load all data for a post
+    async function loadPost() {
+      const slug = postSel.value;
+      if (!slug) return;
+
+      await loadSocialContent(slug);
+      renderContent();
+      renderUrl();
+      loadThumbnail(slug);
+    }
+
+    // Copy content
+    copyBtn.addEventListener('click', () => {
+      const text = contentText.textContent;
+      if (!text || text.includes('No content')) return;
+
+      navigator.clipboard.writeText(text).then(() => {
+        copyBtn.textContent = 'Copied!';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy';
+          copyBtn.classList.remove('copied');
+        }, 2000);
+      });
+    });
+
+    // Copy URL
+    copyUrlBtn.addEventListener('click', () => {
+      const url = urlDisplay.textContent;
+      if (!url || url === '—') return;
+
+      navigator.clipboard.writeText(url).then(() => {
+        copyUrlBtn.textContent = 'Copied!';
+        copyUrlBtn.classList.add('copied');
+        setTimeout(() => {
+          copyUrlBtn.textContent = 'Copy URL';
+          copyUrlBtn.classList.remove('copied');
+        }, 2000);
+      });
+    });
+
+    // Event listeners
+    postSel.addEventListener('change', loadPost);
+    urlLangSel.addEventListener('change', renderUrl);
+
+    // Initial load
+    loadPost();
   </script>
 </body>
 </html>
