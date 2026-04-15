@@ -1,0 +1,611 @@
+---
+interface Props {
+  locale: 'vi' | 'en' | 'zh' | 'ja';
+}
+
+const { locale } = Astro.props;
+
+const translations = {
+  vi: {
+    siteTitle: 'Inside ClaudeKit — Framework nâng cao cho Claude Code',
+    siteDesc: 'Khám phá ClaudeKit — framework tích hợp trực tiếp vào .claude, biến agentic coding tool thành hệ thống tự động hoá chuyên nghiệp.',
+    heroTitle: 'Claude Code,<br><em>but supercharged</em>',
+    heroDesc: 'Phân tích chuyên sâu ClaudeKit — bộ engineer kit nâng cấp sức mạnh cho Claude Code.',
+    divider: 'Bài viết',
+    noResults: 'Không tìm thấy bài viết nào.',
+    footerNote: 'Chia sẻ từ daily workflow của một người dùng.',
+    search: 'Tìm kiếm...',
+    htmlLang: 'vi',
+    status: { draft: 'Bản nháp', published: 'Đã xuất bản', upcoming: 'Sắp tới' },
+  },
+  en: {
+    siteTitle: 'Inside ClaudeKit — Advanced Framework for Claude Code',
+    siteDesc: 'Explore ClaudeKit — a framework that integrates into your .claude config, turning the agentic coding tool into a professional task automation system.',
+    heroTitle: 'Claude Code,<br><em>but supercharged</em>',
+    heroDesc: 'Deep dives into ClaudeKit — the engineer kit that supercharges Claude Code.',
+    divider: 'Posts',
+    noResults: 'No posts found.',
+    footerNote: 'Shared from a daily ClaudeKit user\'s workflow.',
+    search: 'Search...',
+    htmlLang: 'en',
+    status: { draft: 'Draft', published: 'Published', upcoming: 'Upcoming' },
+  },
+  zh: {
+    siteTitle: 'Inside ClaudeKit — Claude Code 高级框架',
+    siteDesc: '探索 ClaudeKit — 直接集成到 .claude 配置中的框架，将 agentic coding tool 转变为专业的任务自动化系统。',
+    heroTitle: 'Claude Code,<br><em>but supercharged</em>',
+    heroDesc: '深入分析 ClaudeKit — 为 Claude Code 增强能力的 engineer kit。',
+    divider: '文章',
+    noResults: '未找到文章。',
+    footerNote: '来自一位日常使用 ClaudeKit 的用户分享。',
+    search: '搜索...',
+    htmlLang: 'zh-CN',
+    status: { draft: '草稿', published: '已发布', upcoming: '即将推出' },
+  },
+  ja: {
+    siteTitle: 'Inside ClaudeKit — Claude Code 上級フレームワーク',
+    siteDesc: 'ClaudeKit を探求 — .claude 設定に直接統合し、agentic coding tool をプロフェッショナルなタスク自動化システムに変えるフレームワーク。',
+    heroTitle: 'Claude Code,<br><em>but supercharged</em>',
+    heroDesc: 'ClaudeKit を深掘り — Claude Code をパワーアップさせる engineer kit。',
+    divider: '記事',
+    noResults: '記事が見つかりません。',
+    footerNote: 'ClaudeKit を日常的に使うユーザーのワークフローから共有。',
+    search: '検索...',
+    htmlLang: 'ja',
+    status: { draft: '下書き', published: '公開済み', upcoming: '近日公開' },
+  },
+};
+
+const t = translations[locale];
+
+interface Post {
+  slug: string;
+  date: string;
+  tags: string[];
+  status: 'draft' | 'published' | 'upcoming';
+  title: Record<string, string>;
+  excerpt: Record<string, string>;
+}
+
+const posts: Post[] = [
+  {
+    slug: 'claudekit-beginners-guide',
+    date: 'Apr 14, 2026',
+    tags: ['beginner', 'setup', 'workflow', 'skills'],
+    status: 'draft',
+    title: {
+      vi: 'Bắt đầu với Claude Code và ClaudeKit',
+      en: 'Getting Started with Claude Code & ClaudeKit',
+      zh: '开始使用 Claude Code 和 ClaudeKit',
+      ja: 'Claude Code と ClaudeKit を始める',
+    },
+    excerpt: {
+      vi: 'Từ AI assistant thành development partner. Hướng dẫn Engineer Kit với real-world use cases và best practices.',
+      en: 'From AI assistant to development partner. Engineer Kit guide with real-world use cases and best practices.',
+      zh: '从 AI 助手到开发伙伴。工程师工具包指南，包含实际用例和最佳实践。',
+      ja: 'AI アシスタントから開発パートナーへ。実際のユースケースとベストプラクティスによるエンジニアキットガイド。',
+    },
+  },
+  {
+    slug: 'ck-plan-full-power-modes',
+    date: 'TBD',
+    tags: ['plan', 'modes', 'parallel', 'auto'],
+    status: 'upcoming',
+    title: {
+      vi: '/ck:plan — Chế độ planning nâng cao',
+      en: '/ck:plan — Advanced Planning Modes',
+      zh: '/ck:plan — 高级规划模式',
+      ja: '/ck:plan — 高度なプランニングモード',
+    },
+    excerpt: {
+      vi: 'Interactive, fast, parallel, auto — 4 chế độ planning cho mọi quy mô task. Research pipeline, review gates, và multi-agent execution.',
+      en: 'Interactive, fast, parallel, auto — 4 planning modes for every task scale. Research pipeline, review gates, and multi-agent execution.',
+      zh: '交互式、快速、并行、自动 — 适用于各种任务规模的 4 种规划模式。研究管道、审查门控和多代理执行。',
+      ja: 'インタラクティブ、高速、並列、自動 — あらゆるタスク規模に対応する 4 つのプランニングモード。',
+    },
+  },
+  {
+    slug: 'ck-frontend-design-skill',
+    date: 'TBD',
+    tags: ['frontend', 'design', 'ui-ux', 'skill'],
+    status: 'upcoming',
+    title: {
+      vi: '/ck:frontend-design — Thiết kế giao diện với AI',
+      en: '/ck:frontend-design — AI-Assisted UI Design',
+      zh: '/ck:frontend-design — AI 辅助 UI 设计',
+      ja: '/ck:frontend-design — AI アシスト UI デザイン',
+    },
+    excerpt: {
+      vi: 'Từ wireframe đến production-ready UI. Skill thiết kế giao diện với research, component library, responsive layout, và accessibility.',
+      en: 'From wireframe to production-ready UI. Design skill with research, component library, responsive layout, and accessibility.',
+      zh: '从线框到生产就绪的 UI。包含研究、组件库、响应式布局和可访问性的设计技能。',
+      ja: 'ワイヤーフレームからプロダクション対応 UI まで。リサーチ、コンポーネントライブラリ、レスポンシブ設計を備えたデザインスキル。',
+    },
+  },
+];
+
+function postUrl(slug: string): string | null {
+  const post = posts.find(p => p.slug === slug);
+  if (!post || post.status !== 'published') return null;
+  return locale === 'vi' ? `/posts/${slug}` : `/${locale}/posts/${slug}`;
+}
+
+function isClickable(slug: string): boolean {
+  return postUrl(slug) !== null;
+}
+---
+<!DOCTYPE html>
+<html lang={t.htmlLang} data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{t.siteTitle}</title>
+<meta name="description" content={t.siteDesc}>
+<meta property="og:title" content={t.siteTitle}>
+<meta property="og:description" content={t.siteDesc}>
+<meta property="og:type" content="website">
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style is:global>
+  /* ── Design Tokens: Monospace Editorial ── */
+  :root {
+    --bg: #0c0d10;
+    --surface: #161820;
+    --surface2: #1c1e26;
+    --border: #262830;
+    --border-hi: #363840;
+    --text: #b8b8b8;
+    --text-dim: #606060;
+    --text-bright: #e0e0e0;
+    --text-hi: #f0f0f0;
+    --accent: #00ff41;
+    --accent-dim: rgba(0,255,65,0.07);
+    --accent-border: rgba(0,255,65,0.20);
+    --amber: #ffb347;
+    --amber-dim: rgba(255,179,71,0.10);
+    --mono: 'Geist Mono', 'SF Mono', 'Cascadia Code', 'JetBrains Mono', monospace;
+    --nav-bg: rgba(12,13,16,0.88);
+    --card-shadow: rgba(0,0,0,0.4);
+    --grain-opacity: 0.012;
+  }
+  [data-theme="light"] {
+    --bg: #f5f5f0; --surface: #fff; --surface2: #f0f0ea;
+    --border: #d0d0c8; --border-hi: #b8b8b0;
+    --text: #3a3a3a; --text-dim: #888880; --text-bright: #1a1a1a; --text-hi: #0a0a0a;
+    --accent: #008f24; --accent-dim: rgba(0,143,36,0.08);
+    --accent-border: rgba(0,143,36,0.20);
+    --nav-bg: rgba(245,245,240,0.90); --card-shadow: rgba(0,0,0,0.06); --grain-opacity: 0.025;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; overflow-x: hidden; }
+  body {
+    font-family: var(--mono); background: var(--bg); color: var(--text);
+    line-height: 1.7; -webkit-font-smoothing: antialiased; font-size: 14px;
+    overflow-x: hidden;
+  }
+
+  /* ── Grain overlay ── */
+  body::after {
+    content: ''; position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: var(--grain-opacity);
+  }
+
+  /* ── Nav ── */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 0 32px; height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--nav-bg); backdrop-filter: blur(16px) saturate(1.2);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-left { display: flex; align-items: center; gap: 16px; }
+  .nav-brand {
+    font-size: 14px; font-weight: 600; color: var(--text-bright);
+    text-decoration: none; display: flex; align-items: center; gap: 8px;
+  }
+  .logo-image { border-radius: 2px; transition: filter 0.15s; }
+  .nav-x { font-size: 10px; color: var(--text-dim); opacity: 0.5; }
+  [data-theme="light"] .logo-image { filter: invert(1) hue-rotate(180deg); }
+  .nav-sep { color: var(--text-dim); font-size: 11px; }
+  .nav-tag {
+    font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-dim); padding: 2px 8px;
+    border: 1px solid var(--border); border-radius: 2px;
+  }
+  .nav-right { display: flex; align-items: center; gap: 20px; }
+  /* ── Lang switcher ── */
+  .lang-switch { display: flex; gap: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 6px; }
+  .lang-btn {
+    padding: 6px 12px; font-family: var(--mono); font-size: 11px;
+    color: var(--text-dim); background: transparent; border: none;
+    cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em;
+    text-decoration: none; display: inline-block;
+  }
+  .lang-btn:hover { color: var(--text-bright); }
+  .lang-btn.active { background: var(--accent); color: #0a0a0a; font-weight: 600; }
+  [data-theme="light"] .lang-btn.active { color: #fff; }
+
+  /* ── Theme toggle ── */
+  .theme-toggle {
+    width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border);
+    background: transparent; color: var(--text-dim); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+  }
+  .theme-toggle:hover { color: var(--text-bright); border-color: var(--accent); }
+  .theme-toggle svg { width: 15px; height: 15px; }
+  .theme-toggle .icon-sun { display: none; }
+  .theme-toggle .icon-moon { display: block; }
+  [data-theme="light"] .theme-toggle .icon-sun { display: block; }
+  [data-theme="light"] .theme-toggle .icon-moon { display: none; }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 160px 32px 100px;
+    max-width: 900px; margin: 0 auto;
+    position: relative;
+  }
+  .hero-deco {
+    position: absolute; right: -20px; top: 50%; transform: translateY(-50%);
+    width: 340px; height: 340px; pointer-events: none;
+    color: var(--text-dim);
+  }
+  .hero-eyebrow {
+    font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .hero h1 {
+    font-family: var(--mono); font-size: clamp(40px, 7vw, 64px);
+    font-weight: 700; line-height: 1.1; letter-spacing: -0.03em;
+    color: var(--text-hi); margin-bottom: 20px;
+  }
+  .hero h1 em {
+    font-style: normal; color: var(--accent);
+  }
+  .hero-desc {
+    max-width: 60ch; font-size: 14px; color: var(--text);
+    line-height: 1.75;
+  }
+
+  /* ── Search ── */
+  .search-wrap { position: relative; }
+  .search-input {
+    width: 140px; padding: 6px 10px 6px 30px; height: 30px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); font-family: var(--mono);
+    font-size: 12px; outline: none; transition: all 0.2s;
+  }
+  .search-input::placeholder { color: var(--text-dim); }
+  .search-input:focus { border-color: var(--accent); width: 200px; }
+  .search-icon {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    color: var(--text-dim); pointer-events: none;
+  }
+
+  /* ── Divider ── */
+  .section-divider {
+    max-width: 900px; margin: 0 auto; padding: 0 32px;
+    display: flex; align-items: center; gap: 16px;
+    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .section-divider::before, .section-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* ── Posts ── */
+  .posts { max-width: 900px; margin: 0 auto; padding: 40px 32px 80px; }
+
+  .post-card {
+    display: block; padding: 24px; margin-bottom: 12px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
+    border-radius: 2px; text-decoration: none; color: inherit;
+    transition: all 0.15s; position: relative;
+  }
+  .post-card:hover {
+    border-left-color: var(--accent);
+    background: var(--surface2);
+    box-shadow: 0 4px 20px var(--card-shadow);
+  }
+  .post-card:hover .post-title { color: var(--accent); }
+  .post-card:hover .post-arrow { opacity: 1; color: var(--accent); }
+  .post-card.is-upcoming {
+    opacity: 0.55; pointer-events: none;
+  }
+  .post-card.is-upcoming .post-title { color: var(--text-dim); }
+
+  .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .post-status {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 2px;
+  }
+  .post-status--draft { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(255,179,71,0.2); }
+  .post-status--published { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
+  .post-status--upcoming { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); }
+  .post-date { font-size: 11px; color: var(--text-dim); }
+
+  .post-body { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+  .post-content { flex: 1; }
+  .post-title {
+    font-family: var(--mono); font-size: 18px; font-weight: 600;
+    line-height: 1.3; margin-bottom: 8px; color: var(--text-bright);
+    letter-spacing: -0.02em; transition: color 0.15s;
+  }
+  .post-excerpt {
+    font-size: 13px; color: var(--text-dim); line-height: 1.7; max-width: 60ch;
+  }
+  .post-tags { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+  .post-tag {
+    font-size: 10px; padding: 3px 8px; border-radius: 2px;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text-dim); transition: all 0.15s;
+  }
+  .post-card:hover .post-tag { border-color: var(--border-hi); }
+
+  .post-arrow {
+    font-size: 16px; color: var(--text-dim); opacity: 0;
+    transition: all 0.15s; flex-shrink: 0; margin-top: 4px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    border-top: 1px solid var(--border); padding: 40px 32px;
+    max-width: 900px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-left { display: flex; flex-direction: column; gap: 4px; }
+  .footer-brand { font-size: 12px; font-weight: 500; color: var(--text-dim); }
+  .footer-brand a { color: var(--accent); text-decoration: none; }
+  .footer-brand a:hover { text-decoration: underline; }
+  .footer-note { font-size: 11px; color: var(--text-dim); }
+  .footer-right { display: flex; align-items: center; gap: 16px; }
+  .footer-link { font-size: 11px; color: var(--text-dim); text-decoration: none; transition: color 0.15s; }
+  .footer-link:hover { color: var(--accent); }
+
+  /* ── No results ── */
+  .no-results { text-align: center; padding: 32px 0; color: var(--text-dim); font-size: 13px; display: none; }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .nav { padding: 0 16px; height: 48px; }
+    .nav-tag { display: none; }
+    .nav-sep { display: none; }
+    .nav-right { gap: 8px; }
+    .search-input { width: 48px; font-size: 10px; padding-left: 22px; }
+    .search-input:focus { width: 100px; }
+    .search-icon svg { width: 11px; height: 11px; }
+    .lang-btn { padding: 3px 6px; font-size: 9px; }
+    .hero { padding: 96px 16px 48px; }
+    .hero-deco { display: none; }
+    .hero h1 { font-size: clamp(28px, 8vw, 36px); }
+    .hero h1 br { display: none; }
+    .hero-desc { font-size: 13px; }
+    .section-divider { padding: 0 16px; }
+    .posts { padding: 28px 16px 48px; }
+    .post-card { padding: 18px 14px; }
+    .post-title { font-size: 15px; }
+    .post-excerpt { font-size: 12px; }
+    .post-arrow { display: none; }
+    .post-body { flex-direction: column; }
+    .footer { flex-direction: column; gap: 12px; text-align: center; padding: 28px 16px; }
+    .footer-right { justify-content: center; }
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .hero-eyebrow { animation: fadeUp 0.4s ease both; }
+  .hero h1 { animation: fadeUp 0.4s ease 0.06s both; }
+  .hero-desc { animation: fadeUp 0.4s ease 0.12s both; }
+  .post-card:nth-child(1) { animation: fadeUp 0.35s ease 0.2s both; }
+  .post-card:nth-child(2) { animation: fadeUp 0.35s ease 0.28s both; }
+  .post-card:nth-child(3) { animation: fadeUp 0.35s ease 0.36s both; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-left">
+    <a class="nav-brand" href="/">
+      <img class="logo-image" src="/logo-horizontal.png" alt="ClaudeKit" height="18">
+      <span class="nav-x">x</span>
+      <img src="/claude-color.svg" alt="" width="18" height="18">
+    </a>
+    <span class="nav-sep">/</span>
+    <span class="nav-tag">engineer notes</span>
+  </div>
+  <div class="nav-right">
+    <div class="search-wrap">
+      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input class="search-input" type="text" placeholder={t.search}>
+    </div>
+    <div class="lang-switch">
+      {(['vi', 'en', 'zh', 'ja'] as const).map(lang => (
+        <a
+          class:list={['lang-btn', { active: lang === locale }]}
+          href={lang === 'vi' ? '/' : `/${lang}`}
+        >
+          {lang === 'zh' ? 'CN' : lang === 'ja' ? 'JP' : lang.toUpperCase()}
+        </a>
+      ))}
+    </div>
+    <button class="theme-toggle" aria-label="Toggle theme">
+      <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+      <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <svg class="hero-deco" viewBox="0 0 340 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- ═══ CC CLI Terminal ═══ -->
+    <rect x="20" y="16" width="220" height="165" rx="6" stroke="#e07840" stroke-width="1" opacity="0.18" fill="#e07840" fill-opacity="0.02"/>
+    <!-- Title bar -->
+    <rect x="20" y="16" width="220" height="22" rx="6" fill="#e07840" fill-opacity="0.04"/>
+    <circle cx="34" cy="27" r="2.5" fill="#e07840" opacity="0.3"/>
+    <circle cx="44" cy="27" r="2.5" fill="#e07840" opacity="0.18"/>
+    <circle cx="54" cy="27" r="2.5" fill="#e07840" opacity="0.18"/>
+    <!-- "claude" title text -->
+    <text x="130" y="30" font-family="var(--mono)" font-size="7" fill="#e07840" opacity="0.25" text-anchor="middle">claude</text>
+    <!-- Prompt line: $ claude -->
+    <g opacity="0.22">
+      <text x="32" y="52" font-family="var(--mono)" font-size="7" fill="var(--text-dim)">$</text>
+      <text x="42" y="52" font-family="var(--mono)" font-size="7" fill="#e07840">claude</text>
+    </g>
+    <!-- User prompt -->
+    <g opacity="0.2">
+      <text x="32" y="66" font-family="var(--mono)" font-size="6.5" fill="#e07840">❯</text>
+      <text x="42" y="66" font-family="var(--mono)" font-size="6.5" fill="var(--text-bright)">/ck:cook "inside claudekit"</text>
+    </g>
+    <!-- CC response lines -->
+    <g opacity="0.14">
+      <rect x="32" y="90" width="55" height="2" rx="1" fill="#e07840"/>
+      <rect x="92" y="90" width="30" height="2" rx="1" fill="var(--accent)"/>
+      <rect x="32" y="100" width="40" height="2" rx="1" fill="var(--text-dim)"/>
+      <rect x="78" y="100" width="65" height="2" rx="1" fill="var(--text-dim)"/>
+      <rect x="32" y="110" width="50" height="2" rx="1" fill="var(--accent)" opacity="0.7"/>
+      <rect x="88" y="110" width="45" height="2" rx="1" fill="var(--text-dim)"/>
+    </g>
+    <!-- Task progress -->
+    <g opacity="0.18">
+      <text x="32" y="127" font-family="var(--mono)" font-size="6" fill="var(--accent)">✓</text>
+      <rect x="42" y="123" width="70" height="2" rx="1" fill="var(--accent)" opacity="0.5"/>
+      <text x="32" y="138" font-family="var(--mono)" font-size="6" fill="var(--accent)">✓</text>
+      <rect x="42" y="134" width="55" height="2" rx="1" fill="var(--accent)" opacity="0.5"/>
+      <text x="32" y="149" font-family="var(--mono)" font-size="6" fill="#e07840">●</text>
+      <rect x="42" y="145" width="80" height="2" rx="1" fill="#e07840" opacity="0.4"/>
+    </g>
+    <!-- Blinking cursor at bottom -->
+    <rect x="32" y="158" width="6" height="10" rx="1" fill="var(--accent)" opacity="0.25"/>
+
+    <!-- ═══ Claude sparkle (official color SVG) ═══ -->
+    <image href="/claude-color.svg" x="225" y="10" width="100" height="100" opacity="0.18"/>
+
+    <!-- ═══ Flow arrow: Claude → Terminal (collaboration) ═══ -->
+    <path d="M235 70 C225 70, 240 55, 235 48" stroke="#e07840" stroke-width="0.8" opacity="0.15" stroke-dasharray="3 3"/>
+    <path d="M235 80 C222 88, 240 105, 235 115" stroke="#e07840" stroke-width="0.8" opacity="0.12" stroke-dasharray="3 3"/>
+
+    <!-- ═══ Git commits timeline (daily workflow) ═══ -->
+    <g transform="translate(268, 130)">
+      <line x1="0" y1="0" x2="0" y2="100" stroke="var(--accent)" stroke-width="1" opacity="0.12"/>
+      <circle cx="0" cy="10" r="3.5" fill="var(--accent)" opacity="0.3"/>
+      <rect x="10" y="7" width="40" height="6" rx="1" fill="var(--accent)" opacity="0.08"/>
+      <circle cx="0" cy="35" r="3.5" fill="#e07840" opacity="0.3"/>
+      <rect x="10" y="32" width="30" height="6" rx="1" fill="#e07840" opacity="0.08"/>
+      <circle cx="0" cy="60" r="3.5" fill="var(--accent)" opacity="0.25"/>
+      <rect x="10" y="57" width="50" height="6" rx="1" fill="var(--accent)" opacity="0.08"/>
+      <circle cx="0" cy="85" r="3.5" fill="#e07840" opacity="0.2"/>
+      <rect x="10" y="82" width="35" height="6" rx="1" fill="#e07840" opacity="0.06"/>
+    </g>
+
+    <!-- ═══ File tree (project structure) ═══ -->
+    <g transform="translate(36, 186)" opacity="0.14">
+      <rect width="100" height="14" rx="2" fill="var(--accent)" fill-opacity="0.3"/>
+      <text x="6" y="10.5" font-family="var(--mono)" font-size="8" fill="var(--accent)">src/</text>
+      <line x1="8" y1="22" x2="8" y2="80" stroke="var(--text-dim)" stroke-width="0.5" stroke-dasharray="2 2"/>
+      <text x="16" y="30" font-family="var(--mono)" font-size="7" fill="var(--text-dim)">components/</text>
+      <text x="16" y="44" font-family="var(--mono)" font-size="7" fill="#e07840">hooks.ts</text>
+      <text x="16" y="58" font-family="var(--mono)" font-size="7" fill="var(--text-dim)">skills/</text>
+      <text x="16" y="72" font-family="var(--mono)" font-size="7" fill="var(--accent)">CLAUDE.md</text>
+      <text x="16" y="86" font-family="var(--mono)" font-size="7" fill="var(--text-dim)">agents/</text>
+    </g>
+
+    <!-- ═══ Subtle grid backdrop ═══ -->
+    <g opacity="0.03">
+      <line x1="0" y1="0" x2="340" y2="0" stroke="currentColor" stroke-width="0.5"/>
+      <line x1="0" y1="60" x2="340" y2="60" stroke="currentColor" stroke-width="0.5"/>
+      <line x1="0" y1="120" x2="340" y2="120" stroke="currentColor" stroke-width="0.5"/>
+      <line x1="0" y1="180" x2="340" y2="180" stroke="currentColor" stroke-width="0.5"/>
+      <line x1="0" y1="240" x2="340" y2="240" stroke="currentColor" stroke-width="0.5"/>
+      <line x1="0" y1="300" x2="340" y2="300" stroke="currentColor" stroke-width="0.5"/>
+    </g>
+  </svg>
+  <div class="hero-eyebrow">/inside-claudekit</div>
+  <h1><Fragment set:html={t.heroTitle} /></h1>
+  <p class="hero-desc">{t.heroDesc}</p>
+</header>
+
+<!-- DIVIDER -->
+<div class="section-divider"><span>{t.divider}</span></div>
+
+<!-- POSTS -->
+<main class="posts">
+  <div class="no-results">{t.noResults}</div>
+  <div class="posts-list">
+    {posts.map(post => {
+      const url = postUrl(post.slug);
+      const Tag = url ? 'a' : 'div';
+      return (
+        <Tag class:list={['post-card', { 'is-upcoming': post.status === 'upcoming' }]} {...(url ? { href: url } : {})}>
+          <div class="post-header">
+            <span class={`post-status post-status--${post.status}`}>
+              {t.status[post.status]}
+            </span>
+            <span class="post-date">{post.date}</span>
+          </div>
+          <div class="post-body">
+            <div class="post-content">
+              <div class="post-title">{post.title[locale]}</div>
+              <p class="post-excerpt">{post.excerpt[locale]}</p>
+              <div class="post-tags">
+                {post.tags.map(tag => (
+                  <span class="post-tag">{tag}</span>
+                ))}
+              </div>
+            </div>
+            {url && <div class="post-arrow">→</div>}
+          </div>
+        </Tag>
+      );
+    })}
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-left">
+    <div class="footer-brand"><a href="https://claudekit.cc/?ref=OMG49S8R" target="_blank" rel="noopener noreferrer">ClaudeKit</a> — Engineer Kit for Claude Code</div>
+    <div class="footer-note">{t.footerNote}</div>
+  </div>
+</footer>
+
+<script>
+// Search
+const searchInput = document.querySelector('.search-input') as HTMLInputElement;
+const postsList = document.querySelector('.posts-list') as HTMLElement;
+const allCards = Array.from(postsList.querySelectorAll('.post-card')) as HTMLElement[];
+const noResults = document.querySelector('.no-results') as HTMLElement;
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.toLowerCase().trim();
+  let visible = 0;
+  allCards.forEach(card => {
+    const match = !q || (card.textContent?.toLowerCase() ?? '').includes(q);
+    card.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  noResults.style.display = visible === 0 ? 'block' : 'none';
+});
+
+// Theme toggle
+const themeToggle = document.querySelector('.theme-toggle') as HTMLButtonElement;
+const savedTheme = localStorage.getItem('claudekit-blog-theme');
+if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+
+themeToggle.addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('claudekit-blog-theme', next);
+});
+</script>
+</body>
+</html>
