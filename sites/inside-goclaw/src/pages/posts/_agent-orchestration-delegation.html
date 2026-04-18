@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>GoClaw — Agent Orchestration & Delegation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ─── Design Tokens ─── */
+:root {
+  --font-body: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'Space Mono', 'SF Mono', Consolas, monospace;
+
+  /* Dark base */
+  --bg:          #080a0d;
+  --bg-alt:      #0c0f14;
+  --surface:     #101520;
+  --surface2:    #151c28;
+  --surface3:    #1c2638;
+  --border:      rgba(255,255,255,0.055);
+  --border-hi:   rgba(255,255,255,0.10);
+
+  /* Text */
+  --text:        #8fa3b8;
+  --text-dim:    #3d5068;
+  --text-bright: #c8dce8;
+  --text-hi:     #eaf2f8;
+
+  /* Accent — amber/orange signal */
+  --acc:         #f59e0b;
+  --acc-dim:     rgba(245,158,11,0.08);
+  --acc-hi:      #fbbf24;
+  --acc-glow:    rgba(245,158,11,0.14);
+  --acc-border:  rgba(245,158,11,0.22);
+
+  /* Status colors */
+  --green:       #34d399;
+  --green-dim:   rgba(52,211,153,0.07);
+  --red:         #f87171;
+  --red-dim:     rgba(248,113,113,0.08);
+  --blue:        #60a5fa;
+  --blue-dim:    rgba(96,165,250,0.07);
+  --violet:      #a78bfa;
+  --violet-dim:  rgba(167,139,250,0.07);
+
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 14px;
+}
+
+[data-theme="light"] {
+  --bg: #f2f4f6; --bg-alt: #e8ebef; --surface: #ffffff; --surface2: #edf0f4; --surface3: #e0e4ea;
+  --border: rgba(0,0,0,0.06); --border-hi: rgba(0,0,0,0.10);
+  --text: #374151; --text-dim: #6b7280; --text-bright: #111827; --text-hi: #030712;
+  --acc: #d97706; --acc-dim: rgba(217,119,6,0.07); --acc-hi: #b45309; --acc-glow: rgba(217,119,6,0.1);
+  --acc-border: rgba(217,119,6,0.2);
+  --green: #059669; --green-dim: rgba(5,150,105,0.07);
+  --red: #dc2626; --red-dim: rgba(220,38,38,0.07);
+  --blue: #2563eb; --blue-dim: rgba(37,99,235,0.07);
+  --violet: #7c3aed; --violet-dim: rgba(124,58,237,0.07);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* grain overlay */
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 9999;
+  pointer-events: none; opacity: 0.022;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+}
+[data-theme="light"] body::after { opacity: 0.05; }
+
+/* ─── Fixed Nav ─── */
+.fixed-nav {
+  position: fixed; top: 16px; right: 16px; z-index: 600;
+  display: flex; gap: 6px;
+}
+.nav-btn {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-hi);
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  color: var(--text-dim);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 15px; transition: background .15s, color .15s;
+  text-decoration: none; font-family: var(--font-body);
+}
+.nav-btn:hover { background: var(--surface3); color: var(--text-bright); }
+
+/* ─── Hero ─── */
+.hero {
+  min-height: 60dvh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 0;
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  position: relative;
+  padding: 80px 0 0;
+}
+.hero-left {
+  padding: 60px 48px 60px 64px;
+  display: flex; flex-direction: column; justify-content: center;
+  position: relative; z-index: 2;
+}
+.hero-right {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  padding: 60px 40px;
+  min-height: 400px;
+}
+/* ambient orb */
+.hero::before {
+  content: '';
+  position: absolute; top: -100px; left: -100px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, var(--acc-glow) 0%, transparent 65%);
+  pointer-events: none; z-index: 0;
+  animation: orb-drift 12s ease-in-out infinite;
+}
+@keyframes orb-drift {
+  0%, 100% { transform: translate(0, 0); }
+  50%       { transform: translate(40px, 30px); }
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 400;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--acc);
+  margin-bottom: 20px;
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 4px 12px;
+  border: 1px solid var(--acc-border);
+  border-radius: var(--radius-sm);
+  background: var(--acc-dim);
+  width: fit-content;
+}
+.eyebrow::before { content: '▶'; font-size: 7px; }
+
+.hero-title {
+  font-size: clamp(2rem, 3.8vw, 3.1rem);
+  font-weight: 700;
+  color: var(--text-hi);
+  letter-spacing: -0.04em;
+  line-height: 1.08;
+  margin-bottom: 20px;
+}
+.hero-title em { color: var(--acc); font-style: normal; }
+
+.hero-deck {
+  font-size: 1rem;
+  color: var(--text-dim);
+  max-width: 480px;
+  line-height: 1.65;
+  margin-bottom: 28px;
+}
+
+.hero-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.meta-chip {
+  font-family: var(--font-mono); font-size: 10px;
+  padding: 3px 10px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border-hi);
+  color: var(--text-dim); background: var(--surface);
+}
+.meta-chip--acc {
+  border-color: var(--acc-border);
+  color: var(--acc); background: var(--acc-dim);
+}
+
+/* ─── Hero Right: Hierarchy Visual ─── */
+.hier-tree {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 340px;
+}
+.hier-node {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 0;
+}
+.hier-node-box {
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
+  font-size: 11px; font-weight: 700;
+  white-space: nowrap;
+  border: 1px solid;
+  position: relative;
+  transition: box-shadow .3s;
+}
+.hier-node-box:hover { box-shadow: 0 0 20px var(--acc-glow); }
+.hn-user     { background: var(--surface2); border-color: var(--border-hi); color: var(--text-bright); }
+.hn-lead     { background: var(--acc-dim); border-color: var(--acc-border); color: var(--acc); }
+.hn-member   { background: var(--surface); border-color: var(--border-hi); color: var(--text); }
+.hn-member-a { background: var(--green-dim); border-color: rgba(52,211,153,0.2); color: var(--green); }
+.hn-member-b { background: var(--blue-dim); border-color: rgba(96,165,250,0.2); color: var(--blue); }
+.hn-member-c { background: var(--violet-dim); border-color: rgba(167,139,250,0.2); color: var(--violet); }
+
+.hier-lines { display: flex; flex-direction: column; gap: 0; }
+.hier-row-lead { display: flex; justify-content: center; padding: 0 16px; margin-bottom: 0; }
+.hier-connector-v {
+  width: 2px; height: 20px;
+  background: var(--border-hi);
+  margin: 0 auto;
+}
+.hier-connector-h {
+  display: flex; align-items: flex-end; justify-content: center;
+  gap: 0;
+  position: relative; margin-bottom: 0;
+}
+.hier-branch {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0;
+}
+.hier-branch-line {
+  width: 2px; height: 20px;
+  background: var(--border-hi);
+}
+.hier-h-line {
+  position: absolute; top: 0; left: 16%; right: 16%;
+  height: 2px; background: var(--border-hi);
+}
+.hier-members {
+  display: flex; gap: 16px; justify-content: center;
+  padding: 0 8px;
+}
+.pulse-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--acc);
+  animation: pulse-glow 2s ease-in-out infinite;
+  display: inline-block; margin-left: 6px;
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--acc-glow); }
+  50%       { opacity: 0.5; box-shadow: 0 0 0 4px transparent; }
+}
+.pulse-dot.green { background: var(--green); animation-delay: 0.3s; }
+.pulse-dot.blue  { background: var(--blue); animation-delay: 0.6s; }
+.pulse-dot.violet { background: var(--violet); animation-delay: 0.9s; }
+
+/* ─── TOC ─── */
+.toc-bar {
+  position: sticky; top: 0; z-index: 300;
+  display: flex; gap: 2px; align-items: center; justify-content: center;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  background: color-mix(in srgb, var(--bg-alt) 90%, transparent);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 32px;
+  scrollbar-width: none;
+}
+.toc-bar::-webkit-scrollbar { display: none; }
+.toc-label {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--text-dim); white-space: nowrap;
+  flex-shrink: 0; padding-right: 10px; margin-right: 6px;
+  border-right: 1px solid var(--border);
+}
+.toc-link {
+  display: block; font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-dim); text-decoration: none;
+  padding: 4px 9px; border-radius: var(--radius-sm);
+  transition: all .15s; white-space: nowrap; flex-shrink: 0;
+}
+.toc-link:hover { color: var(--text); background: var(--surface2); }
+.toc-link.active { color: var(--acc); background: var(--acc-dim); font-weight: 600; }
+
+/* ─── Section Bands ─── */
+.section-band {
+  width: 100%; padding: 56px 32px;
+  border-bottom: 1px solid var(--border);
+}
+.section-band:nth-child(odd) { background: var(--bg); }
+.section-band:nth-child(even) { background: var(--bg-alt); }
+.band-inner { max-width: 900px; margin: 0 auto; }
+
+.sec-label {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--acc);
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 0 6px;
+  scroll-margin-top: 52px;
+}
+.sec-label::before { content: '▸'; color: var(--text-dim); font-size: 9px; }
+
+h2.sec-title {
+  font-size: 1.6rem; font-weight: 700;
+  color: var(--text-bright);
+  letter-spacing: -0.025em;
+  margin-bottom: 20px; line-height: 1.2;
+}
+h3 {
+  font-size: 1.05rem; font-weight: 600;
+  color: var(--text-bright);
+  margin: 28px 0 10px;
+  letter-spacing: -0.01em;
+}
+p { margin-bottom: 14px; font-size: 15px; }
+strong { color: var(--text-bright); font-weight: 600; }
+code {
+  font-family: var(--font-mono); font-size: 0.82em;
+  background: var(--surface2); color: var(--acc-hi);
+  padding: 2px 7px; border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+/* ─── Mode Cards ─── */
+.mode-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 12px; margin: 20px 0 24px;
+}
+.mode-card {
+  padding: 20px; border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  position: relative; overflow: hidden;
+  transition: border-color .2s, background .2s;
+}
+.mode-card:hover { border-color: var(--acc-border); background: var(--surface2); }
+.mode-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+}
+.mode-card.spawn::before  { background: var(--green); }
+.mode-card.delegate::before { background: var(--acc); }
+.mode-card.team::before   { background: var(--violet); }
+.mode-label {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+}
+.mode-label.spawn    { color: var(--green); }
+.mode-label.delegate { color: var(--acc); }
+.mode-label.team     { color: var(--violet); }
+.mode-name {
+  font-size: 1rem; font-weight: 700;
+  color: var(--text-bright); margin-bottom: 8px;
+}
+.mode-desc { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+
+.priority-bar {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--text-dim); margin: 16px 0 8px;
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
+}
+.priority-bar strong { color: var(--text-bright); }
+.priority-seg {
+  padding: 3px 10px; border-radius: 3px;
+  font-size: 11px; font-weight: 700;
+  border: 1px solid;
+}
+.priority-seg.team     { background: var(--violet-dim); border-color: rgba(167,139,250,0.2); color: var(--violet); }
+.priority-seg.delegate { background: var(--acc-dim); border-color: var(--acc-border); color: var(--acc); }
+.priority-seg.spawn    { background: var(--green-dim); border-color: rgba(52,211,153,0.2); color: var(--green); }
+.priority-arrow { color: var(--text-dim); font-size: 10px; }
+
+/* ─── Team Architecture Diagram ─── */
+.arch-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px; margin: 20px 0 24px;
+  position: relative; overflow: hidden;
+}
+.arch-box::after {
+  content: ''; position: absolute;
+  bottom: -50px; right: -50px;
+  width: 160px; height: 160px;
+  background: radial-gradient(circle, var(--acc-glow), transparent 70%);
+  pointer-events: none;
+}
+.arch-label {
+  font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--text-dim); text-align: center;
+  margin-bottom: 24px;
+}
+.arch-flow { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.arch-node {
+  padding: 10px 20px; border-radius: var(--radius-md);
+  font-family: var(--font-mono); font-size: 11px;
+  text-align: center; white-space: nowrap;
+  border: 1px solid;
+}
+.arch-node.user    { background: var(--surface2); border-color: var(--border-hi); color: var(--text-bright); }
+.arch-node.lead    { background: var(--acc-dim); border-color: var(--acc-border); color: var(--acc); }
+.arch-node.member-a { background: var(--green-dim); border-color: rgba(52,211,153,0.2); color: var(--green); }
+.arch-node.member-b { background: var(--blue-dim); border-color: rgba(96,165,250,0.2); color: var(--blue); }
+.arch-node.result  { background: var(--violet-dim); border-color: rgba(167,139,250,0.2); color: var(--violet); }
+.arch-arrow-v { display: flex; flex-direction: column; align-items: center; height: 28px; }
+.arch-arrow-v .vline {
+  width: 2px; flex: 1; background: var(--border-hi);
+  position: relative;
+}
+.arch-arrow-v .vline::after {
+  content: '';
+  position: absolute; bottom: -5px; left: -4px;
+  width: 0; height: 0;
+  border-top: 7px solid var(--border-hi);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+}
+.arch-row { display: flex; align-items: center; justify-content: center; gap: 20px; }
+.arch-note { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-top: 2px; text-align: center; }
+
+/* ─── State Machine ─── */
+.sm-wrap {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 20px; margin: 20px 0 24px;
+  overflow-x: auto;
+}
+.sm-label {
+  font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--text-dim); text-align: center; margin-bottom: 24px;
+}
+.sm-grid {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: 8px 4px;
+  align-items: center;
+  justify-content: center;
+  max-width: 680px; margin: 0 auto;
+}
+.sm-cell { display: flex; justify-content: center; align-items: center; }
+.state-box {
+  padding: 9px 16px; border-radius: var(--radius-md);
+  font-family: var(--font-mono); font-size: 11px;
+  font-weight: 700; text-align: center;
+  border: 1px solid; white-space: nowrap;
+}
+.s-pending     { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.22); color: var(--acc); }
+.s-progress    { background: var(--blue-dim); border-color: rgba(96,165,250,0.22); color: var(--blue); }
+.s-review      { background: var(--violet-dim); border-color: rgba(167,139,250,0.22); color: var(--violet); }
+.s-done        { background: var(--green-dim); border-color: rgba(52,211,153,0.22); color: var(--green); }
+.s-blocked     { background: var(--red-dim); border-color: rgba(248,113,113,0.22); color: var(--red); }
+.s-failed      { background: rgba(248,113,113,0.05); border-color: rgba(248,113,113,0.12); color: rgba(248,113,113,0.5); }
+.s-cancelled   { background: rgba(100,120,140,0.07); border-color: rgba(100,120,140,0.15); color: var(--text-dim); }
+.s-stale       { background: rgba(245,158,11,0.04); border-color: rgba(245,158,11,0.1); color: rgba(245,158,11,0.5); }
+
+.sm-arrow { display: flex; align-items: center; justify-content: center; }
+.sm-arrow-h { width: 28px; height: 2px; background: var(--border-hi); position: relative; }
+.sm-arrow-h::after {
+  content: ''; position: absolute;
+  right: -5px; top: -4px;
+  width: 0; height: 0;
+  border-left: 7px solid var(--border-hi);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+.sm-arrow-v { display: flex; flex-direction: column; align-items: center; height: 24px; width: 2px; background: var(--border-hi); position: relative; margin: 0 auto; }
+.sm-arrow-v::after {
+  content: ''; position: absolute; bottom: -5px; left: -4px;
+  width: 0; height: 0;
+  border-top: 7px solid var(--border-hi);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+}
+.sm-legend {
+  display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+  margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);
+}
+.sm-legend-item {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 10px; color: var(--text-dim);
+}
+.sm-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* ─── SQL Callout ─── */
+.sql-block {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-md); overflow: hidden;
+  margin: 16px 0 22px;
+}
+.sql-block-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 16px;
+  background: var(--surface2); border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono); font-size: 10px; color: var(--text-dim);
+}
+.sql-block-header::before { content: '▸'; color: var(--acc); font-size: 9px; }
+.sql-block-body {
+  font-family: var(--font-mono); font-size: 12.5px; line-height: 1.65;
+  padding: 16px; background: var(--surface);
+  white-space: pre-wrap; word-break: break-word;
+  color: var(--text);
+}
+.sql-kw  { color: var(--blue); }
+.sql-val { color: var(--acc); }
+.sql-cmt { color: var(--text-dim); }
+
+/* ─── Parallel Dispatch Diagram ─── */
+.dispatch-wrap {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px; margin: 20px 0;
+}
+.dispatch-header {
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--text-dim);
+  text-align: center; margin-bottom: 24px;
+}
+.dispatch-row {
+  display: flex; align-items: flex-start;
+  gap: 0; position: relative;
+}
+.dispatch-lead {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; flex-shrink: 0;
+}
+.dispatch-tasks {
+  flex: 1; display: flex; flex-direction: column; gap: 8px;
+  padding-left: 24px;
+}
+.dispatch-task-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.dispatch-line {
+  width: 20px; height: 2px; background: var(--border-hi);
+  position: relative; flex-shrink: 0;
+}
+.dispatch-line::after {
+  content: ''; position: absolute;
+  right: -5px; top: -4px;
+  border-left: 7px solid var(--border-hi);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+.dispatch-task-box {
+  padding: 8px 14px; border-radius: var(--radius-sm);
+  font-family: var(--font-mono); font-size: 11px;
+  border: 1px solid; white-space: nowrap;
+}
+.dispatch-arrow-r {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--text-dim); padding: 0 6px;
+}
+.dispatch-running {
+  padding: 7px 14px; border-radius: var(--radius-sm);
+  font-family: var(--font-mono); font-size: 11px;
+  border: 1px solid var(--border-hi); background: var(--surface2);
+  color: var(--text);
+  display: flex; align-items: center; gap: 6px;
+}
+.running-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  animation: blink-run 1.2s ease-in-out infinite;
+}
+@keyframes blink-run { 0%,100%{opacity:1} 50%{opacity:0.2} }
+.dispatch-batch {
+  margin-top: 16px; padding: 12px 18px;
+  background: var(--surface2); border: 1px solid var(--acc-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--acc);
+  display: flex; align-items: center; gap: 10px;
+}
+.dispatch-batch::before { content: '↓'; font-size: 14px; }
+
+/* ─── Lane Grid ─── */
+.lane-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin: 16px 0 24px;
+}
+.lane-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 16px 18px;
+  display: flex; align-items: center; gap: 14px;
+}
+.lane-num {
+  font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700;
+  line-height: 1;
+}
+.lane-label { font-size: 13px; font-weight: 600; color: var(--text-bright); margin-bottom: 2px; }
+.lane-desc  { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); }
+.lane-card.team-lane { border-left: 3px solid var(--violet); }
+.lane-card.team-lane .lane-num { color: var(--violet); }
+.lane-card.main-lane { border-left: 3px solid var(--acc); }
+.lane-card.main-lane .lane-num { color: var(--acc); }
+.lane-card.sub-lane  { border-left: 3px solid var(--green); }
+.lane-card.sub-lane  .lane-num { color: var(--green); }
+.lane-card.cron-lane { border-left: 3px solid var(--blue); }
+.lane-card.cron-lane .lane-num { color: var(--blue); }
+
+/* ─── Dependency Graph ─── */
+.dep-graph {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 28px 24px; margin: 20px 0;
+}
+.dep-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: 16px; margin-bottom: 8px;
+}
+.dep-node {
+  padding: 9px 18px; border-radius: var(--radius-md);
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+  border: 1px solid; text-align: center;
+}
+.dep-node.complete { background: var(--green-dim); border-color: rgba(52,211,153,0.22); color: var(--green); }
+.dep-node.blocked  { background: var(--red-dim); border-color: rgba(248,113,113,0.22); color: var(--red); }
+.dep-node.dispatch { background: var(--acc-dim); border-color: var(--acc-border); color: var(--acc); }
+.dep-arrow { font-family: var(--font-mono); font-size: 14px; color: var(--text-dim); }
+.dep-note { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); text-align: center; margin-top: 4px; }
+
+/* ─── Mailbox Table ─── */
+.msg-table-wrap { overflow-x: auto; margin: 14px 0 20px; }
+.msg-table {
+  width: 100%; border-collapse: collapse; font-size: 13.5px;
+}
+.msg-table th {
+  font-family: var(--font-mono); font-size: 9px;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--text-dim); text-align: left;
+  padding: 10px 14px; border-bottom: 1px solid var(--border-hi);
+  background: var(--surface2);
+}
+.msg-table td {
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.msg-table tr:last-child td { border-bottom: none; }
+.msg-table tr:hover td { background: var(--surface2); }
+.msg-table td:first-child { font-weight: 700; color: var(--text-bright); white-space: nowrap; }
+
+.tag {
+  display: inline-block; padding: 2px 8px;
+  border-radius: 3px; font-family: var(--font-mono);
+  font-size: 10px; font-weight: 700;
+  border: 1px solid;
+}
+.tag-acc    { background: var(--acc-dim); border-color: var(--acc-border); color: var(--acc); }
+.tag-green  { background: var(--green-dim); border-color: rgba(52,211,153,0.2); color: var(--green); }
+.tag-blue   { background: var(--blue-dim); border-color: rgba(96,165,250,0.2); color: var(--blue); }
+
+/* ─── Escalation Flow ─── */
+.escalation-steps {
+  display: flex; flex-direction: column; gap: 0;
+  margin: 16px 0 24px;
+  counter-reset: esc;
+}
+.esc-step {
+  display: flex; align-items: flex-start; gap: 16px;
+  position: relative; padding: 14px 0 14px 52px;
+  counter-increment: esc;
+}
+.esc-step::before {
+  content: counter(esc);
+  position: absolute; left: 0; top: 14px;
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  border: 1px solid var(--acc-border);
+  color: var(--acc); background: var(--acc-dim);
+}
+.esc-step:not(:last-child)::after {
+  content: ''; position: absolute;
+  left: 15px; top: 46px; bottom: 0;
+  width: 2px; background: var(--border-hi);
+}
+.esc-content {
+  padding: 8px 16px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--surface);
+  flex: 1; font-size: 14px; line-height: 1.55;
+}
+
+/* ─── Circuit Breaker Callout ─── */
+.callout {
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--acc);
+  padding: 14px 18px; background: var(--surface);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  margin: 14px 0 20px; font-size: 14px; line-height: 1.6;
+}
+.callout strong { color: var(--acc-hi); }
+
+/* ─── Summary Flow ─── */
+.summary-flow {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 28px;
+  margin: 20px 0 24px; font-family: var(--font-mono);
+  font-size: 12px; line-height: 1.6;
+}
+.sf-row { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 6px; }
+.sf-arrow { color: var(--text-dim); flex-shrink: 0; width: 20px; text-align: center; }
+.sf-node {
+  flex: 1; padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid;
+}
+.sf-node.user-node { background: var(--surface2); border-color: var(--border-hi); color: var(--text-bright); }
+.sf-node.lead-node { background: var(--acc-dim); border-color: var(--acc-border); color: var(--acc); }
+.sf-node.a-node    { background: var(--green-dim); border-color: rgba(52,211,153,0.2); color: var(--green); }
+.sf-node.b-node    { background: var(--blue-dim); border-color: rgba(96,165,250,0.2); color: var(--blue); }
+.sf-sub {
+  padding-left: 36px; display: flex; flex-direction: column; gap: 4px;
+  margin-bottom: 4px;
+}
+.sf-detail {
+  font-size: 10px; color: var(--text-dim);
+  padding: 3px 10px;
+  border-left: 2px solid var(--border-hi);
+}
+
+/* ─── Throttle Callout ─── */
+.throttle-bar {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 14px 18px;
+  margin: 14px 0; font-size: 14px; line-height: 1.6;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.throttle-icon { font-size: 16px; flex-shrink: 0; margin-top: 2px; }
+
+/* ─── Footer ─── */
+.footer-band {
+  padding: 48px 32px;
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.footer-text {
+  font-size: 1.05rem; color: var(--text-dim);
+  max-width: 600px; margin: 0 auto 12px; line-height: 1.55;
+}
+.footer-ver {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--text-dim); opacity: 0.5;
+}
+.footer-back {
+  display: inline-block; margin-top: 16px;
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--text-dim); text-decoration: none;
+  padding: 6px 14px; border: 1px solid var(--border-hi);
+  border-radius: var(--radius-sm); transition: all .15s;
+}
+.footer-back:hover { color: var(--acc); border-color: var(--acc-border); }
+
+/* ─── Reveal ─── */
+.reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.55s ease, transform 0.55s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ─── Responsive ─── */
+@media (max-width: 860px) {
+  .hero { grid-template-columns: 1fr; min-height: auto; }
+  .hero-right { display: none; }
+  .hero-left { padding: 64px 24px 40px; }
+}
+@media (max-width: 640px) {
+  .hero-left { padding: 56px 16px 32px; }
+  .section-band { padding: 36px 16px; }
+  .toc-bar { padding: 8px 12px; justify-content: flex-start; }
+  .toc-label { display: none; }
+  .toc-link { font-size: 9px; padding: 3px 6px; }
+  .mode-grid { grid-template-columns: 1fr; }
+  .lane-grid { grid-template-columns: 1fr; }
+  h2.sec-title { font-size: 1.35rem; }
+}
+@media (max-width: 500px) {
+  .arch-row { flex-direction: column; gap: 8px; }
+  .sm-grid { grid-template-columns: repeat(2, auto); }
+  .dep-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Fixed Nav -->
+<div class="fixed-nav">
+  <a href="/" class="nav-btn home-link" title="Home" aria-label="Home">&#8592;</a>
+  <button class="nav-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">&#9680;</button>
+  <button class="nav-btn" id="langToggle" title="Switch language" aria-label="Switch language">EN</button>
+</div>
+
+<!-- Theme + Lang Scripts -->
+<script>
+(function(){
+  var s = localStorage.getItem('goclaw-blog-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', s);
+  document.addEventListener('DOMContentLoaded', function(){
+    var btn = document.getElementById('themeToggle');
+    if (btn) btn.addEventListener('click', function(){
+      var cur = document.documentElement.getAttribute('data-theme');
+      var next = cur === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('goclaw-blog-theme', next);
+    });
+
+    /* Lang switcher */
+    var slug = 'agent-orchestration-delegation';
+    var langs = { vi: '/', en: '/en/posts/' + slug, zh: '/zh/posts/' + slug, ja: '/ja/posts/' + slug };
+    var cur_lang = document.documentElement.getAttribute('lang') || 'vi';
+    var langBtn = document.getElementById('langToggle');
+    var seq = ['vi','en','zh','ja'];
+    if (langBtn) {
+      langBtn.addEventListener('click', function(){
+        var idx = seq.indexOf(cur_lang);
+        var next = seq[(idx + 1) % seq.length];
+        var dest = next === 'vi' ? langs.vi : langs[next];
+        window.location.href = dest;
+      });
+    }
+  });
+})();
+</script>
+
+<!-- Hero -->
+<header class="hero" id="top">
+  <div class="hero-left">
+    <span class="eyebrow" data-i18n="eyebrow">GoClaw — Agent System</span>
+    <h1 class="hero-title" data-i18n="hero_title">Agent <em>Orchestration</em><br>&amp; Delegation</h1>
+    <p class="hero-deck" data-i18n="hero_deck">Hierarchical delegation, parallel dispatch, task dependency graph, inter-agent mailbox, và automatic workload distribution.</p>
+    <div class="hero-meta">
+      <span class="meta-chip meta-chip--acc">ModeSpawn · ModeDelegate · ModeTeam</span>
+      <span class="meta-chip">2026-04-14</span>
+    </div>
+  </div>
+  <div class="hero-right" aria-hidden="true">
+    <!-- Hierarchy Visual -->
+    <div class="hier-tree">
+      <!-- User -->
+      <div style="display:flex;justify-content:center;margin-bottom:0;">
+        <div class="hier-node-box hn-user">User <span class="pulse-dot"></span></div>
+      </div>
+      <div class="hier-connector-v" style="margin-bottom:0;"></div>
+      <!-- Lead -->
+      <div style="display:flex;justify-content:center;">
+        <div class="hier-node-box hn-lead">Lead Agent <span class="pulse-dot" style="background:var(--acc);"></span></div>
+      </div>
+      <!-- H line -->
+      <div style="position:relative;height:20px;margin-bottom:0;">
+        <div style="position:absolute;top:0;left:16%;right:16%;height:2px;background:var(--border-hi);top:50%;"></div>
+        <!-- branch connectors -->
+        <div style="position:absolute;left:16%;top:50%;width:2px;height:50%;background:var(--border-hi);"></div>
+        <div style="position:absolute;left:50%;transform:translateX(-50%);top:50%;width:2px;height:50%;background:var(--border-hi);"></div>
+        <div style="position:absolute;right:16%;top:50%;width:2px;height:50%;background:var(--border-hi);"></div>
+      </div>
+      <!-- Members -->
+      <div class="hier-members">
+        <div class="hier-node-box hn-member-a">Member A <span class="pulse-dot green"></span></div>
+        <div class="hier-node-box hn-member-b">Member B <span class="pulse-dot blue"></span></div>
+        <div class="hier-node-box hn-member-c">Member C <span class="pulse-dot violet"></span></div>
+      </div>
+      <!-- Result row -->
+      <div class="hier-connector-v" style="margin:8px auto;"></div>
+      <div style="display:flex;justify-content:center;">
+        <div class="hier-node-box" style="background:var(--violet-dim);border-color:rgba(167,139,250,0.2);color:var(--violet);">Batch Result</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- TOC -->
+<nav class="toc-bar" id="toc-bar">
+  <span class="toc-label">SECTIONS</span>
+  <a href="#s01" class="toc-link" data-i18n="toc01">01 Vấn đề</a>
+  <a href="#s02" class="toc-link" data-i18n="toc02">02 Ba chế độ</a>
+  <a href="#s03" class="toc-link" data-i18n="toc03">03 Team Arch</a>
+  <a href="#s04" class="toc-link" data-i18n="toc04">04 Task Board</a>
+  <a href="#s05" class="toc-link" data-i18n="toc05">05 Parallel</a>
+  <a href="#s06" class="toc-link" data-i18n="toc06">06 Dependencies</a>
+  <a href="#s07" class="toc-link" data-i18n="toc07">07 Mailbox</a>
+  <a href="#s08" class="toc-link" data-i18n="toc08">08 Escalation</a>
+  <a href="#s09" class="toc-link" data-i18n="toc09">09 Workload</a>
+  <a href="#s10" class="toc-link" data-i18n="toc10">10 Tổng kết</a>
+</nav>
+
+<!-- ─── S01: Vấn đề ─── -->
+<section class="section-band" id="s01">
+  <div class="band-inner">
+    <p class="sec-label" data-i18n="s01_label">01 — Vấn đề</p>
+    <h2 class="sec-title reveal" data-i18n="s01_title">Một agent không đủ</h2>
+    <p class="reveal" data-i18n="s01_p1">Khi bạn giao cho một AI agent một tác vụ lớn — "phân tích toàn bộ codebase và viết báo cáo", "nghiên cứu thị trường rồi tạo slide" — agent đó phải làm tuần tự: đọc từng file, ghi chú, tổng hợp, viết. Chậm. Token explode. Context window tràn.</p>
+    <p class="reveal" data-i18n="s01_p2">Giải pháp tự nhiên: chia việc cho nhiều agent chạy song song. Nhưng ngay lập tức nảy sinh bốn câu hỏi:</p>
+    <div class="reveal">
+      <div class="mode-grid" style="grid-template-columns:repeat(2,1fr);">
+        <div class="mode-card" style="border-top-color:var(--acc);">
+          <div class="mode-label acc" style="color:var(--acc);">Q1</div>
+          <div class="mode-name" data-i18n="q1_title">Ai quyết định?</div>
+          <div class="mode-desc" data-i18n="q1_desc">Chia việc thế nào, cho ai?</div>
+        </div>
+        <div class="mode-card" style="border-top-color:var(--green);">
+          <div class="mode-label" style="color:var(--green);">Q2</div>
+          <div class="mode-name" data-i18n="q2_title">Kết quả về đâu?</div>
+          <div class="mode-desc" data-i18n="q2_desc">Từ các agent con về lúc nào?</div>
+        </div>
+        <div class="mode-card" style="border-top-color:var(--red);">
+          <div class="mode-label" style="color:var(--red);">Q3</div>
+          <div class="mode-name" data-i18n="q3_title">Agent bị kẹt?</div>
+          <div class="mode-desc" data-i18n="q3_desc">Hệ thống phản ứng ra sao?</div>
+        </div>
+        <div class="mode-card" style="border-top-color:var(--violet);">
+          <div class="mode-label" style="color:var(--violet);">Q4</div>
+          <div class="mode-name" data-i18n="q4_title">Phối hợp ngang?</div>
+          <div class="mode-desc" data-i18n="q4_desc">Không chỉ nhận lệnh từ trên xuống</div>
+        </div>
+      </div>
+    </div>
+    <p class="reveal" data-i18n="s01_solution">GoClaw giải quyết bốn câu hỏi này bằng một hệ thống orchestration đầy đủ: <strong>hierarchical delegation</strong>, <strong>parallel dispatch</strong>, <strong>task dependency graph</strong>, <strong>inter-agent mailbox</strong>, và <strong>automatic workload distribution</strong>.</p>
+  </div>
+</section>
+
+<!-- ─── S02: Ba chế độ ─── -->
+<section class="section-band" id="s02">
+  <div class="band-inner">
+    <p class="sec-label" data-i18n="s02_label">02 — Ba chế độ hoạt động</p>
+    <h2 class="sec-title reveal" data-i18n="s02_title">Spawn, Delegate, Team</h2>
+    <p class="reveal" data-i18n="s02_intro">Mỗi agent trong GoClaw vận hành theo một trong ba chế độ, được hệ thống tự động xác định dựa trên cấu hình database — không cần người dùng chọn.</p>
+
+    <div class="mode-grid reveal">
+      <div class="mode-card spawn">
+        <div class="mode-label spawn">Mode · Default</div>
+        <div class="mode-name">ModeSpawn</div>
+        <div class="mode-desc" data-i18n="mode_spawn_desc">Tạo bản sao của chính mình (subagent) để xử lý subtask. Không cần phối hợp với agent khác.</div>
+      </div>
+      <div class="mode-card delegate">
+        <div class="mode-label delegate">Mode · Expert</div>
+        <div class="mode-name">ModeDelegate</div>
+        <div class="mode-desc" data-i18n="mode_delegate_desc">Liên kết đến các agent khác. Dùng tool <code>delegate</code> để giao việc cho agent chuyên biệt. Routing tới expert agents.</div>
+      </div>
+      <div class="mode-card team">
+        <div class="mode-label team">Mode · Full</div>
+        <div class="mode-name">ModeTeam</div>
+        <div class="mode-desc" data-i18n="mode_team_desc">Agent tham gia team với lead và members. Có task board chung, mailbox, và workspace chia sẻ.</div>
+      </div>
+    </div>
+
+    <div class="reveal">
+      <div class="priority-bar">
+        <span><strong data-i18n="priority_label">Ưu tiên resolution:</strong></span>
+        <span class="priority-seg team">Team</span>
+        <span class="priority-arrow">›</span>
+        <span class="priority-seg delegate">Delegate</span>
+        <span class="priority-arrow">›</span>
+        <span class="priority-seg spawn">Spawn</span>
+      </div>
+      <p style="font-size:13px;color:var(--text-dim);margin-top:8px;" data-i18n="auto_detect_note">GoClaw tự phát hiện qua database: kiểm tra bảng <code>teams</code> và <code>agent_links</code>, inject đúng tool set và TEAM.md vào system prompt.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── S03: Kiến trúc Team ─── -->
+<section class="section-band" id="s03">
+  <div class="band-inner">
+    <p class="sec-label" data-i18n="s03_label">03 — Kiến trúc Team</p>
+    <h2 class="sec-title reveal" data-i18n="s03_title">Lead và Members</h2>
+    <p class="reveal" data-i18n="s03_intro">Một team có một <strong>lead</strong> và nhiều <strong>member</strong>. Họ có vai trò và tool set khác nhau — không phải agent giống nhau.</p>
+
+    <div class="arch-box reveal">
+      <div class="arch-label">TEAM HIERARCHY</div>
+      <div class="arch-flow">
+        <div class="arch-node user">User</div>
+        <div class="arch-arrow-v"><div class="vline"></div></div>
+        <div class="arch-node lead">Lead Agent · TEAM.md đầy đủ · Orchestration</div>
+        <div class="arch-arrow-v"><div class="vline"></div></div>
+        <div class="arch-row">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div class="arch-node member-a">Member A</div>
+            <div class="arch-note" data-i18n="member_exec">Thực thi task độc lập</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div class="arch-node member-b">Member B</div>
+            <div class="arch-note" data-i18n="member_exec">Thực thi task độc lập</div>
+          </div>
+        </div>
+        <div class="arch-arrow-v"><div class="vline"></div></div>
+        <div class="arch-node result">Lead nhận batch result → Synthesis → Trả lời User</div>
+      </div>
+    </div>
+
+    <h3 data-i18n="team_md_h">TEAM.md — Virtual file</h3>
+    <p class="reveal" data-i18n="team_md_p1"><strong>Nguyên tắc thiết kế quan trọng:</strong> Members không nhận TEAM.md đầy đủ — chỉ nhận phần "just do the work". Lead mới có đầy đủ orchestration instructions, danh sách teammates, và patterns phối hợp. Lý do: tiết kiệm token cho idle members.</p>
+    <p class="reveal" data-i18n="team_md_p2"><strong>TEAM.md</strong> là virtual file — không lưu trên disk, được render động từ database mỗi khi agent được resolve, inject vào system prompt qua <code>&lt;system_context&gt;</code> tags.</p>
+  </div>
+</section>
+
+<!-- ─── S04: Task Board ─── -->
+<section class="section-band" id="s04">
+  <div class="band-inner">
+    <p class="sec-label" data-i18n="s04_label">04 — Task Board</p>
+    <h2 class="sec-title reveal" data-i18n="s04_title">Shared task tracker</h2>
+    <p class="reveal" data-i18n="s04_intro">Task board là trung tâm của hệ thống. Lead tạo task, assign cho member, member claim và thực thi — tất cả qua tool <code>team_tasks</code>.</p>
+
+    <h3 data-i18n="lifecycle_h">Vòng đời task — 8 trạng thái</h3>
+
+    <div class="sm-wrap reveal">
+      <div class="sm-label">TASK LIFECYCLE STATE MACHINE</div>
+      <!-- Row 1: pending → in_progress → in_review -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;">
+        <div class="state-box s-pending" data-i18n="state_pending">pending</div>
+        <div class="sm-arrow"><div class="sm-arrow-h"></div></div>
+        <div class="state-box s-progress" data-i18n="state_progress">in_progress</div>
+        <div class="sm-arrow"><div class="sm-arrow-h"></div></div>
+        <div class="state-box s-review" data-i18n="state_review">in_review</div>
+      </div>
+      <!-- V arrows down -->
+      <div style="display:flex;justify-content:center;gap:8px;margin-bottom:4px;">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="sm-arrow-v"></div>
+        </div>
+        <div style="width:calc(28px + 8px + 100px + 8px);"></div><!-- spacer -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <div class="sm-arrow-v" style=""></div>
+          <div style="display:flex;gap:8px;">
+            <div class="sm-arrow"><div class="sm-arrow-h"></div></div>
+          </div>
+        </div>
+      </div>
+      <!-- Row 2: blocked / completed + cancelled -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;">
+        <div class="state-box s-blocked" data-i18n="state_blocked">blocked</div>
+        <div style="flex:1;max-width:60px;"></div>
+        <div class="state-box s-done" data-i18n="state_done">completed</div>
+        <div class="sm-arrow"><div class="sm-arrow-h" style="background:rgba(100,120,140,0.3);"></div></div>
+        <div class="state-box s-cancelled" data-i18n="state_cancelled">cancelled</div>
+      </div>
+      <!-- Row 3: stale / failed -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
+        <div class="state-box s-stale" data-i18n="state_stale">stale</div>
+        <div class="state-box s-failed" data-i18n="state_failed">failed</div>
+      </div>
+
+      <div class="sm-legend">
+        <div class="sm-legend-item"><div class="sm-legend-dot" style="background:var(--acc);"></div><span data-i18n="leg_pending">pending: chờ claim</span></div>
+        <div class="sm-legend-item"><div class="sm-legend-dot" style="background:var(--blue);"></div><span data-i18n="leg_progress">in_progress: đang thực thi</span></div>
+        <div class="sm-legend-item"><div class="sm-legend-dot" style="background:var(--violet);"></div><span data-i18n="leg_review">in_review: chờ approve</span></div>
+        <div class="sm-legend-item"><div class="sm-legend-dot" style="background:var(--green);"></div><span data-i18n="leg_done">completed</span></div>
+        <div class="sm-legend-item"><div class="sm-legend-dot" style="background:var(--red);"></div><span data-i18n="leg_blocked">blocked</span></div>
+      </div>
+    </div>
+
+    <h3 data-i18n="atomic_h">Atomic Claiming</h3>
+    <p class="reveal" data-i18n="atomic_p">Hai member không thể claim cùng một task. Thực hiện bằng conditional UPDATE ở database level — không cần distributed mutex:</p>
+    <div class="sql-block reveal">
+      <div class="sql-block-header">atomic_claim.sql</div>
+      <div class="sql-block-body"><span class="sql-kw">UPDATE</span> tasks
+<span class="sql-kw">SET</span> status = <span class="sql-val">'in_progress'</span>, owner = <span class="sql-val">$agent</span>
+<span class="sql-kw">WHERE</span> id = <span class="sql-val">$id</span>
+  <span class="sql-kw">AND</span> status = <span class="sql-val">'pending'</span>
+  <span class="sql-kw">AND</span> owner <span class="sql-kw">IS NULL</span>
+<span class="sql-cmt">-- 0 rows affected → đã bị claim trước</span></div>
+    </div>
+
+    <div class="callout reveal" data-i18n="mandatory_note">
+      <strong>Mandatory task tracking:</strong> Lead <em>bắt buộc</em> phải tạo task trước khi delegate. Nếu gọi <code>spawn(agent="member")</code> không có task_id → hệ thống từ chối, hướng dẫn dùng <code>team_tasks(action="create")</code>.
+    </div>
+  </div>
+</section>
+
+<!-- ─── S05: Parallel Execution ─── -->
+<section class="section-band" id="s05">
+  <div class="band-inner">
+    <p class="sec-label" data-i18n="s05_label">05 — Parallel Execution</p>
+    <h2 class="sec-title reveal" data-i18n="s05_title">Nhiều member, cùng lúc</h2>
+    <p class="reveal" data-i18n="s05_intro">Lead tạo nhiều task cùng một lượt — hệ thống dispatch song song, gom kết quả qua <code>BatchQueue[T]</code>:</p>
+
+    <div class="dispatch-wrap reveal">
+      <div class="dispatch-header">PARALLEL DISPATCH FLOW</div>
+      <div>
+        <div class="dispatch-task-row" style="margin-bottom:10px;">
+          <div class="dispatch-task-box s-progress" data-i18n="task1">Task #1 → member_A</div>
+          <div class="dispatch-arrow-r">▸</div>
+          <div class="dispatch-running"><div class="running-dot" style="background:var(--green);"></div><span data-i18n="member_a_run">Member A chạy</span></div>
+        </div>
+        <div class="dispatch-task-row" style="margin-bottom:10px;">
+          <div class="dispatch-task-box s-review" data-i18n="task2">Task #2 → member_B</div>
+          <div class="dispatch-arrow-r">▸</div>
+          <div class="dispatch-running"><div class="running-dot" style="background:var(--blue);"></div><span data-i18n="member_b_run">Member B chạy</span></div>
+        </div>
+        <div class="dispatch-task-row">
+          <div class="dispatch-task-box s-done" data-i18n="task3">Task #3 → member_C</div>
+          <div class="dispatch-arrow-r">▸</div>
+          <div class="dispatch-running"><div class="running-dot" style="background:var(--violet);"></div><span data-i18n="member_c_run">Member C chạy</span></div>
+        </div>
+        <div class="dispatch-batch" data-i18n="batch_result">Lead nhận batch result — một lần announce duy nhất. Synthesis và trả lời user một lượt.</div>
+      </div>
+    </div>
+
+    <h3 data-i18n="post_turn_h">Post-turn dispatch</h3>
+    <p class="reveal" data-i18n="post_turn_p">Tasks được tạo trong lượt của lead được <strong>queue</strong>, dispatch <strong>sau khi lead kết thúc lượt</strong>. Tránh race condition với <code>blocked_by</code> setup — không bao giờ dispatch task khi dependency graph chưa hoàn chỉnh.</p>
+
+    <h3 data-i18n="lanes_h">Scheduler Lanes</h3>
+    <div class="lane-grid reveal">
+      <div class="lane-card team-lane">
+        <div class="lane-num">100</div>
+        <div>
+          <div class="lane-label" data-i18n="lane_team">Team Lane</div>
+          <div class="lane-desc" data-i18n="lane_team_desc">Team/delegation execution — concurrency cao nhất</div>
+        </div>
+      </div>
+      <div class="lane-card sub-lane">
+        <div class="lane-num">50</div>
+        <div>
+          <div class="lane-label" data-i18n="lane_sub">Subagent Lane</div>
+          <div class="lane-desc" data-i18n="lane_sub_desc">Self-clone subagents</div>
+        </div>
+      </div>
+      <div class="lane-card main-lane">
+        <div class="lane-num">30</div>
+        <div>
+          <div class="lane-label" data-i18n="lane_main">Main Lane</div>
+          <div class="lane-desc" data-i18n="lane_main_desc">User chat sessions</div>
+        </div>
+      </div>
+      <div class="lane-card cron-lane">
+        <div class="lane-num">30</div>
+        <div>
+          <div class="lane-label" data-i18n="lane_cron">Cron Lane</div>
+          <div class="lane-desc" data-i18n="lane_cron_desc">Scheduled jobs</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── S06: Task Dependencies ─── -->
+<section class="section-band" id="s06">
+  <div class="band-inner">
+    <p class="sec-label" data-i18n="s06_label">06 — Task Dependencies</p>
+    <h2 class="sec-title reveal" data-i18n="s06_title">blocked_by graph</h2>
+    <p class="reveal" data-i18n="s06_intro">Tasks có thể khai báo dependency. Khi task A phụ thuộc task B, hệ thống tự động unblock sau khi B complete:</p>
+
+    <div class="dep-graph reveal">
+      <div class="dep-row">
+        <div class="dep-node complete" data-i18n="dep_b">Task B — phân tích data</div>
+        <div class="dep-arrow">─────▸</div>
+        <div class="dep-node blocked" data-i18n="dep_a">Task A — viết báo cáo<br><small style="font-weight:400;font-size:10px;">status: blocked</small></div>
+      </div>
+      <div class="dep-note" data-i18n="dep_trigger">Khi B complete → <code>DispatchUnblockedTasks()</code> chạy tự động → Task A nhận context đầy đủ từ B</div>
+      <div style="display:flex;justify-content:center;margin-top:12px;">
+        <div class="dep-node dispatch" data-i18n="dep_a_dispatch">Task A — auto-dispatch · Kết quả B đã append vào context</div>
+      </div>
+    </div>
+
+    <h3 data-i18n="cascade_h">Cascade Cancel</h3>
+    <p class="reveal" data-i18n="cascade_p"><strong>Cascade cancel:</strong> Cancelled task (qua reject hoặc cancel action) cũng unblock dependents — tránh deadlock khi một task thất bại. Hệ thống không để dependents stuck mãi vì một task đã cancel.</p>
+
+    <div class="callout reveal" data-i18n="dep_callout">
+      <strong>Dispatch priority:</strong> <code>DispatchUnblockedTasks()</code> tìm tasks có <code>blocked_by</code> đã resolved, dispatch task priority cao nhất mỗi owner trước. Member nhận task với full context — bao gồm kết quả của blocking tasks.
+    </div>
+  </div>
+</section>
+
+<!-- ─── S07: Mailbox ─── -->
+<section class="section-band" id="s07">
+  <div class="band-inner">
+    <p class="sec-label" data-i18n="s07_label">07 — Inter-Agent Communication</p>
+    <h2 class="sec-title reveal" data-i18n="s07_title">Mailbox system</h2>
+    <p class="reveal" data-i18n="s07_intro">Ngoài task board, members có thể nhắn trực tiếp với nhau qua <code>team_message</code> — message routing qua message bus, không cần polling hay webhook.</p>
+
+    <div class="msg-table-wrap reveal">
+      <table class="msg-table">
+        <thead>
+          <tr>
+            <th data-i18n="th_action">Action</th>
+            <th data-i18n="th_desc">Mô tả</th>
+            <th data-i18n="th_usecase">Use case</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>send</code></td>
+            <td data-i18n="send_desc">Gửi tin cho một teammate cụ thể (theo agent key)</td>
+            <td><span class="tag tag-acc" data-i18n="send_tag">Point-to-point</span></td>
+          </tr>
+          <tr>
+            <td><code>broadcast</code></td>
+            <td data-i18n="broadcast_desc">Gửi cho tất cả teammates trừ bản thân</td>
+            <td><span class="tag tag-green" data-i18n="broadcast_tag">Critical alert</span></td>
+          </tr>
+          <tr>
+            <td><code>read</code></td>
+            <td data-i18n="read_desc">Đọc tin chưa đọc, tự động mark as read</td>
+            <td><span class="tag tag-blue" data-i18n="read_tag">Auto mark-read</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 data-i18n="usecases_h">Use cases thực tế</h3>
+    <div class="reveal">
+      <div class="mode-card" style="margin-bottom:10px;border-left:3px solid var(--green);">
+        <div class="mode-desc"><strong style="color:var(--green);">Member → Lead:</strong> <span data-i18n="uc1">"Task partially complete, cần clarification về requirements"</span></div>
+      </div>
+      <div class="mode-card" style="margin-bottom:10px;border-left:3px solid var(--acc);">
+        <div class="mode-desc"><strong style="color:var(--acc);">Lead → Member:</strong> <span data-i18n="uc2">"Claim task mới trên board"</span></div>
+      </div>
+      <div class="mode-card" style="border-left:3px solid var(--violet);">
+        <div class="mode-desc"><strong style="color:var(--violet);">Member → Member:</strong> <span data-i18n="uc3">Cross-coordination khi hai tasks có overlap</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── S08: Escalation ─── -->
+<section class="section-band" id="s08">
+  <div class="band-inner">
+    <p class="sec-label" data-i18n="s08_label">08 — Blocker Escalation</p>
+    <h2 class="sec-title reveal" data-i18n="s08_title">Khi member bị kẹt</h2>
+    <p class="reveal" data-i18n="s08_intro">Member signal bị blocked bằng blocker comment — hệ thống tự escalate đến lead, không cần lead chủ động monitor:</p>
+
+    <div class="sql-block reveal">
+      <div class="sql-block-header">blocker_comment.pseudo</div>
+      <div class="sql-block-body">team_tasks(
+  action=<span class="sql-val">"comment"</span>,
+  task_id=<span class="sql-val">"..."</span>,
+  text=<span class="sql-val">"Cannot find API docs for payment gateway"</span>,
+  type=<span class="sql-val">"blocker"</span>
+)</div>
+    </div>
+
+    <div class="escalation-steps reveal">
+      <div class="esc-step">
+        <div class="esc-content" data-i18n="esc1">Task auto-fail: <code>in_progress → failed</code></div>
+      </div>
+      <div class="esc-step">
+        <div class="esc-content" data-i18n="esc2"><code>EventTeamTaskFailed</code> broadcast tới team</div>
+      </div>
+      <div class="esc-step">
+        <div class="esc-content" data-i18n="esc3">Member session cancelled</div>
+      </div>
+      <div class="esc-step">
+        <div class="esc-content" data-i18n="esc4">Lead nhận escalation từ <code>system:escalation:</code> — đầy đủ context, retry instruction, task_id</div>
+      </div>
+    </div>
+
+    <div class="callout reveal" data-i18n="circuit_breaker">
+      <strong>Circuit breaker:</strong> Task auto-fail sau 3 dispatch attempts (<code>maxTaskDispatches</code>). Tránh infinite loop khi agent không thể hoàn thành một task.
+    </div>
+  </div>
+</section>
+
+<!-- ─── S09: Workload Distribution ─── -->
+<section class="section-band" id="s09">
+  <div class="band-inner">
+    <p class="sec-label" data-i18n="s09_label">09 — Workload Distribution</p>
+    <h2 class="sec-title reveal" data-i18n="s09_title">Automatic, không cần cấu hình thêm</h2>
+
+    <div class="reveal">
+      <div class="mode-card" style="margin-bottom:10px;border-left:3px solid var(--acc);">
+        <div class="mode-label delegate">Priority dispatch</div>
+        <div class="mode-desc" data-i18n="wl1">Task priority cao hơn được dispatch trước trong mỗi round.</div>
+      </div>
+      <div class="mode-card" style="margin-bottom:10px;border-left:3px solid var(--green);">
+        <div class="mode-label spawn">One-at-a-time per owner</div>
+        <div class="mode-desc" data-i18n="wl2">Mỗi agent chỉ nhận 1 task mới mỗi round — sau khi complete task hiện tại.</div>
+      </div>
+      <div class="mode-card" style="margin-bottom:10px;border-left:3px solid var(--blue);">
+        <div class="mode-label" style="color:var(--blue);">Concurrency limits</div>
+        <div class="mode-desc" data-i18n="wl3">Per-link (mặc định 3 concurrent từ lead đến member) và per-agent. Khi vượt → LLM nhận error message hướng dẫn thử agent khác.</div>
+      </div>
+      <div class="mode-card" style="border-left:3px solid var(--violet);">
+        <div class="mode-label team">Auto-completion trigger</div>
+        <div class="mode-desc" data-i18n="wl4">Khi member complete task → <code>DispatchUnblockedTasks()</code> chạy ngay. Không cần lead can thiệp.</div>
+      </div>
+    </div>
+
+    <div class="throttle-bar reveal">
+      <div class="throttle-icon">⚡</div>
+      <div>
+        <strong data-i18n="throttle_h">Adaptive throttle:</strong>
+        <span data-i18n="throttle_p"> Khi session history vượt 60% context window, scheduler tự reduce concurrency về 1 — tránh context overflow làm hỏng output quality.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── S10: Tổng kết ─── -->
+<section class="section-band" id="s10">
+  <div class="band-inner">
+    <p class="sec-label" data-i18n="s10_label">10 — Tổng kết</p>
+    <h2 class="sec-title reveal" data-i18n="s10_title">Hệ thống end-to-end</h2>
+    <p class="reveal" data-i18n="s10_intro">Từ lúc user nhắn tin đến lúc nhận kết quả — toàn bộ flow orchestration:</p>
+
+    <div class="summary-flow reveal">
+      <div class="sf-row">
+        <div class="sf-arrow">⬇</div>
+        <div class="sf-node user-node" data-i18n="sf_user">User message</div>
+      </div>
+      <div class="sf-row">
+        <div class="sf-arrow">⬇</div>
+        <div class="sf-node lead-node" data-i18n="sf_lead">Lead Agent (ModeTeam)</div>
+      </div>
+      <div class="sf-sub">
+        <div class="sf-detail" data-i18n="sf_lead_d1">Phân tích yêu cầu, kiểm tra task board (search trước, tránh duplicate)</div>
+        <div class="sf-detail" data-i18n="sf_lead_d2">Tạo tasks → assign members</div>
+      </div>
+      <div class="sf-row" style="gap:16px;">
+        <div class="sf-arrow" style="color:transparent;">⬇</div>
+        <div class="sf-node a-node" data-i18n="sf_a">Member A (team lane, isolated session)</div>
+      </div>
+      <div class="sf-sub">
+        <div class="sf-detail" data-i18n="sf_a_d1">Claim task atomically</div>
+        <div class="sf-detail" data-i18n="sf_a_d2">Thực thi, ghi files vào team workspace</div>
+        <div class="sf-detail" data-i18n="sf_a_d3">Complete → kết quả auto-announce</div>
+      </div>
+      <div class="sf-row" style="gap:16px;">
+        <div class="sf-arrow" style="color:transparent;">⬇</div>
+        <div class="sf-node b-node" data-i18n="sf_b">Member B (parallel hoặc blocked_by A)</div>
+      </div>
+      <div class="sf-sub">
+        <div class="sf-detail" data-i18n="sf_b_d1">Auto-dispatch khi A complete nếu có dependency</div>
+      </div>
+      <div class="sf-row">
+        <div class="sf-arrow">⬇</div>
+        <div class="sf-node lead-node" data-i18n="sf_result">Lead nhận batch result → Synthesis → Trả lời user</div>
+      </div>
+    </div>
+
+    <div class="callout reveal" data-i18n="s10_callout">
+      <strong>Không cần config phức tạp.</strong> Team setup tự tạo delegation links. TEAM.md tự inject. Tasks tự dispatch. Kết quả tự route về đúng user session — kể cả qua Telegram forum topics hay Feishu thread discussions.
+    </div>
+
+    <p class="reveal" style="margin-top:20px;" data-i18n="s10_scale">Hệ thống orchestration trong GoClaw được xây dựng để <strong>scale theo chiều ngang</strong> — thêm member vào team là tức thì có thêm capacity, không phải refactor prompt hay logic.</p>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer-band">
+  <p class="footer-text" data-i18n="footer_text">
+    <strong style="color:var(--acc);">Agent Orchestration</strong> trong GoClaw — hierarchical delegation, parallel dispatch, task dependencies, mailbox, và workload distribution. Scale ngang bằng cách thêm member.
+  </p>
+  <p class="footer-ver">GoClaw · inside.goclaw.space</p>
+  <a href="/" class="footer-back home-link" data-i18n="footer_back">← Về blog</a>
+</footer>
+
+<!-- ─── i18n + TOC scripts ─── -->
+<script>
+(function(){
+  /* ── translations ── */
+  var T = {
+    vi: {
+      eyebrow: "GoClaw — Agent System",
+      hero_title: "Agent <em>Orchestration</em><br>&amp; Delegation",
+      hero_deck: "Hierarchical delegation, parallel dispatch, task dependency graph, inter-agent mailbox, và automatic workload distribution.",
+      toc01:"01 Vấn đề", toc02:"02 Ba chế độ", toc03:"03 Team Arch", toc04:"04 Task Board",
+      toc05:"05 Parallel", toc06:"06 Dependencies", toc07:"07 Mailbox", toc08:"08 Escalation",
+      toc09:"09 Workload", toc10:"10 Tổng kết",
+      s01_label:"01 — Vấn đề", s01_title:"Một agent không đủ",
+      s01_p1:"Khi bạn giao cho một AI agent một tác vụ lớn — \"phân tích toàn bộ codebase và viết báo cáo\", \"nghiên cứu thị trường rồi tạo slide\" — agent đó phải làm tuần tự: đọc từng file, ghi chú, tổng hợp, viết. Chậm. Token explode. Context window tràn.",
+      s01_p2:"Giải pháp tự nhiên: chia việc cho nhiều agent chạy song song. Nhưng ngay lập tức nảy sinh bốn câu hỏi:",
+      q1_title:"Ai quyết định?", q1_desc:"Chia việc thế nào, cho ai?",
+      q2_title:"Kết quả về đâu?", q2_desc:"Từ các agent con về lúc nào?",
+      q3_title:"Agent bị kẹt?", q3_desc:"Hệ thống phản ứng ra sao?",
+      q4_title:"Phối hợp ngang?", q4_desc:"Không chỉ nhận lệnh từ trên xuống",
+      s01_solution:"GoClaw giải quyết bốn câu hỏi này bằng một hệ thống orchestration đầy đủ: <strong>hierarchical delegation</strong>, <strong>parallel dispatch</strong>, <strong>task dependency graph</strong>, <strong>inter-agent mailbox</strong>, và <strong>automatic workload distribution</strong>.",
+      s02_label:"02 — Ba chế độ hoạt động", s02_title:"Spawn, Delegate, Team",
+      s02_intro:"Mỗi agent trong GoClaw vận hành theo một trong ba chế độ, được hệ thống tự động xác định dựa trên cấu hình database — không cần người dùng chọn.",
+      mode_spawn_desc:"Tạo bản sao của chính mình (subagent) để xử lý subtask. Không cần phối hợp với agent khác.",
+      mode_delegate_desc:"Liên kết đến các agent khác. Dùng tool delegate để giao việc cho agent chuyên biệt. Routing tới expert agents.",
+      mode_team_desc:"Agent tham gia team với lead và members. Có task board chung, mailbox, và workspace chia sẻ.",
+      priority_label:"Ưu tiên resolution:",
+      auto_detect_note:"GoClaw tự phát hiện qua database: kiểm tra bảng teams và agent_links, inject đúng tool set và TEAM.md vào system prompt.",
+      s03_label:"03 — Kiến trúc Team", s03_title:"Lead và Members",
+      s03_intro:"Một team có một <strong>lead</strong> và nhiều <strong>member</strong>. Họ có vai trò và tool set khác nhau — không phải agent giống nhau.",
+      member_exec:"Thực thi task độc lập",
+      team_md_h:"TEAM.md — Virtual file",
+      team_md_p1:"<strong>Nguyên tắc thiết kế quan trọng:</strong> Members không nhận TEAM.md đầy đủ — chỉ nhận phần \"just do the work\". Lead mới có đầy đủ orchestration instructions, danh sách teammates, và patterns phối hợp. Lý do: tiết kiệm token cho idle members.",
+      team_md_p2:"<strong>TEAM.md</strong> là virtual file — không lưu trên disk, được render động từ database mỗi khi agent được resolve, inject vào system prompt qua &lt;system_context&gt; tags.",
+      s04_label:"04 — Task Board", s04_title:"Shared task tracker",
+      s04_intro:"Task board là trung tâm của hệ thống. Lead tạo task, assign cho member, member claim và thực thi — tất cả qua tool team_tasks.",
+      lifecycle_h:"Vòng đời task — 8 trạng thái",
+      state_pending:"pending", state_progress:"in_progress", state_review:"in_review",
+      state_done:"completed", state_blocked:"blocked", state_failed:"failed",
+      state_cancelled:"cancelled", state_stale:"stale",
+      leg_pending:"pending: chờ claim", leg_progress:"in_progress: đang thực thi",
+      leg_review:"in_review: chờ approve", leg_done:"completed", leg_blocked:"blocked",
+      atomic_h:"Atomic Claiming",
+      atomic_p:"Hai member không thể claim cùng một task. Thực hiện bằng conditional UPDATE ở database level — không cần distributed mutex:",
+      mandatory_note:"<strong>Mandatory task tracking:</strong> Lead <em>bắt buộc</em> phải tạo task trước khi delegate. Nếu gọi spawn(agent=\"member\") không có task_id → hệ thống từ chối, hướng dẫn dùng team_tasks(action=\"create\").",
+      s05_label:"05 — Parallel Execution", s05_title:"Nhiều member, cùng lúc",
+      s05_intro:"Lead tạo nhiều task cùng một lượt — hệ thống dispatch song song, gom kết quả qua BatchQueue[T]:",
+      task1:"Task #1 → member_A", task2:"Task #2 → member_B", task3:"Task #3 → member_C",
+      member_a_run:"Member A chạy", member_b_run:"Member B chạy", member_c_run:"Member C chạy",
+      batch_result:"Lead nhận batch result — một lần announce duy nhất. Synthesis và trả lời user một lượt.",
+      post_turn_h:"Post-turn dispatch",
+      post_turn_p:"Tasks được tạo trong lượt của lead được queue, dispatch sau khi lead kết thúc lượt. Tránh race condition với blocked_by setup.",
+      lanes_h:"Scheduler Lanes",
+      lane_team:"Team Lane", lane_team_desc:"Team/delegation execution — concurrency cao nhất",
+      lane_sub:"Subagent Lane", lane_sub_desc:"Self-clone subagents",
+      lane_main:"Main Lane", lane_main_desc:"User chat sessions",
+      lane_cron:"Cron Lane", lane_cron_desc:"Scheduled jobs",
+      s06_label:"06 — Task Dependencies", s06_title:"blocked_by graph",
+      s06_intro:"Tasks có thể khai báo dependency. Khi task A phụ thuộc task B, hệ thống tự động unblock sau khi B complete:",
+      dep_b:"Task B — phân tích data", dep_a:"Task A — viết báo cáo\nstatus: blocked",
+      dep_trigger:"Khi B complete → DispatchUnblockedTasks() chạy tự động → Task A nhận context đầy đủ từ B",
+      dep_a_dispatch:"Task A — auto-dispatch · Kết quả B đã append vào context",
+      cascade_h:"Cascade Cancel",
+      cascade_p:"<strong>Cascade cancel:</strong> Cancelled task (qua reject hoặc cancel action) cũng unblock dependents — tránh deadlock khi một task thất bại.",
+      dep_callout:"<strong>Dispatch priority:</strong> DispatchUnblockedTasks() tìm tasks có blocked_by đã resolved, dispatch task priority cao nhất mỗi owner trước. Member nhận task với full context.",
+      s07_label:"07 — Inter-Agent Communication", s07_title:"Mailbox system",
+      s07_intro:"Ngoài task board, members có thể nhắn trực tiếp với nhau qua team_message — message routing qua message bus, không cần polling hay webhook.",
+      th_action:"Action", th_desc:"Mô tả", th_usecase:"Use case",
+      send_desc:"Gửi tin cho một teammate cụ thể (theo agent key)",
+      broadcast_desc:"Gửi cho tất cả teammates trừ bản thân",
+      read_desc:"Đọc tin chưa đọc, tự động mark as read",
+      send_tag:"Point-to-point", broadcast_tag:"Critical alert", read_tag:"Auto mark-read",
+      usecases_h:"Use cases thực tế",
+      uc1:"\"Task partially complete, cần clarification về requirements\"",
+      uc2:"\"Claim task mới trên board\"",
+      uc3:"Cross-coordination khi hai tasks có overlap",
+      s08_label:"08 — Blocker Escalation", s08_title:"Khi member bị kẹt",
+      s08_intro:"Member signal bị blocked bằng blocker comment — hệ thống tự escalate đến lead, không cần lead chủ động monitor:",
+      esc1:"Task auto-fail: in_progress → failed",
+      esc2:"EventTeamTaskFailed broadcast tới team",
+      esc3:"Member session cancelled",
+      esc4:"Lead nhận escalation từ system:escalation: — đầy đủ context, retry instruction, task_id",
+      circuit_breaker:"<strong>Circuit breaker:</strong> Task auto-fail sau 3 dispatch attempts (maxTaskDispatches). Tránh infinite loop khi agent không thể hoàn thành một task.",
+      s09_label:"09 — Workload Distribution", s09_title:"Automatic, không cần cấu hình thêm",
+      wl1:"Task priority cao hơn được dispatch trước trong mỗi round.",
+      wl2:"Mỗi agent chỉ nhận 1 task mới mỗi round — sau khi complete task hiện tại.",
+      wl3:"Per-link (mặc định 3 concurrent từ lead đến member) và per-agent. Khi vượt → LLM nhận error message hướng dẫn thử agent khác.",
+      wl4:"Khi member complete task → DispatchUnblockedTasks() chạy ngay. Không cần lead can thiệp.",
+      throttle_h:"Adaptive throttle:",
+      throttle_p:" Khi session history vượt 60% context window, scheduler tự reduce concurrency về 1 — tránh context overflow làm hỏng output quality.",
+      s10_label:"10 — Tổng kết", s10_title:"Hệ thống end-to-end",
+      s10_intro:"Từ lúc user nhắn tin đến lúc nhận kết quả — toàn bộ flow orchestration:",
+      sf_user:"User message",
+      sf_lead:"Lead Agent (ModeTeam)",
+      sf_lead_d1:"Phân tích yêu cầu, kiểm tra task board (search trước, tránh duplicate)",
+      sf_lead_d2:"Tạo tasks → assign members",
+      sf_a:"Member A (team lane, isolated session)",
+      sf_a_d1:"Claim task atomically",
+      sf_a_d2:"Thực thi, ghi files vào team workspace",
+      sf_a_d3:"Complete → kết quả auto-announce",
+      sf_b:"Member B (parallel hoặc blocked_by A)",
+      sf_b_d1:"Auto-dispatch khi A complete nếu có dependency",
+      sf_result:"Lead nhận batch result → Synthesis → Trả lời user",
+      s10_callout:"<strong>Không cần config phức tạp.</strong> Team setup tự tạo delegation links. TEAM.md tự inject. Tasks tự dispatch. Kết quả tự route về đúng user session — kể cả qua Telegram forum topics hay Feishu thread discussions.",
+      s10_scale:"Hệ thống orchestration trong GoClaw được xây dựng để <strong>scale theo chiều ngang</strong> — thêm member vào team là tức thì có thêm capacity, không phải refactor prompt hay logic.",
+      footer_text:"<strong style='color:var(--acc)'>Agent Orchestration</strong> trong GoClaw — hierarchical delegation, parallel dispatch, task dependencies, mailbox, và workload distribution. Scale ngang bằng cách thêm member.",
+      footer_back:"← Về blog"
+    },
+    en: {
+      eyebrow: "GoClaw — Agent System",
+      hero_title: "Agent <em>Orchestration</em><br>&amp; Delegation",
+      hero_deck: "Hierarchical delegation, parallel dispatch, task dependency graph, inter-agent mailbox, and automatic workload distribution.",
+      toc01:"01 Problem", toc02:"02 Modes", toc03:"03 Team Arch", toc04:"04 Task Board",
+      toc05:"05 Parallel", toc06:"06 Dependencies", toc07:"07 Mailbox", toc08:"08 Escalation",
+      toc09:"09 Workload", toc10:"10 Summary",
+      s01_label:"01 — Problem", s01_title:"One agent is not enough",
+      s01_p1:"When you give an AI agent a large task — \"analyze the entire codebase and write a report\", \"research the market and create slides\" — it must work sequentially: read each file, take notes, synthesize, write. Slow. Token explosion. Context window overflow.",
+      s01_p2:"The natural solution: split the work across multiple parallel agents. But four questions immediately arise:",
+      q1_title:"Who decides?", q1_desc:"How to split, who gets what?",
+      q2_title:"Where do results go?", q2_desc:"When do sub-agent results arrive?",
+      q3_title:"Agent stuck?", q3_desc:"How does the system react?",
+      q4_title:"Lateral coordination?", q4_desc:"Not just top-down commands",
+      s01_solution:"GoClaw answers all four with a complete orchestration system: <strong>hierarchical delegation</strong>, <strong>parallel dispatch</strong>, <strong>task dependency graph</strong>, <strong>inter-agent mailbox</strong>, and <strong>automatic workload distribution</strong>.",
+      s02_label:"02 — Three Operating Modes", s02_title:"Spawn, Delegate, Team",
+      s02_intro:"Each agent in GoClaw operates in one of three modes, automatically determined from the database configuration — no user selection required.",
+      mode_spawn_desc:"Creates copies of itself (subagents) to handle subtasks. No coordination with other agents needed.",
+      mode_delegate_desc:"Links to other agents. Uses the delegate tool to assign work to specialized agents. Routes to expert agents.",
+      mode_team_desc:"Agent joins a team with lead and members. Shared task board, mailbox, and workspace.",
+      priority_label:"Resolution priority:",
+      auto_detect_note:"GoClaw auto-detects from the database: checks tables teams and agent_links, injects the correct tool set and TEAM.md into the system prompt.",
+      s03_label:"03 — Team Architecture", s03_title:"Lead and Members",
+      s03_intro:"A team has one <strong>lead</strong> and multiple <strong>members</strong>. They have different roles and tool sets — not the same agent.",
+      member_exec:"Executes task independently",
+      team_md_h:"TEAM.md — Virtual file",
+      team_md_p1:"<strong>Key design principle:</strong> Members don't receive the full TEAM.md — only the \"just do the work\" section. Only the lead has full orchestration instructions, teammate list, and coordination patterns. Reason: save tokens for idle members.",
+      team_md_p2:"<strong>TEAM.md</strong> is a virtual file — not stored on disk, rendered dynamically from the database each time an agent is resolved, injected into the system prompt via &lt;system_context&gt; tags.",
+      s04_label:"04 — Task Board", s04_title:"Shared task tracker",
+      s04_intro:"The task board is the system's center. Lead creates tasks, assigns them to members, members claim and execute — all via the team_tasks tool.",
+      lifecycle_h:"Task lifecycle — 8 states",
+      state_pending:"pending", state_progress:"in_progress", state_review:"in_review",
+      state_done:"completed", state_blocked:"blocked", state_failed:"failed",
+      state_cancelled:"cancelled", state_stale:"stale",
+      leg_pending:"pending: awaiting claim", leg_progress:"in_progress: executing",
+      leg_review:"in_review: awaiting approval", leg_done:"completed", leg_blocked:"blocked",
+      atomic_h:"Atomic Claiming",
+      atomic_p:"Two members cannot claim the same task. Implemented via conditional UPDATE at the database level — no distributed mutex needed:",
+      mandatory_note:"<strong>Mandatory task tracking:</strong> Lead <em>must</em> create a task before delegating. Calling spawn(agent=\"member\") without task_id → system rejects it and guides toward team_tasks(action=\"create\").",
+      s05_label:"05 — Parallel Execution", s05_title:"Multiple members, simultaneously",
+      s05_intro:"Lead creates multiple tasks in one turn — system dispatches in parallel, collects results via BatchQueue[T]:",
+      task1:"Task #1 → member_A", task2:"Task #2 → member_B", task3:"Task #3 → member_C",
+      member_a_run:"Member A running", member_b_run:"Member B running", member_c_run:"Member C running",
+      batch_result:"Lead receives batch result — one announce only. Synthesis and user reply in one pass.",
+      post_turn_h:"Post-turn dispatch",
+      post_turn_p:"Tasks created in the lead's turn are queued, dispatched after the lead's turn ends. Avoids race conditions with blocked_by setup.",
+      lanes_h:"Scheduler Lanes",
+      lane_team:"Team Lane", lane_team_desc:"Team/delegation execution — highest concurrency",
+      lane_sub:"Subagent Lane", lane_sub_desc:"Self-clone subagents",
+      lane_main:"Main Lane", lane_main_desc:"User chat sessions",
+      lane_cron:"Cron Lane", lane_cron_desc:"Scheduled jobs",
+      s06_label:"06 — Task Dependencies", s06_title:"blocked_by graph",
+      s06_intro:"Tasks can declare dependencies. When task A depends on task B, the system automatically unblocks after B completes:",
+      dep_b:"Task B — analyze data", dep_a:"Task A — write report\nstatus: blocked",
+      dep_trigger:"When B completes → DispatchUnblockedTasks() runs automatically → Task A receives full context from B",
+      dep_a_dispatch:"Task A — auto-dispatch · B's result already appended to context",
+      cascade_h:"Cascade Cancel",
+      cascade_p:"<strong>Cascade cancel:</strong> Cancelled tasks (via reject or cancel action) also unblock dependents — prevents deadlock when a task fails.",
+      dep_callout:"<strong>Dispatch priority:</strong> DispatchUnblockedTasks() finds tasks with resolved blocked_by, dispatches highest priority task per owner first. Members receive tasks with full context.",
+      s07_label:"07 — Inter-Agent Communication", s07_title:"Mailbox system",
+      s07_intro:"Beyond the task board, members can message each other directly via team_message — routing through the message bus, no polling or webhook needed.",
+      th_action:"Action", th_desc:"Description", th_usecase:"Use case",
+      send_desc:"Send message to a specific teammate (by agent key)",
+      broadcast_desc:"Send to all teammates except self",
+      read_desc:"Read unread messages, auto mark as read",
+      send_tag:"Point-to-point", broadcast_tag:"Critical alert", read_tag:"Auto mark-read",
+      usecases_h:"Real-world use cases",
+      uc1:"\"Task partially complete, need clarification on requirements\"",
+      uc2:"\"Claim new task on the board\"",
+      uc3:"Cross-coordination when two tasks overlap",
+      s08_label:"08 — Blocker Escalation", s08_title:"When a member is stuck",
+      s08_intro:"Member signals a blocker via blocker comment — the system auto-escalates to the lead, no active monitoring needed:",
+      esc1:"Task auto-fail: in_progress → failed",
+      esc2:"EventTeamTaskFailed broadcast to team",
+      esc3:"Member session cancelled",
+      esc4:"Lead receives escalation from system:escalation: — full context, retry instruction, task_id",
+      circuit_breaker:"<strong>Circuit breaker:</strong> Task auto-fail after 3 dispatch attempts (maxTaskDispatches). Prevents infinite loops when an agent cannot complete a task.",
+      s09_label:"09 — Workload Distribution", s09_title:"Automatic, no extra configuration",
+      wl1:"Higher priority tasks dispatched first each round.",
+      wl2:"Each agent receives only 1 new task per round — after completing the current one.",
+      wl3:"Per-link (default 3 concurrent from lead to member) and per-agent. When exceeded → LLM receives error message suggesting another agent.",
+      wl4:"When member completes task → DispatchUnblockedTasks() runs immediately. No lead intervention needed.",
+      throttle_h:"Adaptive throttle:",
+      throttle_p:" When session history exceeds 60% of context window, scheduler reduces concurrency to 1 — prevents context overflow from degrading output quality.",
+      s10_label:"10 — Summary", s10_title:"End-to-end system",
+      s10_intro:"From user message to final response — the full orchestration flow:",
+      sf_user:"User message",
+      sf_lead:"Lead Agent (ModeTeam)",
+      sf_lead_d1:"Analyze request, check task board (search first, avoid duplicates)",
+      sf_lead_d2:"Create tasks → assign members",
+      sf_a:"Member A (team lane, isolated session)",
+      sf_a_d1:"Claim task atomically",
+      sf_a_d2:"Execute, write files to team workspace",
+      sf_a_d3:"Complete → result auto-announced",
+      sf_b:"Member B (parallel or blocked_by A)",
+      sf_b_d1:"Auto-dispatch when A completes if dependency exists",
+      sf_result:"Lead receives batch result → Synthesis → Reply to user",
+      s10_callout:"<strong>No complex config needed.</strong> Team setup auto-creates delegation links. TEAM.md auto-injects. Tasks auto-dispatch. Results auto-route back to the correct user session — even across Telegram forum topics or Feishu thread discussions.",
+      s10_scale:"GoClaw's orchestration system is built to <strong>scale horizontally</strong> — adding a member to a team instantly adds capacity, no prompt or logic refactoring needed.",
+      footer_text:"<strong style='color:var(--acc)'>Agent Orchestration</strong> in GoClaw — hierarchical delegation, parallel dispatch, task dependencies, mailbox, and workload distribution. Scale horizontally by adding members.",
+      footer_back:"← Back to blog"
+    }
+  };
+
+  /* ── Apply translations ── */
+  var langAttr = document.documentElement.getAttribute('lang') || 'vi';
+  var lang = T[langAttr] ? langAttr : 'vi';
+
+  function applyLang(l) {
+    var dict = T[l] || T['vi'];
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      var k = el.getAttribute('data-i18n');
+      if (dict[k] !== undefined) el.innerHTML = dict[k];
+    });
+    // Update lang toggle label
+    var order = ['vi','en'];
+    var nextL = order[(order.indexOf(l)+1) % order.length];
+    var btn = document.getElementById('langToggle');
+    if (btn) btn.textContent = nextL.toUpperCase();
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    applyLang(lang);
+
+    /* ── Reveal on scroll ── */
+    var reveals = document.querySelectorAll('.reveal');
+    if ('IntersectionObserver' in window) {
+      var obs = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+        });
+      }, { threshold: 0.08 });
+      reveals.forEach(function(el){ obs.observe(el); });
+    } else {
+      reveals.forEach(function(el){ el.classList.add('visible'); });
+    }
+
+    /* ── Active TOC ── */
+    var sections = document.querySelectorAll('[id^="s0"],[id^="s1"]');
+    var tocLinks = document.querySelectorAll('.toc-link');
+    var tocObs = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting) {
+          tocLinks.forEach(function(l){ l.classList.remove('active'); });
+          var active = document.querySelector('.toc-link[href="#'+e.target.id+'"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { threshold: 0.3, rootMargin: '-56px 0px 0px 0px' });
+    sections.forEach(function(s){ tocObs.observe(s); });
+
+    /* ── Home link locale preservation ── */
+    var localePrefix = window.location.pathname.match(/^\/(en|zh|ja)\//);
+    var homeHref = localePrefix ? '/' + localePrefix[1] : '/';
+    document.querySelectorAll('.home-link').forEach(function(a){ a.href = homeHref; });
+  });
+})();
+</script>
+
+</body>
+</html>

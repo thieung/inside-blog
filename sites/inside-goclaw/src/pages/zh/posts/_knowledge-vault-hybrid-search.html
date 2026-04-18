@@ -869,11 +869,11 @@ function setLang(lang) {
     if (val !== undefined) el.innerHTML = val;
   });
 }
-const pathMatch = window.location.pathname.match(/^\/(en|zh)\//);
+const pathMatch = window.location.pathname.match(/^\/(en|zh|ja)\//);
 const urlLang = new URLSearchParams(window.location.search).get('lang');
 const detectedLang = urlLang || (pathMatch && pathMatch[1]) || null;
-if (detectedLang && ['vi','en','zh'].includes(detectedLang)) setLang(detectedLang);
-const localePrefix = window.location.pathname.match(/^\/(en|zh)\//);
+if (detectedLang && ['vi','en','zh','ja'].includes(detectedLang)) setLang(detectedLang);
+const localePrefix = window.location.pathname.match(/^\/(en|zh|ja)\//);
 const homeHref = localePrefix ? '/' + localePrefix[1] : '/';
 document.querySelectorAll('.home-link').forEach(a => a.href = homeHref);
 </script>
