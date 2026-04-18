@@ -1,7 +1,11 @@
 .vercel
 node_modules
 .DS_Store
-social/
+/social/
+/posts/
 dist/
 .astro/
 .turbo/
+.claude/
+plans/**/*
+!plans/templates/*

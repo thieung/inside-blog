@@ -1,5 +1,7 @@
 {
   "vi": {
+    "page_title": "Bắt đầu với Claude Code và ClaudeKit | Inside ClaudeKit",
+    "page_desc": "Từ AI assistant thành development partner. Giải thích cơ chế hoạt động của Claude và hướng dẫn Engineer Kit với real-world use cases.",
     "eyebrow": "ClaudeKit Engineer",
     "hero_deck": "Từ AI assistant thành development partner. Giải thích cơ chế hoạt động của Claude và hướng dẫn Engineer Kit với real-world use cases và best/bad practices.",
     "hero_title": "Bắt đầu với <em>Claude Code</em> và ClaudeKit",
@@ -279,6 +281,8 @@
     "toc_sR": "Rules"
   },
   "en": {
+    "page_title": "Getting Started with Claude Code & ClaudeKit | Inside ClaudeKit",
+    "page_desc": "From AI assistant to development partner. Learn how Claude works and master the Engineer Kit with real-world use cases.",
     "eyebrow": "ClaudeKit Engineer",
     "hero_deck": "From AI assistant to development partner. Explains how Claude works and guides you through the Engineer Kit with real-world use cases and best/bad practices.",
     "hero_title": "Getting Started with <em>Claude Code</em> and ClaudeKit",
@@ -558,6 +562,8 @@
     "toc_sR": "Rules"
   },
   "zh": {
+    "page_title": "开始使用 Claude Code 和 ClaudeKit | Inside ClaudeKit",
+    "page_desc": "从 AI 助手到开发伙伴。了解 Claude 的工作机制，通过真实案例掌握 Engineer Kit。",
     "eyebrow": "ClaudeKit 工程师",
     "hero_deck": "从 AI 助手到开发伙伴。解释 Claude 的工作机制，并通过真实使用案例和最佳/不良实践指导使用 Engineer Kit。",
     "hero_title": "开始使用 <em>Claude Code</em> 和 ClaudeKit",
@@ -837,6 +843,8 @@
     "toc_sR": "Rules"
   },
   "ja": {
+    "page_title": "Claude Code と ClaudeKit を始める | Inside ClaudeKit",
+    "page_desc": "AIアシスタントから開発パートナーへ。Claudeの動作メカニズムと実際のユースケースでEngineer Kitをマスター。",
     "eyebrow": "ClaudeKit エンジニア",
     "hero_deck": "AIアシスタントから開発パートナーへ。Claudeの動作メカニズムを解説し、実際のユースケースとベスト/バッドプラクティスを通じてEngineer Kitを紹介します。",
     "hero_title": "<em>Claude Code</em> と ClaudeKit を始める",
