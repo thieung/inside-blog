@@ -1,0 +1,15 @@
+🦊 GoClaw v2.18.0 ra mắt Desktop Edition — GoClaw Lite. Full-featured AI agent platform chạy ngay trên máy tính, không cần Docker, không cần PostgreSQL, không cần server
+
+GoClaw Server thì cần cả hệ sinh thái: PostgreSQL, Redis, Docker. Hợp lý cho production multi-tenant, nhưng developer muốn thử nhanh hoặc dùng cá nhân thì friction quá nhiều.
+
+GoClaw Lite giải quyết đúng vấn đề đó:
+- Một file .app duy nhất, click là chạy. SQLite thay PostgreSQL, Wails thay Docker
+- Single-process Wails app — Go backend chạy embedded gateway, React frontend giao tiếp qua IPC, không qua network. Latency gần bằng zero
+- Pure-Go SQLite (modernc.org/sqlite) — không CGo, cross-compile từ macOS sang Windows trong 1 lệnh
+- Tự động update từ GitHub Releases mỗi 6 giờ, một click để update và restart
+
+Mọi tính năng agent — teams, delegation, MCP, knowledge graph, heartbeat, skills — đều chạy trên cả hai edition. Chỉ infrastructure layer là khác.
+
+Cài macOS thì one-liner, Windows thì PowerShell. Chi tiết mình để link ở comment nhé
+
+#GoClaw #DesktopApp

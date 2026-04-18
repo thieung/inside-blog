@@ -1,0 +1,13 @@
+Karpathy coined "vibe coding", now says most of his tokens go into knowledge, not code. His LLM Wiki pattern: instead of RAG-style retrieve-every-time, have the LLM compile sources into a structured wiki and maintain it continuously.
+
+3-layer architecture: raw sources (read-only truth), wiki (LLM-maintained markdown — summaries, entity pages, cross-references), schema (config file that turns LLM into a disciplined wiki maintainer).
+
+3 core operations: ingest (compile new source into wiki), query (answer from pre-compiled knowledge), lint (health-check for contradictions and orphan pages).
+
+The most interesting part isn't the architecture — it's the distribution model. Karpathy shared an "idea file" instead of code. A markdown describing the pattern abstractly. Paste it to your LLM agent, it builds the implementation for your setup. Open ideas > open code.
+
+His gist hit 2,600+ stars day one. Community shipped implementations in Go, Python, Claude Code skills within 24h.
+
+I also analyzed how this maps to multi-agent knowledge bases — multiple specialized agents maintaining one wiki with orchestration patterns.
+
+https://thieunv.substack.com/p/xay-bo-nao-thu-hai-bang-llm

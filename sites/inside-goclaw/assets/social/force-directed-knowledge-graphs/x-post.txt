@@ -1,0 +1,14 @@
+Deep dive into GoClaw v2.47.x Knowledge Graph — semantic memory for AI agents, built from conversations.
+
+3-layer arch:
+• LLM extraction → 7 entity types, 17 relation types, confidence scoring
+• PostgreSQL + pgvector → hybrid search (FTS 30% + vector 70%)
+• Three.js 3D force-directed graph with depth traversal via recursive CTE
+
+Auto-dedup: KNN + Jaro-Winkler → auto-merge at ≥98% vec + ≥85% name. Flag for review at ≥90%.
+
+10 perf optimizations across v2.47.0–v2.47.3. Highlight: deferred dialog open dropped INP from 808ms to <100ms. Adaptive force params scale layout by node count.
+
+Interactive 3D demo included. 4 languages (VI/EN/ZH/JA).
+
+https://goclaw.thieunv.space/posts/force-directed-knowledge-graphs

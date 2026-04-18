@@ -1,0 +1,18 @@
+Cuối tuần vừa rồi Karpathy (người đặt ra "vibe coding") có share một pattern khá hay: LLM Wiki — thay vì dùng LLM hỏi đáp rồi quên, anh ấy để LLM "compile" tài liệu thành một wiki có cấu trúc và maintain liên tục.
+
+Kiến trúc 3 lớp:
+- Raw sources: tài liệu gốc, LLM chỉ đọc không sửa
+- Wiki: markdown files do LLM tạo và cập nhật — summaries, entity pages, comparisons
+- Schema: file cấu hình (CLAUDE.md / AGENTS.md) biến LLM thành wiki maintainer có kỷ luật
+
+3 operations cốt lõi: ingest source mới → query wiki → lint kiểm tra consistency. Kiến thức compile một lần rồi tích lũy, không derive lại mỗi lần hỏi.
+
+Điểm mình thấy hay nhất: Karpathy không share code, mà share "idea file" — một markdown mô tả pattern ở mức abstract, paste cho LLM agent rồi agent build implementation phù hợp với setup của bạn. Open ideas thay vì open code.
+
+Gist đạt 2,600+ stars trong ngày đầu, community ship hàng chục implementation trong 24h.
+
+Trong bài mình cũng phân tích cách map pattern này vào GoClaw với multi-agent orchestration — nhiều agent chuyên biệt cùng maintain một knowledge base thay vì chỉ 1 người + 1 agent.
+
+Link ở comment 👇
+
+#LLMWiki #SecondBrain #GoClaw

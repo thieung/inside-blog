@@ -1,0 +1,7 @@
+GoClaw v2.47.x — Knowledge Graph cho AI agents: từ hội thoại đến bộ nhớ ngữ nghĩa 🦊
+
+Agent hiểu được mối quan hệ giữa người, dự án, task, concept — qua LLM extraction, PostgreSQL + pgvector hybrid search, Three.js 3D visualization.
+
+10 perf optimizations từ v2.47.0 → v2.47.3 — INP giảm từ 808ms xuống <100ms. Có interactive 3D demo, hỗ trợ 4 ngôn ngữ.
+
+https://goclaw.thieunv.space/posts/force-directed-knowledge-graphs

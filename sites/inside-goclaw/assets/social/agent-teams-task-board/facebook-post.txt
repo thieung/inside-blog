@@ -1,0 +1,15 @@
+🦊 GoClaw v2.8.0 ra mắt Agent Teams & Task Board — cho phép nhiều agent phối hợp làm việc trên một bảng task chung
+
+Trước giờ delegation trong GoClaw là 1-1: lead giao việc cho member rồi chờ kết quả. Giờ có hệ thống team đàng hoàng: một lead agent điều phối nhiều member agents, mỗi task đều được track trên board chung với 8 trạng thái rõ ràng.
+
+Mấy điểm hay:
+- Mọi delegation phải gắn task ID — không có task thì hệ thống reject luôn, đảm bảo audit được hết
+- Task có blocked_by dependencies — task B chờ task A xong mới tự động chuyển sang pending và dispatch
+- State transitions atomic ở database — 2 agent cùng claim 1 task thì chỉ 1 cái thành công
+- Member gặp blocker thì post comment, hệ thống tự escalate lên lead
+
+Tool team_tasks có 17 actions, từ tạo task, claim, complete cho tới approve/reject trên dashboard. Lead tạo nhiều task trong 1 lượt hội thoại thì hệ thống queue hết lại rồi dispatch sau khi lượt kết thúc, tránh race condition.
+
+Chi tiết mình để link ở comment nhé
+
+#GoClaw #AIAgents

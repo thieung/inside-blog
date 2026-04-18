@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1200px; height: 630px; overflow: hidden; font-family: 'Space Grotesk', system-ui, sans-serif; background: #0a1a15; position: relative; }
+.bg { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 80% at 90% 50%, rgba(16,185,129,0.07) 0%, transparent 60%), radial-gradient(ellipse 50% 60% at 10% 80%, rgba(20,184,166,0.05) 0%, transparent 50%); }
+.accent-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: linear-gradient(180deg, #10b981, #14b8a6); }
+.bg-logo { position: absolute; right: 40px; top: 50%; transform: translateY(-50%); width: 320px; height: 320px; opacity: 0.06; pointer-events: none; z-index: 0; }
+.content { position: relative; z-index: 1; padding: 64px 80px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
+.top { display: flex; align-items: center; gap: 16px; }
+.logo img { width: 48px; height: 48px; }
+.brand { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 600; color: #ecfdf5; }
+.version { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #10b981; background: rgba(16,185,129,0.12); padding: 6px 16px; border-radius: 8px; font-weight: 600; }
+.middle { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; color: #10b981; margin-bottom: 16px; }
+h1 { font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 56px; font-weight: 700; line-height: 1.15; color: #ecfdf5; max-width: 820px; }
+h1 em { font-style: normal; color: #10b981; }
+.subtitle { margin-top: 20px; font-size: 18px; color: #6ee7b7; max-width: 680px; line-height: 1.55; opacity: 0.85; }
+.bottom { display: flex; align-items: center; gap: 12px; }
+.tag { font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 5px 14px; border-radius: 6px; background: rgba(20,184,166,0.1); color: #14b8a6; }
+.url { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #4ade80; opacity: 0.6; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<img class="bg-logo" src="../goclaw-icon.svg" alt="">
+<div class="accent-bar"></div>
+<div class="content">
+  <div class="top">
+    <div class="logo"><img src="../goclaw-icon.svg" alt=""></div>
+    <div class="brand">GoClaw</div>
+    <div class="version">v2.8.0+</div>
+  </div>
+  <div class="middle">
+    <div class="eyebrow">Inside GoClaw</div>
+    <h1>Agent Teams — <em>Đội agent</em> phối hợp qua bảng công việc</h1>
+    <div class="subtitle">Hệ thống phân công giữa các agent, bảng Kanban chia sẻ, quản lý phụ thuộc và escalation tự động</div>
+  </div>
+  <div class="bottom">
+    <span class="tag">agent-teams</span>
+    <span class="tag">task-board</span>
+    <span class="tag">delegation</span>
+    <span class="url">goclaw.thieunv.space</span>
+  </div>
+</div>
+</body>
+</html>

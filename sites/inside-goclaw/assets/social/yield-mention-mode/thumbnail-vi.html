@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1200px; height: 630px; overflow: hidden; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: #0e1621; color: #e4ecf2; position: relative; }
+.bg { position: absolute; inset: 0; background: radial-gradient(ellipse 50% 60% at 80% 30%, rgba(44,165,224,0.1) 0%, transparent 60%), radial-gradient(ellipse 40% 50% at 20% 80%, rgba(79,174,78,0.06) 0%, transparent 50%); }
+.accent-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: linear-gradient(180deg, #2ca5e0, #4fae4e); }
+.bg-logo { position: absolute; right: 40px; top: 50%; transform: translateY(-50%); width: 320px; height: 320px; opacity: 0.15; pointer-events: none; z-index: 0; }
+.content { position: relative; z-index: 1; padding: 64px 80px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
+.top { display: flex; align-items: center; gap: 16px; }
+.logo img { width: 48px; height: 48px; }
+.brand { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 600; color: #e4ecf2; }
+.version { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #2ca5e0; background: rgba(44,165,224,0.12); padding: 6px 16px; border-radius: 8px; font-weight: 600; }
+.middle { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; color: #2ca5e0; margin-bottom: 16px; }
+h1 { font-size: 64px; font-weight: 800; line-height: 1.1; color: #e4ecf2; max-width: 800px; }
+h1 .hl { color: #2ca5e0; }
+.subtitle { margin-top: 20px; font-size: 20px; color: #7e919f; max-width: 680px; line-height: 1.5; }
+.bottom { display: flex; align-items: center; gap: 12px; }
+.tag { font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 5px 14px; border-radius: 6px; background: rgba(44,165,224,0.08); color: #2ca5e0; border: 1px solid rgba(44,165,224,0.15); }
+.url { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #4a5a68; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<img class="bg-logo" src="../goclaw-icon.svg" alt="">
+<div class="accent-bar"></div>
+<div class="content">
+  <div class="top">
+    <div class="logo"><img src="../goclaw-icon.svg" alt=""></div>
+    <div class="brand">GoClaw</div>
+    <div class="version">v2.24.0</div>
+  </div>
+  <div class="middle">
+    <div class="eyebrow">Inside GoClaw</div>
+    <h1>Yield Mention <span class="hl">Mode</span></h1>
+    <div class="subtitle">Cơ chế nhường lượt thông minh — Agent tự động nhận biết khi nào cần im lặng và nhường cho agent khác trả lời</div>
+  </div>
+  <div class="bottom">
+    <span class="tag">yield</span>
+    <span class="tag">mention-mode</span>
+    <span class="tag">group-chat</span>
+    <span class="url">goclaw.thieunv.space</span>
+  </div>
+</div>
+</body>
+</html>

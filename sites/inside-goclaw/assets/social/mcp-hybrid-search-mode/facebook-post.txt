@@ -1,0 +1,26 @@
+🦊 GoClaw v2.56.0 có MCP Hybrid Search Mode — cơ chế quản lý tool thông minh khi số lượng MCP tool vượt ngưỡng
+
+Bài này đi sâu vào kiến trúc hybrid mode: giữ 40 tool phổ biến inline trong system prompt, đẩy phần còn lại vào BM25 search index để khám phá theo nhu cầu.
+
+Vấn đề thực tế: mỗi MCP server có 10-50 tool, agent kết nối 3-5 server dễ vượt 100 tool. Nhồi hết vào prompt = 5,000+ token chỉ cho danh sách tool, chưa kể context cho conversation.
+
+Giải pháp 3 tầng:
+- Partitioning: maybeEnterSearchMode() chia tool thành inline (registry) và deferred (BM25 index)
+- Discovery: LLM gọi mcp_tool_search với keyword tiếng Anh, BM25 chấm điểm dựa trên server_name + tool_name + description
+- Activation: Tool tìm được kích hoạt ngay qua 3-phase locking (tránh deadlock giữa Manager lock và Registry lock)
+
+Điểm hay:
+- Tool phổ biến luôn sẵn sàng trong prompt, không cần search trước
+- Tool hiếm vẫn khám phá được qua BM25 (có IDF weighting, term frequency saturation)
+- Lazy activation: LLM có thể gọi thẳng tool deferred theo tên, không bắt buộc search trước
+- Song song nâng skill inline count 40 → 60 (skill desc ngắn hơn MCP tool desc)
+
+10 cải tiến hiệu năng:
+- Token hóa thông minh (loại bỏ punctuation, giữ字母 và số)
+- BM25 với k1=1.2, b=0.75 (cổ điển nhưng hiệu quả)
+- 3-phase locking để tránh deadlock
+- Thread-safe activation cho concurrent calls
+
+Chi tiết kiến trúc, code examples, và diagram mình để link ở comment 👇
+
+#GoClaw #MCP #BM25 #AIAgents

@@ -1,0 +1,7 @@
+GoClaw v2.56.0 ra mắt MCP Hybrid Search Mode 🦊
+
+Khi agent kết nối nhiều MCP server, số lượng tool có thể vượt 100. Hybrid mode giải quyết: 40 tool đầu inline, phần còn lại tìm qua BM25 search.
+
+3-phase locking đảm bảo thread-safe activation, lazy activation cho phép gọi thẳng không cần search trước.
+
+Chi tiết: https://goclaw.thieunv.space/posts/mcp-hybrid-search-mode

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1200px; height: 630px; overflow: hidden; font-family: 'Be Vietnam Pro', system-ui, sans-serif; background: #faf9f6; position: relative; }
+.bg { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 70% at 85% 30%, rgba(16,185,129,0.07) 0%, transparent 60%), radial-gradient(ellipse 50% 50% at 15% 75%, rgba(139,92,246,0.05) 0%, transparent 50%); }
+.accent-bar { position: absolute; left: 0; top: 0; width: 6px; height: 100%; background: linear-gradient(180deg, #10b981, #8b5cf6); }
+.content { position: relative; z-index: 1; padding: 48px 64px; height: 100%; display: flex; flex-direction: column; }
+
+.header { display: flex; align-items: center; gap: 14px; margin-bottom: 32px; }
+.logo { width: 36px; height: 36px; }
+.brand { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 600; color: #1a1a1a; }
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.badge { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #10b981; background: rgba(16,185,129,0.08); padding: 5px 12px; border-radius: 6px; font-weight: 600; }
+
+.title-row { margin-bottom: 36px; }
+.eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: #10b981; margin-bottom: 8px; }
+h1 { font-size: 32px; font-weight: 700; color: #1a1a1a; line-height: 1.2; }
+h1 em { font-style: normal; background: linear-gradient(135deg, #f59e0b, #ef4444, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+.mapping { display: flex; gap: 20px; flex: 1; }
+.column { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+.col-header { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding-bottom: 8px; border-bottom: 2px solid; margin-bottom: 4px; }
+.col-karpathy .col-header { color: #6b7280; border-color: #d1d5db; }
+.col-arrow { flex: 0 0 40px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 30px; padding-top: 36px; }
+.arrow { font-size: 20px; color: #d1d5db; }
+.col-goclaw .col-header { color: #10b981; border-color: #10b981; }
+
+.layer { background: white; border-radius: 10px; padding: 14px 16px; border: 1px solid #e5e5e0; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.col-goclaw .layer { border-color: rgba(16,185,129,0.2); background: rgba(16,185,129,0.02); }
+.layer-empty { background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(0,0,0,0.02) 4px, rgba(0,0,0,0.02) 8px); border: 1px dashed #d5d0ca; border-radius: 10px; flex: 1; display: flex; align-items: center; justify-content: center; }
+.layer-empty span { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #c4bfb8; }
+.col-goclaw .layer-highlight { border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.06); box-shadow: 0 0 0 1px rgba(16,185,129,0.1); }
+.layer-name { font-size: 13px; font-weight: 700; color: #1a1a1a; display: flex; align-items: center; gap: 8px; }
+.layer-icon { font-size: 16px; }
+.layer-desc { font-size: 11px; color: #6b6560; line-height: 1.4; }
+.layer-tech { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.tech { font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 2px 8px; border-radius: 4px; background: rgba(139,92,246,0.06); color: #7c3aed; }
+.col-goclaw .tech { background: rgba(16,185,129,0.08); color: #059669; }
+
+.footer { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+.footer-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 4px 10px; border-radius: 5px; background: rgba(16,185,129,0.07); color: #059669; }
+.footer-url { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #a8a29e; }
+
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="accent-bar"></div>
+<div class="content">
+  <div class="header">
+    <img class="logo" src="../../../public/goclaw-icon.svg" alt="">
+    <div class="brand">GoClaw</div>
+    <div class="header-right">
+      <div class="badge">Multi-Agent</div>
+      <div class="badge">Knowledge Base</div>
+    </div>
+  </div>
+
+  <div class="title-row">
+    <div class="eyebrow">Karpathy → GoClaw</div>
+    <h1>From personal wiki to <em>multi-agent knowledge base</em></h1>
+  </div>
+
+  <div class="mapping">
+    <div class="column col-karpathy">
+      <div class="col-header">Karpathy's Pattern</div>
+      <div class="layer">
+        <div class="layer-name"><span class="layer-icon">📐</span> Schema</div>
+        <div class="layer-desc">CLAUDE.md / AGENTS.md — conventions, workflow, rules for the LLM</div>
+        <div class="layer-tech"><span class="tech">Markdown</span><span class="tech">Obsidian</span></div>
+      </div>
+      <div class="layer">
+        <div class="layer-name"><span class="layer-icon">📦</span> Raw Sources</div>
+        <div class="layer-desc">raw/ directory — articles, papers, repos. Single source of truth</div>
+        <div class="layer-tech"><span class="tech">Local files</span><span class="tech">Source of truth</span></div>
+      </div>
+      <div class="layer">
+        <div class="layer-name"><span class="layer-icon">📖</span> Wiki</div>
+        <div class="layer-desc">LLM-maintained markdown wiki — summaries, entities, index</div>
+        <div class="layer-tech"><span class="tech">index.md</span><span class="tech">qmd</span></div>
+      </div>
+      <div class="layer-empty"><span>1 agent · 1 user · terminal only</span></div>
+    </div>
+
+    <div class="col-arrow">
+      <span class="arrow">→</span>
+      <span class="arrow">→</span>
+      <span class="arrow">→</span>
+      <span class="arrow" style="color: #10b981; font-weight: 700;">✦</span>
+    </div>
+
+    <div class="column col-goclaw">
+      <div class="col-header">GoClaw Implementation</div>
+      <div class="layer">
+        <div class="layer-name"><span class="layer-icon">⚙️</span> Context Files</div>
+        <div class="layer-desc">AGENTS.md, SOUL.md, IDENTITY.md — loaded per agent per session</div>
+        <div class="layer-tech"><span class="tech">Go</span><span class="tech">Multi-agent</span></div>
+      </div>
+      <div class="layer">
+        <div class="layer-name"><span class="layer-icon">🔌</span> Tools & Channels</div>
+        <div class="layer-desc">File system, web search, browser automation, MCP server. Feed via Telegram/Slack/Discord</div>
+        <div class="layer-tech"><span class="tech">File I/O</span><span class="tech">Web Search</span><span class="tech">Browser</span><span class="tech">MCP</span><span class="tech">Telegram</span><span class="tech">Slack</span></div>
+      </div>
+      <div class="layer">
+        <div class="layer-name"><span class="layer-icon">🧠</span> Skills + Knowledge Graph</div>
+        <div class="layer-desc">Hybrid search (BM25 + vector), entity extraction, graph traversal</div>
+        <div class="layer-tech"><span class="tech">BM25</span><span class="tech">Vector</span><span class="tech">KG</span></div>
+      </div>
+      <div class="layer layer-highlight">
+        <div class="layer-name"><span class="layer-icon">🔀</span> Orchestration</div>
+        <div class="layer-desc">Specialized agents: ingest, lint, query. Cron jobs, Quality Gate</div>
+        <div class="layer-tech"><span class="tech">Delegation</span><span class="tech">Team</span><span class="tech">Handoff</span><span class="tech">Eval Loop</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span class="footer-tag">Orchestration</span>
+    <span class="footer-tag">Delegation</span>
+    <span class="footer-tag">Team</span>
+    <span class="footer-tag">Handoff</span>
+    <span class="footer-url">thieunv.substack.com</span>
+  </div>
+</div>
+</body>
+</html>

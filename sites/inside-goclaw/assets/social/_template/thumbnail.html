@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Thumbnail Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<style>
+/* Controls toolbar */
+.controls {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: #18181b; border-bottom: 1px solid #2e2e32;
+  padding: 10px 20px; display: flex; align-items: center; gap: 16px;
+  font-family: 'Geist', system-ui, sans-serif;
+}
+.controls label { font-size: 11px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em; }
+.controls select, .controls button {
+  font-family: 'Geist Mono', monospace; font-size: 12px;
+  padding: 6px 12px; border-radius: 6px; border: 1px solid #2e2e32;
+  background: #0f0f11; color: #e4e4e7; cursor: pointer;
+}
+.controls select:focus, .controls button:hover { border-color: #f59e0b; }
+.toggle-group { display: flex; border-radius: 6px; overflow: hidden; border: 1px solid #2e2e32; }
+.toggle-btn {
+  padding: 6px 14px; font-family: 'Geist Mono', monospace; font-size: 11px;
+  background: transparent; color: #71717a; border: none; cursor: pointer;
+}
+.toggle-btn.active { background: #222225; color: #e4e4e7; }
+.export-btn { background: #f59e0b !important; color: #000 !important; font-weight: 600; border: none !important; }
+.export-btn:hover { background: #d97706 !important; }
+.sep { width: 1px; height: 24px; background: #2e2e32; }
+
+/* Poster container */
+.poster-wrap { padding-top: 60px; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #0a0a0a; }
+
+/* Theme variables */
+:root {
+  --bg: #090c10;
+  --text: #ffffff;
+  --text-muted: rgba(255,255,255,0.35);
+  --accent: #06b6d4;
+  --accent-light: #22d3ee;
+  --accent-bg: rgba(6,182,212,0.1);
+  --accent-border: rgba(6,182,212,0.2);
+  --grid-color: rgba(6,182,212,0.03);
+  --glow-1: rgba(6,182,212,0.12);
+  --glow-2: rgba(6,182,212,0.06);
+}
+.light {
+  --bg: #fafafa;
+  --text: #0f172a;
+  --text-muted: rgba(15,23,42,0.5);
+  --accent: #0891b2;
+  --accent-light: #06b6d4;
+  --accent-bg: rgba(6,182,212,0.08);
+  --accent-border: rgba(6,182,212,0.25);
+  --grid-color: rgba(6,182,212,0.06);
+  --glow-1: rgba(6,182,212,0.08);
+  --glow-2: rgba(6,182,212,0.04);
+}
+
+/* Poster styles */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+.poster {
+  width: 1200px; height: 630px; overflow: hidden;
+  font-family: 'Geist', system-ui, sans-serif;
+  background: var(--bg); position: relative;
+}
+.bg-gradient {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 30% 20%, var(--glow-1) 0%, transparent 60%),
+              radial-gradient(ellipse 50% 40% at 75% 75%, var(--glow-2) 0%, transparent 50%);
+}
+.grid-pattern {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(var(--grid-color) 1px, transparent 1px),
+                    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.accent-bar {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-light), var(--accent));
+}
+.bg-logo {
+  position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
+  width: 300px; height: 300px; opacity: 0.06; pointer-events: none; z-index: 0;
+}
+.content {
+  position: relative; z-index: 1; padding: 56px 72px; height: 100%;
+  display: flex; flex-direction: column; justify-content: space-between;
+}
+.top { display: flex; align-items: center; gap: 14px; }
+.logo img { width: 44px; height: 44px; }
+.brand { font-family: 'Geist Mono', monospace; font-size: 17px; font-weight: 600; color: var(--text); opacity: 0.85; }
+.version {
+  margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 13px;
+  color: var(--accent-light); background: var(--accent-bg);
+  border: 1px solid var(--accent-border); padding: 5px 14px; border-radius: 8px; font-weight: 600;
+}
+.middle { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.eyebrow {
+  font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 14px; opacity: 0.7;
+}
+h1 { font-size: 50px; font-weight: 700; line-height: 1.1; color: var(--text); max-width: 720px; letter-spacing: -0.02em; }
+h1 .hl { color: var(--accent-light); }
+.subtitle { margin-top: 18px; font-size: 17px; color: var(--text-muted); max-width: 620px; line-height: 1.5; font-weight: 400; }
+.bottom { display: flex; align-items: center; gap: 10px; }
+.tag {
+  font-family: 'Geist Mono', monospace; font-size: 11px; padding: 4px 12px; border-radius: 6px;
+  background: var(--accent-bg); color: var(--accent); opacity: 0.6; border: 1px solid var(--accent-border);
+}
+.url { margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <label>Lang</label>
+  <div class="toggle-group">
+    <button class="toggle-btn active" data-lang="vi" onclick="setLang('vi')">VI</button>
+    <button class="toggle-btn" data-lang="en" onclick="setLang('en')">EN</button>
+  </div>
+  <div class="sep"></div>
+  <label>Theme</label>
+  <div class="toggle-group">
+    <button class="toggle-btn active" data-theme="dark" onclick="setTheme('dark')">Dark</button>
+    <button class="toggle-btn" data-theme="light" onclick="setTheme('light')">Light</button>
+  </div>
+  <div class="sep"></div>
+  <label>Platform</label>
+  <select id="platformSel" onchange="setPlatform(this.value)">
+    <option value="1200x630">Facebook / OG (1200×630)</option>
+    <option value="1200x675">X / Twitter (1200×675)</option>
+    <option value="1200x627">LinkedIn (1200×627)</option>
+    <option value="1080x1080">Instagram (1080×1080)</option>
+    <option value="1080x1350">Threads (1080×1350)</option>
+  </select>
+  <div class="sep"></div>
+  <button class="export-btn" onclick="exportPNG()">Export PNG</button>
+</div>
+
+<div class="poster-wrap">
+  <div class="poster" id="poster">
+    <div class="bg-gradient"></div>
+    <div class="grid-pattern"></div>
+    <img class="bg-logo" src="../../../public/goclaw-icon.svg" alt="">
+    <div class="accent-bar"></div>
+    <div class="content">
+      <div class="top">
+        <div class="logo"><img src="../../../public/goclaw-icon.svg" alt=""></div>
+        <div class="brand">GoClaw</div>
+        <div class="version" data-i18n="version">v3.0.0</div>
+      </div>
+      <div class="middle">
+        <div class="eyebrow" data-i18n="eyebrow">INSIDE GOCLAW — Deep Dive</div>
+        <h1 data-i18n="title">Post <span class="hl">Title</span> Here</h1>
+        <div class="subtitle" data-i18n="subtitle">Post subtitle or description goes here</div>
+      </div>
+      <div class="bottom">
+        <span class="tag" data-i18n="tag1">tag1</span>
+        <span class="tag" data-i18n="tag2">tag2</span>
+        <span class="tag" data-i18n="tag3">tag3</span>
+        <span class="url">goclaw.thieunv.space</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Content data - replace with actual post content when generating
+const content = {
+  vi: {
+    version: "v3.0.0",
+    eyebrow: "INSIDE GOCLAW — Deep Dive",
+    title: "Tiêu đề <span class='hl'>Bài viết</span>",
+    subtitle: "Mô tả ngắn gọn về bài viết",
+    tag1: "tag1",
+    tag2: "tag2",
+    tag3: "tag3"
+  },
+  en: {
+    version: "v3.0.0",
+    eyebrow: "INSIDE GOCLAW — Deep Dive",
+    title: "Post <span class='hl'>Title</span> Here",
+    subtitle: "Short description of the post",
+    tag1: "tag1",
+    tag2: "tag2",
+    tag3: "tag3"
+  }
+};
+
+let currentLang = 'vi';
+let currentTheme = 'dark';
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('[data-lang]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+  updateContent();
+}
+
+function setTheme(theme) {
+  currentTheme = theme;
+  document.querySelectorAll('[data-theme]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.theme === theme);
+  });
+  document.getElementById('poster').classList.toggle('light', theme === 'light');
+}
+
+function setPlatform(size) {
+  const [w, h] = size.split('x').map(Number);
+  const poster = document.getElementById('poster');
+  poster.style.width = w + 'px';
+  poster.style.height = h + 'px';
+}
+
+function updateContent() {
+  const data = content[currentLang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (data[key]) el.innerHTML = data[key];
+  });
+}
+
+async function exportPNG() {
+  const poster = document.getElementById('poster');
+  const canvas = await html2canvas(poster, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: null
+  });
+
+  const link = document.createElement('a');
+  link.download = `thumbnail-${currentLang}-${currentTheme}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+// Initialize
+updateContent();
+</script>
+</body>
+</html>

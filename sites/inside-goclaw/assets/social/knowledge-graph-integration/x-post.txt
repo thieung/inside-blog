@@ -1,0 +1,9 @@
+Regular agent memory is just text search. Knowledge graphs store structure — people, projects, orgs, events, and how they connect. GoClaw v2.15.0 ships this natively.
+
+After each conversation, an async extraction pipeline runs: LLM analyzes the chat, produces structured entities + relations as JSON, upserts into the graph store. Auto-extraction, no manual tagging.
+
+Retrieval is where it gets interesting. Multi-hop traversal via recursive CTEs in PostgreSQL — depth-limited to 3 hops. Combined with pgvector embeddings per entity for semantic search via cosine similarity. Agents query it all through a single knowledge_graph_search tool.
+
+The Web UI renders the entire graph as an interactive force-directed visualization. Click any node to start traversing relationships.
+
+https://goclaw.thieunv.space/posts/knowledge-graph-integration

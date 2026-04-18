@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1250px; height: 500px; overflow: hidden; font-family: 'Be Vietnam Pro', system-ui, sans-serif; background: #faf9f6; position: relative; }
+.bg { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 80% at 80% 40%, rgba(139,92,246,0.08) 0%, transparent 60%), radial-gradient(ellipse 50% 60% at 20% 70%, rgba(59,130,246,0.06) 0%, transparent 50%); }
+.accent-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: linear-gradient(180deg, #8b5cf6, #3b82f6, #10b981); }
+.nodes { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.node { position: absolute; border-radius: 50%; }
+.node:nth-child(1) { top: 12%; left: 78%; width: 10px; height: 10px; background: rgba(139,92,246,0.3); }
+.node:nth-child(2) { top: 35%; left: 88%; width: 6px; height: 6px; background: rgba(59,130,246,0.25); }
+.node:nth-child(3) { top: 60%; left: 82%; width: 12px; height: 12px; background: rgba(16,185,129,0.25); }
+.node:nth-child(4) { top: 75%; left: 92%; width: 7px; height: 7px; background: rgba(139,92,246,0.2); }
+.node:nth-child(5) { top: 18%; left: 92%; width: 5px; height: 5px; background: rgba(59,130,246,0.2); }
+.line { position: absolute; height: 1px; background: linear-gradient(90deg, rgba(139,92,246,0.15), rgba(59,130,246,0.08)); transform-origin: left center; }
+.line:nth-child(6) { top: 16%; left: 80%; width: 100px; transform: rotate(30deg); }
+.line:nth-child(7) { top: 38%; left: 85%; width: 80px; transform: rotate(45deg); }
+.line:nth-child(8) { top: 62%; left: 84%; width: 100px; transform: rotate(-15deg); }
+.content { position: relative; z-index: 1; padding: 48px 72px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
+.top { display: flex; align-items: center; gap: 12px; }
+.middle { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; color: #7c3aed; margin-bottom: 14px; }
+h1 { font-size: 54px; font-weight: 700; line-height: 1.1; color: #1a1a1a; max-width: 800px; }
+h1 em { font-style: normal; font-weight: 800; background: linear-gradient(135deg, #f59e0b, #ef4444, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.subtitle { margin-top: 18px; font-size: 18px; color: #6b6560; max-width: 720px; line-height: 1.5; }
+.bottom { display: flex; align-items: center; gap: 12px; }
+.tag { font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 5px 14px; border-radius: 6px; background: rgba(139,92,246,0.07); color: #7c3aed; border: 1px solid rgba(139,92,246,0.12); }
+.handle { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #a8a29e; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="nodes">
+  <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
+  <div class="line"></div><div class="line"></div><div class="line"></div>
+</div>
+<div class="accent-bar"></div>
+<div class="content">
+  <div class="top"></div>
+  <div class="middle">
+    <div class="eyebrow">Analysis</div>
+    <h1>Building a <em>"Second Brain"</em> with LLMs</h1>
+    <div class="subtitle">Karpathy's viral LLM Wiki pattern — from personal setup to multi-agent knowledge base</div>
+  </div>
+  <div class="bottom">
+    <span class="tag">LLM Wiki</span>
+    <span class="tag">Karpathy</span>
+    <span class="tag">Knowledge Base</span>
+    <span class="tag">GoClaw</span>
+    <span class="handle">@thieunguyen_it</span>
+  </div>
+</div>
+</body>
+</html>

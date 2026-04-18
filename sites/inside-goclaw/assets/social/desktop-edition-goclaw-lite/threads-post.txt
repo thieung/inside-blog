@@ -1,0 +1,5 @@
+GoClaw Lite — desktop edition chạy ngay trên máy, không Docker, không PostgreSQL. Một file .app, click là xong.
+
+SQLite thay Postgres, Wails IPC thay HTTP, tự update từ GitHub Releases. Mọi tính năng agent giữ nguyên — chỉ infrastructure khác. Cài 30 giây 🚀
+
+https://goclaw.thieunv.space/posts/desktop-edition-goclaw-lite

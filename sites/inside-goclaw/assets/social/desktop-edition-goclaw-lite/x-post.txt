@@ -1,0 +1,11 @@
+GoClaw Server needs PostgreSQL, Redis, and Docker. Makes sense for multi-tenant production. But for personal use or quick dev testing, that's way too much friction.
+
+GoClaw Lite (v2.18.0) is the desktop edition. One .app file, click to run. SQLite replaces PostgreSQL (pure-Go via modernc.org/sqlite — no CGo, cross-compile macOS to Windows in one command). WAL mode on by default, busy_timeout instead of immediate SQLITE_BUSY errors.
+
+Built with Wails v2 — Go backend runs the embedded gateway, React frontend communicates via IPC (window.go bindings), not HTTP. No fetch, no ports, near-zero latency. Security: ApplyUpdate() only uses server-cached URLs, frontend can't inject arbitrary download targets.
+
+Every agent feature works identically on both editions: teams, delegation, MCP, knowledge graph, heartbeat, skills. Only the infrastructure layer differs.
+
+Auto-updates from GitHub Releases every 6h. One-liner install on macOS, PowerShell on Windows.
+
+https://goclaw.thieunv.space/posts/desktop-edition-goclaw-lite

@@ -1,0 +1,10 @@
+Nếu bạn đang muốn build một hệ thống wiki knowledge base có nhiều AI agent phối hợp maintain — không chỉ 1 agent + 1 người trong terminal — thì GoClaw có thể là một lựa chọn đáng thử.
+
+Mình vừa viết bài phân tích pattern LLM Wiki viral của Karpathy và map nó sang GoClaw:
+
+- Context files (AGENTS.md, SOUL.md) đóng vai schema layer — mỗi agent load mỗi session, biết convention, biết workflow
+- Tools tích hợp sẵn: file system, web search, browser automation, MCP server. Feed source qua Telegram/Slack luôn thay vì chỉ trong IDE
+- Skills System với hybrid search (BM25 + vector) + Knowledge Graph cho phần wiki layer
+- Orchestration: setup "wiki team" gồm agent ingest, agent lint, agent query — mỗi agent dùng model phù hợp, có Quality Gate validate trước khi promote vào wiki chính
+
+Link bài phân tích đầy đủ ở comment

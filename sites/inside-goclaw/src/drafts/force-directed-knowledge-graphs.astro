@@ -870,7 +870,7 @@ li { margin-bottom: 7px; font-size: 15px; }
 
 <script>
 (function(){
-  var saved = localStorage.getItem('kg-theme') || 'dark';
+  var saved = localStorage.getItem('goclaw-blog-theme') || 'dark';
   document.documentElement.setAttribute('data-theme', saved);
   document.addEventListener('DOMContentLoaded', function(){
     var btn = document.getElementById('themeToggle');
@@ -879,7 +879,7 @@ li { margin-bottom: 7px; font-size: 15px; }
       var cur = document.documentElement.getAttribute('data-theme') || 'dark';
       var nxt = cur === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', nxt);
-      localStorage.setItem('kg-theme', nxt);
+      localStorage.setItem('goclaw-blog-theme', nxt);
       btn.textContent = nxt === 'dark' ? '☀' : '◐';
       location.reload();
     });
@@ -891,7 +891,7 @@ li { margin-bottom: 7px; font-size: 15px; }
 
 <!-- ── HEADER ── -->
 <header class="header-area">
-  <div class="post-eyebrow" data-i18n="eyebrow">GoClaw Blog — v2.47.0 Release</div>
+  <div class="post-eyebrow" data-i18n="eyebrow">Inside GoClaw — v2.47.0 Release</div>
   <h1 class="post-title">Force-Directed <em>Knowledge Graph</em> Visualization</h1>
   <p class="post-deck" data-i18n="hero_sub">Xây dựng bộ nhớ ngữ nghĩa từ hội thoại — kiến trúc, trực quan hóa và các tối ưu hóa trong v2.47.x</p>
   <div class="post-meta">
@@ -2045,7 +2045,7 @@ document.querySelectorAll('.diagram-shell').forEach(initDiagram);
 const T = {
   vi: {},
   en: {
-    eyebrow: 'GoClaw Blog — v2.47.0 Release',
+    eyebrow: 'Inside GoClaw — v2.47.0 Release',
     hero_sub: 'Building semantic memory from conversations — architecture, visualization, and performance optimizations in v2.47.x',
     toc_label: 'Contents',
     toc_s1: '1. Introduction', toc_s2: '2. Architecture', toc_s3: '3. Data Model',
@@ -2509,15 +2509,20 @@ function setLang(lang) {
       el.innerHTML = val;
     }
   });
+  // Update home links to preserve locale
+  const homeHref = lang === 'vi' ? '/' : '/' + lang;
+  document.querySelectorAll('a[href="/"], a[href="/en"], a[href="/zh"], a[href="/ja"], a[href="/en/"], a[href="/zh/"], a[href="/ja/"]').forEach(a => a.href = homeHref);
 }
 
 document.querySelectorAll('.lang-btn').forEach(btn => {
   btn.addEventListener('click', () => setLang(btn.dataset.lang));
 });
 
-// Read lang from URL query param
+// Detect lang from URL path (e.g. /en/posts/...) or query param (?lang=xx)
+const pathMatch = window.location.pathname.match(/^\/(en|zh|ja)\//);
 const urlLang = new URLSearchParams(window.location.search).get('lang');
-if (urlLang && ['vi','en','zh','ja'].includes(urlLang)) setLang(urlLang);
+const detectedLang = urlLang || (pathMatch && pathMatch[1]) || null;
+if (detectedLang && ['vi','en','zh','ja'].includes(detectedLang)) setLang(detectedLang);
 </script>
 
 </body>

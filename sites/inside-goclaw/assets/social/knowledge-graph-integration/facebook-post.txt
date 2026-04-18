@@ -1,0 +1,15 @@
+🦊 GoClaw v2.15.0 thêm Knowledge Graph — agent giờ nhớ được quan hệ giữa các thực thể, không chỉ nhớ văn bản thô
+
+Memory thông thường lưu text rồi search bằng keyword. Knowledge Graph lưu cấu trúc: người, dự án, tổ chức, sự kiện và cách chúng liên kết. Hỏi "ai làm việc với dự án GoClaw?" thì nó duyệt đồ thị luôn, không cần match từ khóa.
+
+Cách hoạt động:
+- Mỗi lần hội thoại kết thúc, GoClaw chạy extraction pipeline bất đồng bộ — LLM phân tích context rồi tạo entities + relations theo schema chuẩn
+- Multi-hop traversal qua recursive CTE trong PostgreSQL, sâu tới 3 bậc quan hệ
+- pgvector lưu embedding cho từng entity, tìm kiếm bằng cosine similarity
+- Agent dùng tool knowledge_graph_search để query trực tiếp
+
+Web UI còn render đồ thị dạng force-directed graph, click vào node nào là bắt đầu traversal từ đó luôn 🔥
+
+Chi tiết mình để link ở comment nhé
+
+#GoClaw #KnowledgeGraph

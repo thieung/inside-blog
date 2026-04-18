@@ -1,0 +1,6 @@
+Karpathy vừa share pattern LLM Wiki — để LLM compile tài liệu thành wiki có cấu trúc thay vì RAG hỏi đáp rồi quên 🧠
+
+Kiến thức compile một lần, maintain liên tục. Gist đạt 2,600+ stars ngày đầu. Và anh ấy không share code mà share "idea file" — paste cho agent, agent tự build.
+
+Mình phân tích chi tiết + cách scale lên multi-agent knowledge base:
+https://thieunv.substack.com/p/xay-bo-nao-thu-hai-bang-llm

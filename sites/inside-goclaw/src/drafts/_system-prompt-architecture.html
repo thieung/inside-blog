@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inside GoClaw — System Prompt Architecture</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─── Design Tokens ─── */
+:root {
+  --font-display: 'Syne', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+
+  /* Dark theme (default) — terminal green on near-black */
+  --bg:           #070a0e;
+  --bg-alt:       #0b0f15;
+  --bg-grid:      rgba(16,185,129,0.025);
+  --surface:      #0e1520;
+  --surface2:     #131d2e;
+  --surface3:     #19263c;
+  --border:       rgba(255,255,255,0.055);
+  --border-hi:    rgba(255,255,255,0.10);
+  --text:         #8ba8b8;
+  --text-dim:     #3d5870;
+  --text-bright:  #cce0ea;
+  --text-hi:      #e8f4fa;
+
+  /* Accent: emerald-terminal green */
+  --accent:       #10b981;
+  --accent-dim:   rgba(16,185,129,0.07);
+  --accent-hi:    #34d399;
+  --accent-glow:  rgba(16,185,129,0.14);
+
+  /* Secondary colors */
+  --amber:        #f59e0b;
+  --amber-dim:    rgba(245,158,11,0.08);
+  --violet:       #8b5cf6;
+  --violet-dim:   rgba(139,92,246,0.08);
+  --sky:          #38bdf8;
+  --sky-dim:      rgba(56,189,248,0.08);
+  --red:          #f87171;
+  --red-dim:      rgba(248,113,113,0.08);
+
+  /* Spacing */
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+}
+
+[data-theme="light"] {
+  --bg: #f0f2f0; --bg-alt: #e8ece8; --bg-grid: rgba(16,185,129,0.04);
+  --surface: #ffffff; --surface2: #f2f5f2; --surface3: #e4ebe4;
+  --border: rgba(0,0,0,0.07); --border-hi: rgba(0,0,0,0.13);
+  --text: #334d3e; --text-dim: #7a9a82; --text-bright: #0a2016; --text-hi: #000000;
+  --accent: #059669; --accent-dim: rgba(5,150,105,0.07); --accent-hi: #047857; --accent-glow: rgba(5,150,105,0.08);
+  --amber: #b45309; --amber-dim: rgba(180,83,9,0.07);
+  --violet: #6d28d9; --violet-dim: rgba(109,40,217,0.07);
+  --sky: #0284c7; --sky-dim: rgba(2,132,199,0.07);
+  --red: #dc2626; --red-dim: rgba(220,38,38,0.07);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  background-image:
+    linear-gradient(var(--bg-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--text);
+  line-height: 1.7;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Fixed Nav ─── */
+.fixed-nav {
+  position: fixed; top: 14px; right: 14px; z-index: 700;
+  display: flex; gap: 6px;
+}
+.nav-btn {
+  width: 34px; height: 34px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border-hi);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  color: var(--text-dim); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-family: var(--font-display); font-weight: 600;
+  text-decoration: none; transition: all .15s;
+}
+.nav-btn:hover { background: var(--surface2); color: var(--accent); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+
+/* ─── Hero ─── */
+.hero {
+  min-height: 52dvh;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 100px 40px 52px;
+  position: relative; overflow: hidden;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-alt);
+}
+
+/* PCB trace decorative lines */
+.hero-traces {
+  position: absolute; inset: 0; pointer-events: none;
+  overflow: hidden;
+}
+.trace {
+  position: absolute;
+  background: var(--accent);
+  opacity: 0.06;
+}
+.trace-h1 { height: 1px; width: 60%; top: 30%; right: 0; }
+.trace-h2 { height: 1px; width: 45%; top: 55%; right: 5%; }
+.trace-h3 { height: 1px; width: 30%; top: 75%; right: 15%; }
+.trace-v1 { width: 1px; height: 40%; top: 30%; right: 25%; }
+.trace-v2 { width: 1px; height: 25%; top: 55%; right: 40%; }
+
+/* Chip pads */
+.chip-pad {
+  position: absolute;
+  width: 6px; height: 6px;
+  border-radius: 1px;
+  background: var(--accent);
+  opacity: 0;
+  animation: padPulse 3s ease-in-out infinite;
+}
+.cp1 { top: 30%; right: 25%; opacity: 0.35; animation-delay: 0s; }
+.cp2 { top: 55%; right: 40%; opacity: 0.25; animation-delay: 1s; }
+.cp3 { top: 75%; right: 15%; opacity: 0.20; animation-delay: 2s; }
+.cp4 { top: 30%; right: 60%; opacity: 0.15; animation-delay: 0.5s; }
+
+@keyframes padPulse {
+  0%, 100% { opacity: 0.1; }
+  50% { opacity: 0.4; }
+}
+
+/* Scan line */
+.scan-line {
+  position: absolute; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.12;
+  animation: scanDown 8s linear infinite;
+  pointer-events: none;
+}
+@keyframes scanDown {
+  0% { top: -2px; }
+  100% { top: 100%; }
+}
+
+.hero-inner { max-width: 920px; margin: 0 auto; width: 100%; position: relative; z-index: 2; }
+
+.eyebrow {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 2.5px; text-transform: uppercase; color: var(--accent);
+  margin-bottom: 20px; display: inline-flex; align-items: center; gap: 8px;
+  padding: 4px 12px; border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  border-radius: var(--radius-sm); background: var(--accent-dim);
+}
+.eyebrow::before { content: '◈'; font-size: 10px; }
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 4.5vw, 3.4rem);
+  font-weight: 800; color: var(--text-hi);
+  letter-spacing: -0.04em; line-height: 1.06;
+  max-width: 820px; margin-bottom: 18px;
+}
+.hero-title em { color: var(--accent); font-style: normal; }
+
+.hero-deck {
+  font-size: 1rem; color: var(--text-dim); max-width: 580px;
+  line-height: 1.65; font-family: var(--font-mono); font-weight: 300;
+  margin-bottom: 28px;
+}
+
+.meta-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.meta-chip {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.5px;
+  padding: 3px 10px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border-hi); color: var(--text-dim); background: var(--surface);
+}
+.meta-chip--green { border-color: color-mix(in srgb, var(--accent) 28%, transparent); color: var(--accent); background: var(--accent-dim); }
+.meta-chip--amber { border-color: color-mix(in srgb, var(--amber) 28%, transparent); color: var(--amber); background: var(--amber-dim); }
+
+/* ─── TOC Bar ─── */
+.toc-bar {
+  position: sticky; top: 0; z-index: 500;
+  display: flex; align-items: center; gap: 2px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  background: color-mix(in srgb, var(--bg-alt) 88%, transparent);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  padding: 9px 32px;
+}
+.toc-bar::-webkit-scrollbar { display: none; }
+.toc-label {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim);
+  white-space: nowrap; flex-shrink: 0; padding-right: 10px;
+  margin-right: 6px; border-right: 1px solid var(--border);
+}
+.toc-link {
+  font-family: var(--font-mono); display: block; font-size: 10.5px;
+  color: var(--text-dim); text-decoration: none;
+  padding: 4px 10px; border-radius: var(--radius-sm);
+  transition: all .15s; white-space: nowrap; flex-shrink: 0;
+}
+.toc-link:hover { color: var(--text); background: var(--surface2); }
+.toc-link.active { color: var(--accent-hi); background: var(--accent-dim); font-weight: 600; }
+
+/* ─── Band Layout ─── */
+.band {
+  width: 100%; padding: 56px 40px;
+  border-bottom: 1px solid var(--border);
+}
+.band:nth-child(odd) { background: var(--bg); }
+.band:nth-child(even) { background: var(--bg-alt); }
+.band-inner { max-width: 920px; margin: 0 auto; }
+
+.sec-label {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--accent);
+  display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+  scroll-margin-top: 52px;
+}
+.sec-label::before { content: '◈'; color: var(--text-dim); font-size: 9px; }
+
+h2.sec-title {
+  font-family: var(--font-display); font-size: 1.5rem; font-weight: 700;
+  color: var(--text-bright); letter-spacing: -0.025em;
+  margin-bottom: 18px; line-height: 1.2;
+}
+h3 {
+  font-family: var(--font-display); font-size: 1rem; font-weight: 600;
+  color: var(--text-bright); margin: 30px 0 10px; letter-spacing: -0.01em;
+}
+p { margin-bottom: 14px; font-size: 15px; }
+strong { color: var(--text-bright); font-weight: 600; }
+code {
+  font-family: var(--font-mono); font-size: 0.83em;
+  background: var(--surface2); color: var(--accent-hi);
+  padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border);
+}
+
+/* ─── Code Block ─── */
+.code-block {
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  overflow: hidden; margin: 14px 0 22px;
+}
+.code-block__hdr {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 16px; background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-dim);
+}
+.code-block__hdr::before { content: '▸'; color: var(--accent); font-size: 9px; }
+.code-block__body {
+  font-family: var(--font-mono); font-size: 12.5px; line-height: 1.7;
+  padding: 18px; background: var(--surface); white-space: pre;
+  overflow-x: auto; max-height: 480px; overflow-y: auto;
+  color: var(--text); scrollbar-width: thin; scrollbar-color: var(--surface3) transparent;
+}
+.code-block__body::-webkit-scrollbar { width: 4px; height: 4px; }
+.code-block__body::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
+
+/* Syntax colors */
+.c-kw  { color: #c792ea; }   /* keyword */
+.c-fn  { color: var(--accent-hi); }  /* function */
+.c-str { color: #c3e88d; }   /* string */
+.c-cmt { color: #546e7a; font-style: italic; }  /* comment */
+.c-var { color: var(--sky); }  /* variable */
+.c-num { color: var(--amber); }  /* number */
+.c-typ { color: #ffcb6b; }   /* type */
+
+/* ─── Pipeline Diagram ─── */
+.pipeline-wrap { margin: 22px 0 28px; }
+.pipeline-title {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--text-dim); margin-bottom: 14px;
+  text-align: center;
+}
+.pipeline {
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden; padding: 24px 20px;
+  position: relative;
+}
+.pipeline::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.3;
+}
+.pl-row { display: flex; align-items: center; gap: 0; flex-wrap: nowrap; justify-content: center; width: 100%; }
+.pl-node {
+  font-family: var(--font-mono); font-size: 11.5px; font-weight: 500;
+  padding: 9px 18px; border-radius: var(--radius-md);
+  border: 1px solid var(--border-hi); color: var(--text);
+  background: var(--surface2); text-align: center; white-space: nowrap;
+}
+.pl-node--root { background: var(--accent-dim); border-color: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--accent-hi); font-weight: 600; }
+.pl-node--stage { background: var(--violet-dim); border-color: color-mix(in srgb, var(--violet) 25%, transparent); color: var(--violet); }
+.pl-node--fn { background: var(--sky-dim); border-color: color-mix(in srgb, var(--sky) 25%, transparent); color: var(--sky); font-size: 11px; }
+.pl-node--out { background: var(--amber-dim); border-color: color-mix(in srgb, var(--amber) 25%, transparent); color: var(--amber); }
+.pl-arrow { color: var(--text-dim); font-size: 14px; padding: 0 6px; flex-shrink: 0; }
+.pl-arrow-down { display: flex; justify-content: center; color: var(--text-dim); font-size: 18px; padding: 3px 0; }
+.pl-branch {
+  display: grid; grid-template-columns: repeat(5, auto); gap: 6px;
+  align-items: center; justify-content: center;
+  margin: 2px 0; flex-wrap: wrap;
+}
+.pl-branch-6 { grid-template-columns: repeat(3, auto); }
+.pl-connector {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--text-dim); font-family: var(--font-mono);
+  padding: 2px 4px;
+}
+.pl-fn-row {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  justify-content: center; margin: 4px 0;
+}
+
+/* ─── Cache Boundary ─── */
+.cache-split {
+  margin: 24px 0; border-radius: var(--radius-lg); overflow: hidden;
+  border: 1px solid var(--border);
+}
+.cache-stable {
+  background: var(--accent-dim); border-bottom: 2px dashed var(--accent);
+  padding: 20px 24px;
+}
+.cache-marker {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 10px 24px; background: var(--surface2);
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  color: var(--accent); letter-spacing: 1px;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+}
+.cache-marker::before, .cache-marker::after { content: ''; flex: 1; height: 1px; background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.cache-dynamic {
+  background: var(--amber-dim); padding: 20px 24px;
+}
+.cache-zone-label {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.cache-zone-label--stable { color: var(--accent); }
+.cache-zone-label--dynamic { color: var(--amber); }
+.cache-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cache-chip {
+  font-family: var(--font-mono); font-size: 11px; padding: 4px 12px;
+  border-radius: var(--radius-sm); border: 1px solid;
+}
+.cache-chip--stable { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 25%, transparent); background: color-mix(in srgb, var(--accent) 5%, transparent); }
+.cache-chip--dynamic { color: var(--amber); border-color: color-mix(in srgb, var(--amber) 25%, transparent); background: color-mix(in srgb, var(--amber) 5%, transparent); }
+
+/* ─── Assembly Blocks ─── */
+.assembly { margin: 22px 0 28px; display: flex; flex-direction: column; gap: 2px; }
+.asm-block {
+  display: flex; align-items: stretch;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  overflow: hidden; transition: border-color .15s;
+}
+.asm-block:hover { border-color: var(--border-hi); }
+.asm-num {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  color: var(--text-dim); padding: 10px 14px;
+  background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; align-items: center; min-width: 46px; justify-content: center;
+  letter-spacing: 0.5px; flex-shrink: 0;
+}
+.asm-body { padding: 10px 16px; background: var(--surface); flex: 1; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.asm-name {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 500;
+  color: var(--text-bright); white-space: nowrap;
+}
+.asm-desc { font-size: 12.5px; color: var(--text-dim); flex: 1; min-width: 160px; }
+.asm-mode {
+  font-family: var(--font-mono); font-size: 10px; padding: 2px 8px;
+  border-radius: var(--radius-sm); border: 1px solid; white-space: nowrap; flex-shrink: 0;
+}
+.asm-mode--full { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 25%, transparent); background: var(--accent-dim); }
+.asm-mode--task { color: var(--sky); border-color: color-mix(in srgb, var(--sky) 25%, transparent); background: var(--sky-dim); }
+.asm-mode--min  { color: var(--amber); border-color: color-mix(in srgb, var(--amber) 25%, transparent); background: var(--amber-dim); }
+.asm-mode--none { color: var(--text-dim); border-color: var(--border); background: var(--surface2); }
+
+/* Cache split in assembly */
+.asm-cache-marker {
+  display: flex; align-items: center; gap: 10px; padding: 8px 14px;
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--accent) 28%, transparent);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono); font-size: 10.5px; color: var(--accent);
+  letter-spacing: 1px; font-weight: 600;
+}
+
+/* ─── Mode Table ─── */
+.mode-grid {
+  display: grid; grid-template-columns: 130px 1fr 1fr;
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; margin: 16px 0 24px;
+}
+.mode-grid__hdr {
+  padding: 10px 14px; background: var(--surface2);
+  font-family: var(--font-mono); font-size: 10px; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--text-dim); font-weight: 600;
+}
+.mode-grid__cell {
+  padding: 12px 14px; background: var(--surface); font-size: 13.5px;
+}
+.mode-badge {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  padding: 3px 10px; border-radius: 2px; display: inline-block;
+}
+.mode-badge--full { background: var(--accent-dim); color: var(--accent-hi); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); }
+.mode-badge--task { background: var(--sky-dim); color: var(--sky); border: 1px solid color-mix(in srgb, var(--sky) 25%, transparent); }
+.mode-badge--min  { background: var(--amber-dim); color: var(--amber); border: 1px solid color-mix(in srgb, var(--amber) 25%, transparent); }
+.mode-badge--none { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); }
+
+/* ─── Contributor ─── */
+.contrib-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px; margin: 16px 0 24px;
+}
+.contrib-card {
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: 16px; background: var(--surface); position: relative;
+  overflow: hidden; transition: border-color .15s;
+}
+.contrib-card:hover { border-color: var(--border-hi); }
+.contrib-card::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+}
+.contrib-card--stable::after { background: var(--accent); }
+.contrib-card--dynamic::after { background: var(--amber); }
+.contrib-card--override::after { background: var(--violet); }
+.contrib-label {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px;
+}
+.contrib-label--stable { color: var(--accent); }
+.contrib-label--dynamic { color: var(--amber); }
+.contrib-label--override { color: var(--violet); }
+.contrib-prop {
+  font-family: var(--font-mono); font-size: 12px; color: var(--text);
+  margin-bottom: 5px;
+}
+.contrib-desc { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+
+/* ─── Persona Diagram ─── */
+.persona-flow {
+  display: flex; align-items: stretch; gap: 0;
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; margin: 18px 0 24px;
+}
+.persona-zone {
+  flex: 1; padding: 20px 18px; position: relative;
+}
+.persona-zone--primacy { background: var(--accent-dim); border-right: 1px solid color-mix(in srgb, var(--accent) 20%, transparent); }
+.persona-zone--body    { background: var(--surface); border-right: 1px solid var(--border); }
+.persona-zone--recency { background: var(--amber-dim); }
+.pz-label {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px;
+}
+.pz-label--p { color: var(--accent); }
+.pz-label--m { color: var(--text-dim); }
+.pz-label--r { color: var(--amber); }
+.pz-item {
+  font-family: var(--font-mono); font-size: 11.5px; color: var(--text);
+  padding: 5px 10px; border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface3) 60%, transparent);
+  margin-bottom: 5px; border: 1px solid var(--border);
+}
+.pz-item--soul { border-color: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--accent-hi); background: color-mix(in srgb, var(--accent) 5%, transparent); }
+.pz-item--echo { border-color: color-mix(in srgb, var(--amber) 22%, transparent); color: var(--amber); background: color-mix(in srgb, var(--amber) 5%, transparent); }
+.pz-note { font-size: 11px; color: var(--text-dim); margin-top: 8px; font-style: italic; }
+
+/* ─── Summary Table ─── */
+.summ-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 16px 0 24px; }
+.summ-table th {
+  font-family: var(--font-mono); font-size: 10px; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--text-dim); text-align: left;
+  padding: 10px 14px; border-bottom: 1px solid var(--border-hi);
+  background: var(--surface2);
+}
+.summ-table td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.summ-table tr:last-child td { border-bottom: none; }
+.summ-table tr:hover td { background: var(--surface2); }
+.summ-table td:first-child { font-weight: 600; color: var(--text-bright); font-size: 13px; white-space: nowrap; }
+
+/* ─── KPI Strip ─── */
+.kpi-strip {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; margin: 20px 0 24px;
+}
+.kpi-item { background: var(--surface); padding: 20px 14px; text-align: center; }
+.kpi-val { font-family: var(--font-mono); font-size: 1.7rem; font-weight: 600; color: var(--accent-hi); line-height: 1; margin-bottom: 6px; }
+.kpi-label { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); }
+
+/* ─── Callout ─── */
+.callout {
+  border-left: 3px solid var(--accent); background: var(--accent-dim);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  padding: 14px 18px; margin: 14px 0 20px; font-size: 14px;
+}
+.callout--amber { border-left-color: var(--amber); background: var(--amber-dim); }
+.callout--violet { border-left-color: var(--violet); background: var(--violet-dim); }
+.callout--red { border-left-color: var(--red); background: var(--red-dim); }
+
+/* ─── Card grid ─── */
+.card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 14px 0 22px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 16px 18px;
+  transition: border-color .15s;
+}
+.card:hover { border-color: var(--border-hi); }
+.card-head {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.card-head::before { content: '▹'; opacity: 0.5; font-size: 10px; }
+.card-head--green { color: var(--accent); }
+.card-head--amber { color: var(--amber); }
+.card-head--sky   { color: var(--sky); }
+.card-head--violet { color: var(--violet); }
+.card p { font-size: 13px; margin-bottom: 0; }
+
+/* ─── Resolution Ladder ─── */
+.resolution-ladder { display: flex; flex-direction: column; gap: 2px; margin: 16px 0 22px; }
+.res-step {
+  display: flex; align-items: center; gap: 14px;
+  padding: 11px 16px; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); background: var(--surface);
+  font-size: 13.5px; transition: border-color .15s;
+}
+.res-step:hover { border-color: var(--border-hi); }
+.res-n {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  color: var(--accent); min-width: 22px; flex-shrink: 0;
+}
+.res-label { font-weight: 500; color: var(--text-bright); flex-shrink: 0; min-width: 120px; }
+.res-desc { font-size: 13px; color: var(--text-dim); }
+
+/* ─── Footer ─── */
+.post-footer {
+  background: var(--bg); border-top: 1px solid var(--border);
+  padding: 40px 40px 60px;
+}
+.post-footer-inner { max-width: 920px; margin: 0 auto; }
+.footer-text { font-size: 14px; line-height: 1.7; margin-bottom: 20px; }
+.back-link {
+  font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);
+  text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+  transition: color .15s; padding: 6px 14px; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); background: var(--surface);
+}
+.back-link:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 25%, transparent); }
+
+/* ─── Responsive ─── */
+@media (max-width: 680px) {
+  .hero { padding: 80px 20px 40px; }
+  .band { padding: 40px 20px; }
+  .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+  .contrib-grid { grid-template-columns: 1fr; }
+  .card-grid { grid-template-columns: 1fr; }
+  .mode-grid { grid-template-columns: 1fr; }
+  .persona-flow { flex-direction: column; }
+  .persona-zone { border-right: none; border-bottom: 1px solid var(--border); }
+  .persona-zone--recency { border-bottom: none; }
+  .post-footer { padding: 32px 20px 48px; }
+  .toc-bar { padding: 8px 16px; }
+  .fixed-nav { top: 10px; right: 10px; }
+  .pl-branch { grid-template-columns: repeat(2, auto); }
+}
+@media (max-width: 480px) {
+  .pl-node { font-size: 10px; padding: 7px 10px; }
+  .asm-mode { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Fixed nav -->
+<nav class="fixed-nav" aria-label="Navigation">
+  <a href="/" class="nav-btn" title="Home">←</a>
+  <button class="nav-btn" id="theme-toggle" title="Toggle theme" aria-label="Toggle light/dark theme">◑</button>
+</nav>
+
+<!-- Hero -->
+<header class="hero">
+  <div class="hero-traces" aria-hidden="true">
+    <div class="trace trace-h1"></div>
+    <div class="trace trace-h2"></div>
+    <div class="trace trace-h3"></div>
+    <div class="trace trace-v1"></div>
+    <div class="trace trace-v2"></div>
+    <div class="chip-pad cp1"></div>
+    <div class="chip-pad cp2"></div>
+    <div class="chip-pad cp3"></div>
+    <div class="chip-pad cp4"></div>
+    <div class="scan-line"></div>
+  </div>
+  <div class="hero-inner">
+    <div class="eyebrow" data-i18n="eyebrow">Inside GoClaw</div>
+    <h1 class="hero-title" data-i18n="title">
+      System Prompt<br><em>Architecture</em>
+    </h1>
+    <p class="hero-deck" data-i18n="deck">Composable blocks · PromptMode gating · Cache boundary · Provider injection</p>
+    <div class="meta-row">
+      <span class="meta-chip meta-chip--green" data-i18n="tag1">prompt-engineering</span>
+      <span class="meta-chip meta-chip--green" data-i18n="tag2">modular-design</span>
+      <span class="meta-chip meta-chip--amber" data-i18n="tag3">caching</span>
+      <span class="meta-chip" data-i18n="date">April 2026</span>
+    </div>
+  </div>
+</header>
+
+<!-- TOC -->
+<nav class="toc-bar" aria-label="Table of contents">
+  <span class="toc-label" data-i18n="toc_label">Sections</span>
+  <a href="#s01" class="toc-link" data-i18n="toc01">01 Vấn đề</a>
+  <a href="#s02" class="toc-link" data-i18n="toc02">02 Tổng quan</a>
+  <a href="#s03" class="toc-link" data-i18n="toc03">03 PromptMode</a>
+  <a href="#s04" class="toc-link" data-i18n="toc04">04 Blocks</a>
+  <a href="#s05" class="toc-link" data-i18n="toc05">05 Cache</a>
+  <a href="#s06" class="toc-link" data-i18n="toc06">06 Provider</a>
+  <a href="#s07" class="toc-link" data-i18n="toc07">07 Persona</a>
+  <a href="#s08" class="toc-link" data-i18n="toc08">08 Context</a>
+  <a href="#s09" class="toc-link" data-i18n="toc09">09 Builder</a>
+  <a href="#s10" class="toc-link" data-i18n="toc10">10 Tổng kết</a>
+  <button class="toc-link" id="lang-vi" style="cursor:pointer;font-weight:600;">VI</button>
+  <button class="toc-link" id="lang-en" style="cursor:pointer;">EN</button>
+</nav>
+
+<!-- S01: Problem -->
+<section class="band" id="s01">
+  <div class="band-inner">
+    <div class="sec-label" data-i18n="s01_label">01 — Vấn đề</div>
+    <h2 class="sec-title" data-i18n="s01_title">Prompt không phải string</h2>
+    <p data-i18n="s01_intro">Khi bạn build một AI agent production, system prompt không đơn giản là một string dài. Nó phải đáp ứng nhiều yêu cầu xung đột nhau — về nội dung, performance, và maintainability.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-head card-head--green" data-i18n="pain1_h">Về nội dung</div>
+        <p data-i18n="pain1_p">Main agent cần full instructions. Subagent chỉ cần subset nhỏ. Heartbeat monitor cần prompt cực kỳ slim. Cron job cần instructions khác hoàn toàn.</p>
+      </div>
+      <div class="card">
+        <div class="card-head card-head--amber" data-i18n="pain2_h">Về performance</div>
+        <p data-i18n="pain2_p">Token nhiều = latency cao. Prompt thay đổi mỗi request → không cache được. Anthropic caching tiết kiệm 90% chi phí — nhưng phải biết phần nào stable.</p>
+      </div>
+      <div class="card">
+        <div class="card-head card-head--sky" data-i18n="pain3_h">Về maintainability</div>
+        <p data-i18n="pain3_p">Prompt logic rải rác trong codebase là nightmare. Provider A cần reasoning format, Provider B cần plain text. Predefined vs open agent cần framing khác nhau.</p>
+      </div>
+      <div class="card">
+        <div class="card-head card-head--violet" data-i18n="pain4_h">Naive approach</div>
+        <p data-i18n="pain4_p">Một string template khổng lồ với hàng trăm <code>if/else</code>. Không scale. Không test được. Không cache được.</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong data-i18n="s01_solution_head">Giải pháp:</strong> <span data-i18n="s01_solution">GoClaw dùng <strong>composable prompt blocks</strong> — kiến trúc lắp ghép modular. Mỗi section là một Go function độc lập. <code>BuildSystemPrompt()</code> ghép tất cả lại theo thứ tự cố định.</span>
+    </div>
+  </div>
+</section>
+
+<!-- S02: Architecture -->
+<section class="band" id="s02">
+  <div class="band-inner">
+    <div class="sec-label" data-i18n="s02_label">02 — Kiến trúc tổng quan</div>
+    <h2 class="sec-title" data-i18n="s02_title">Pipeline từ RunRequest đến LLM</h2>
+    <p data-i18n="s02_intro">Toàn bộ prompt construction xảy ra một lần trong <code>ContextStage</code> — trước iteration loop đầu tiên. Các turns sau (tool calls) không rebuild lại prompt.</p>
+
+    <div class="pipeline-wrap">
+      <div class="pipeline-title" data-i18n="s02_diag_title">CONTEXT STAGE PIPELINE</div>
+      <div class="pipeline">
+        <div class="pl-row">
+          <div class="pl-node pl-node--root">RunRequest (user message)</div>
+        </div>
+        <div class="pl-arrow-down">↓</div>
+        <div class="pl-row">
+          <div class="pl-node pl-node--stage">ContextStage.Execute()</div>
+        </div>
+        <div class="pl-arrow-down">↓</div>
+        <div class="pl-fn-row">
+          <div class="pl-node pl-node--fn">InjectContext()</div>
+          <div class="pl-connector">→</div>
+          <div class="pl-node pl-node--fn">ResolveContextWindow()</div>
+          <div class="pl-connector">→</div>
+          <div class="pl-node pl-node--fn">ResolveWorkspace()</div>
+        </div>
+        <div class="pl-arrow-down">↓</div>
+        <div class="pl-fn-row">
+          <div class="pl-node pl-node--fn">LoadContextFiles()</div>
+          <div class="pl-connector">→</div>
+          <div class="pl-node pl-node--fn">LoadSessionHistory()</div>
+          <div class="pl-connector">→</div>
+          <div class="pl-node pl-node--fn">BuildMessages()</div>
+        </div>
+        <div class="pl-arrow-down">↓</div>
+        <div class="pl-row">
+          <div class="pl-node pl-node--stage">BuildSystemPrompt(cfg)</div>
+        </div>
+        <div class="pl-arrow-down">↓</div>
+        <div class="pl-row">
+          <div class="pl-node pl-node--out">System Message → LLM API Call</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout--amber">
+      <strong data-i18n="s02_why_h">Tại sao tách stage riêng?</strong> <span data-i18n="s02_why">ContextStage chạy <strong>once</strong> ở setup. ThinkStage, ToolStage, PruneStage chạy trong vòng lặp. Tách biệt đảm bảo prompt không bị rebuild mỗi tool call và <code>OverheadTokens</code> được tính chính xác một lần.</span>
+    </div>
+  </div>
+</section>
+
+<!-- S03: PromptMode -->
+<section class="band" id="s03">
+  <div class="band-inner">
+    <div class="sec-label" data-i18n="s03_label">03 — PromptMode</div>
+    <h2 class="sec-title" data-i18n="s03_title">4 mức độ chi tiết</h2>
+    <p data-i18n="s03_intro">GoClaw định nghĩa 4 mode. Không hardcode — resolve theo 4-layer priority.</p>
+
+    <div class="mode-grid">
+      <div class="mode-grid__hdr" data-i18n="th_mode">Mode</div>
+      <div class="mode-grid__hdr" data-i18n="th_for">Dành cho</div>
+      <div class="mode-grid__hdr" data-i18n="th_includes">Sections included</div>
+
+      <div class="mode-grid__cell"><span class="mode-badge mode-badge--full">Full</span></div>
+      <div class="mode-grid__cell" data-i18n="mode_full_for">Main agent, interactive</div>
+      <div class="mode-grid__cell" data-i18n="mode_full_inc">Tất cả: tooling, safety, skills, memory, persona, spawn…</div>
+
+      <div class="mode-grid__cell"><span class="mode-badge mode-badge--task">Task</span></div>
+      <div class="mode-grid__cell" data-i18n="mode_task_for">Enterprise automation</div>
+      <div class="mode-grid__cell" data-i18n="mode_task_inc">Lean: tooling, safety, execution bias, skills search, memory slim</div>
+
+      <div class="mode-grid__cell"><span class="mode-badge mode-badge--min">Minimal</span></div>
+      <div class="mode-grid__cell" data-i18n="mode_min_for">Subagent, cron</div>
+      <div class="mode-grid__cell" data-i18n="mode_min_inc">Core only: tooling, workspace, pinned skills</div>
+
+      <div class="mode-grid__cell"><span class="mode-badge mode-badge--none">None</span></div>
+      <div class="mode-grid__cell" data-i18n="mode_none_for">Identity-only contexts</div>
+      <div class="mode-grid__cell" data-i18n="mode_none_inc">Identity line only</div>
+    </div>
+
+    <h3 data-i18n="s03_resolution_h">3-layer Resolution</h3>
+    <div class="resolution-ladder">
+      <div class="res-step">
+        <div class="res-n">L1</div>
+        <div class="res-label" data-i18n="res1_label">Runtime override</div>
+        <div class="res-desc" data-i18n="res1_desc">Hardcoded trong code gọi — ưu tiên tuyệt đối</div>
+      </div>
+      <div class="res-step">
+        <div class="res-n">L2</div>
+        <div class="res-label" data-i18n="res2_label">Auto-detect session</div>
+        <div class="res-desc" data-i18n="res2_desc"><code>IsHeartbeatSession()</code> → Minimal · <code>IsSubagentSession()</code> → Task · <code>IsCronSession()</code> → Task</div>
+      </div>
+      <div class="res-step">
+        <div class="res-n">L3</div>
+        <div class="res-label" data-i18n="res3_label">Agent config (DB)</div>
+        <div class="res-desc" data-i18n="res3_desc">Per-agent override từ database</div>
+      </div>
+      <div class="res-step">
+        <div class="res-n">L4</div>
+        <div class="res-label" data-i18n="res4_label">Default</div>
+        <div class="res-desc" data-i18n="res4_desc"><code>PromptFull</code> — nếu không có override nào</div>
+      </div>
+    </div>
+
+    <div class="callout callout--violet">
+      <strong data-i18n="s03_minmode_h"><code>minMode(a, b)</code>:</strong> <span data-i18n="s03_minmode">Luôn chọn mode restrictive hơn. Runtime không thể override <em>lên</em> Full nếu auto-detect thấy subagent. Một subagent session key có prefix <code>subagent:</code> → luôn bị cap tại Task.</span>
+    </div>
+  </div>
+</section>
+
+<!-- S04: Composable Blocks -->
+<section class="band" id="s04">
+  <div class="band-inner">
+    <div class="sec-label" data-i18n="s04_label">04 — Composable Section Blocks</div>
+    <h2 class="sec-title" data-i18n="s04_title">Assembly theo thứ tự cố định</h2>
+    <p data-i18n="s04_intro"><code>BuildSystemPrompt(cfg)</code> ghép <code>[]string</code> theo thứ tự cố định. Mỗi section là một pure function không có side effects.</p>
+
+    <div class="assembly" data-i18n-assembly>
+      <div class="asm-block">
+        <div class="asm-num">01</div>
+        <div class="asm-body">
+          <div class="asm-name">identityLine</div>
+          <div class="asm-desc" data-i18n="asm01_desc">Agent identity + version</div>
+          <span class="asm-mode asm-mode--none" data-i18n="asm_all">all modes</span>
+        </div>
+      </div>
+      <div class="asm-block">
+        <div class="asm-num">02</div>
+        <div class="asm-body">
+          <div class="asm-name">bootstrapBlock</div>
+          <div class="asm-desc" data-i18n="asm02_desc">BOOTSTRAP.md — first-run onboarding</div>
+          <span class="asm-mode asm-mode--full" data-i18n="asm_if_bootstrap">if BOOTSTRAP.md</span>
+        </div>
+      </div>
+      <div class="asm-block">
+        <div class="asm-num">03</div>
+        <div class="asm-body">
+          <div class="asm-name">buildPersonaSection()</div>
+          <div class="asm-desc" data-i18n="asm03_desc">SOUL.md — primacy zone, đặt trước tất cả</div>
+          <span class="asm-mode asm-mode--full" data-i18n="asm_full_task">full + task</span>
+        </div>
+      </div>
+      <div class="asm-block">
+        <div class="asm-num">04</div>
+        <div class="asm-body">
+          <div class="asm-name">buildToolingSection()</div>
+          <div class="asm-desc" data-i18n="asm04_desc">Tool usage instructions, tool names sorted</div>
+          <span class="asm-mode asm-mode--full" data-i18n="asm_all">all modes</span>
+        </div>
+      </div>
+      <div class="asm-block">
+        <div class="asm-num">05</div>
+        <div class="asm-body">
+          <div class="asm-name">buildExecutionBiasSection()</div>
+          <div class="asm-desc" data-i18n="asm05_desc">Khi nào dùng tools vs reply trực tiếp</div>
+          <span class="asm-mode asm-mode--full" data-i18n="asm_full_task">full + task</span>
+        </div>
+      </div>
+      <div class="asm-block">
+        <div class="asm-num">06</div>
+        <div class="asm-body">
+          <div class="asm-name">buildSafetySection()</div>
+          <div class="asm-desc" data-i18n="asm06_desc">Safety rules — không provider nào được override</div>
+          <span class="asm-mode asm-mode--full" data-i18n="asm_all">all modes</span>
+        </div>
+      </div>
+      <div class="asm-block">
+        <div class="asm-num">07</div>
+        <div class="asm-body">
+          <div class="asm-name">buildSkillsSection()</div>
+          <div class="asm-desc" data-i18n="asm07_desc">Skills catalog + search hint</div>
+          <span class="asm-mode asm-mode--task" data-i18n="asm_full_task">full + task</span>
+        </div>
+      </div>
+      <div class="asm-block">
+        <div class="asm-num">08</div>
+        <div class="asm-body">
+          <div class="asm-name">buildWorkspaceSection()</div>
+          <div class="asm-desc" data-i18n="asm08_desc">Workspace path + context</div>
+          <span class="asm-mode asm-mode--min" data-i18n="asm_all">all modes</span>
+        </div>
+      </div>
+      <div class="asm-block">
+        <div class="asm-num">09</div>
+        <div class="asm-body">
+          <div class="asm-name">buildMemoryRecallSection()</div>
+          <div class="asm-desc" data-i18n="asm09_desc">Full / Slim / Minimal tùy mode</div>
+          <span class="asm-mode asm-mode--min" data-i18n="asm_all">all modes</span>
+        </div>
+      </div>
+      <div class="asm-block">
+        <div class="asm-num">10</div>
+        <div class="asm-body">
+          <div class="asm-name">buildProjectContextSection(stableFiles)</div>
+          <div class="asm-desc" data-i18n="asm10_desc">AGENTS.md, TOOLS.md, CAPABILITIES.md — ít thay đổi</div>
+          <span class="asm-mode asm-mode--full" data-i18n="asm_full_task">full + task</span>
+        </div>
+      </div>
+
+      <div class="asm-cache-marker">
+        <span>◈</span>
+        <span><!-- GOCLAW_CACHE_BOUNDARY --></span>
+        <span data-i18n="cache_boundary_label">stable ↑ cached · dynamic ↓ not cached</span>
+        <span>◈</span>
+      </div>
+
+      <div class="asm-block">
+        <div class="asm-num">11</div>
+        <div class="asm-body">
+          <div class="asm-name">buildTimeSection()</div>
+          <div class="asm-desc" data-i18n="asm11_desc">Date-only (không HH:MM:SS) — thay đổi hàng ngày</div>
+          <span class="asm-mode asm-mode--full" data-i18n="asm_all">all modes</span>
+        </div>
+      </div>
+      <div class="asm-block">
+        <div class="asm-num">12</div>
+        <div class="asm-body">
+          <div class="asm-name">extraContext</div>
+          <div class="asm-desc" data-i18n="asm12_desc">Per-turn extra context (provider injected)</div>
+          <span class="asm-mode asm-mode--full" data-i18n="asm_per_turn">per-turn</span>
+        </div>
+      </div>
+      <div class="asm-block">
+        <div class="asm-num">13</div>
+        <div class="asm-body">
+          <div class="asm-name">buildProjectContextSection(dynamicFiles)</div>
+          <div class="asm-desc" data-i18n="asm13_desc">USER.md — per-user profile, thay đổi theo session</div>
+          <span class="asm-mode asm-mode--full" data-i18n="asm_full_task">full + task</span>
+        </div>
+      </div>
+      <div class="asm-block">
+        <div class="asm-num">14</div>
+        <div class="asm-body">
+          <div class="asm-name">buildPersonaReminder()</div>
+          <div class="asm-desc" data-i18n="asm14_desc">SOUL echo — recency reinforcement cuối prompt</div>
+          <span class="asm-mode asm-mode--full" data-i18n="asm_full_only">full only</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__hdr">internal/agent/systemprompt.go — section gating pattern</div>
+      <div class="code-block__body"><span class="c-cmt">// Skills: full + task mode, không có khi bootstrap</span>
+<span class="c-kw">if</span> (isFull || isTask) && !cfg.IsBootstrap && (cfg.SkillsSummary != <span class="c-str">""</span> || cfg.HasSkillSearch) {
+    lines = <span class="c-fn">append</span>(lines, <span class="c-fn">buildSkillsSection</span>(...)...)
+}
+
+<span class="c-cmt">// Memory: 3 biến thể tùy mode</span>
+<span class="c-kw">if</span> cfg.HasMemory {
+    <span class="c-kw">if</span> isFull      { lines = <span class="c-fn">append</span>(lines, <span class="c-fn">buildMemoryRecallSection</span>(...)...) }
+    <span class="c-kw">else if</span> isTask { lines = <span class="c-fn">append</span>(lines, <span class="c-fn">buildMemoryRecallSlimSection</span>(...)...) }
+    <span class="c-kw">else if</span> isMin  { lines = <span class="c-fn">append</span>(lines, <span class="c-fn">buildMemoryRecallMinimalSection</span>()...) }
+}</div>
+    </div>
+  </div>
+</section>
+
+<!-- S05: Cache Boundary -->
+<section class="band" id="s05">
+  <div class="band-inner">
+    <div class="sec-label" data-i18n="s05_label">05 — Cache Boundary</div>
+    <h2 class="sec-title" data-i18n="s05_title">Chia stable vs dynamic</h2>
+    <p data-i18n="s05_intro">Anthropic prompt caching hoạt động theo hash. Nếu prompt thay đổi mỗi request → không cache → pay full price. Trong GoClaw, 80-90% system prompt là stable. Giải pháp: một marker chia prompt thành 2 block.</p>
+
+    <div class="kpi-strip">
+      <div class="kpi-item"><div class="kpi-val" data-i18n="kpi1_val">80-90%</div><div class="kpi-label" data-i18n="kpi1_label">Stable content</div></div>
+      <div class="kpi-item"><div class="kpi-val" data-i18n="kpi2_val">90%</div><div class="kpi-label" data-i18n="kpi2_label">Chi phí tiết kiệm</div></div>
+      <div class="kpi-item"><div class="kpi-val" data-i18n="kpi3_val">1</div><div class="kpi-label" data-i18n="kpi3_label">Marker string</div></div>
+      <div class="kpi-item"><div class="kpi-val" data-i18n="kpi4_val">~20</div><div class="kpi-label" data-i18n="kpi4_label">Tokens SOUL echo</div></div>
+    </div>
+
+    <div class="cache-split">
+      <div class="cache-stable">
+        <div class="cache-zone-label cache-zone-label--stable">↑ Stable — cache_control: ephemeral</div>
+        <div class="cache-chips">
+          <span class="cache-chip cache-chip--stable">identityLine</span>
+          <span class="cache-chip cache-chip--stable">SOUL.md</span>
+          <span class="cache-chip cache-chip--stable">buildToolingSection()</span>
+          <span class="cache-chip cache-chip--stable">buildSafetySection()</span>
+          <span class="cache-chip cache-chip--stable">buildSkillsSection()</span>
+          <span class="cache-chip cache-chip--stable">AGENTS.md</span>
+          <span class="cache-chip cache-chip--stable">TOOLS.md</span>
+          <span class="cache-chip cache-chip--stable">CAPABILITIES.md</span>
+          <span class="cache-chip cache-chip--stable">buildMemoryRecallSection()</span>
+          <span class="cache-chip cache-chip--stable">buildWorkspaceSection()</span>
+        </div>
+      </div>
+      <div class="cache-marker"><!-- GOCLAW_CACHE_BOUNDARY --></div>
+      <div class="cache-dynamic">
+        <div class="cache-zone-label cache-zone-label--dynamic">↓ Dynamic — no cache_control</div>
+        <div class="cache-chips">
+          <span class="cache-chip cache-chip--dynamic">buildTimeSection()</span>
+          <span class="cache-chip cache-chip--dynamic">extraContext</span>
+          <span class="cache-chip cache-chip--dynamic">USER.md</span>
+          <span class="cache-chip cache-chip--dynamic">BOOTSTRAP.md</span>
+          <span class="cache-chip cache-chip--dynamic">DELEGATION.md</span>
+          <span class="cache-chip cache-chip--dynamic">TEAM.md</span>
+          <span class="cache-chip cache-chip--dynamic">buildPersonaReminder()</span>
+        </div>
+      </div>
+    </div>
+
+    <h3 data-i18n="s05_determ_h">Determinism là bắt buộc</h3>
+    <p data-i18n="s05_determ_p">Để cache hit, output phải hoàn toàn deterministic với cùng input. Tool names được sort trước khi inject. Time section dùng date-only.</p>
+
+    <div class="code-block">
+      <div class="code-block__hdr">Sort tool names — critical for prompt caching</div>
+      <div class="code-block__body"><span class="c-cmt">// Sort tool names for deterministic output — critical for prompt caching.</span>
+sortedTools := slices.<span class="c-fn">Clone</span>(toolNames)
+slices.<span class="c-fn">Sort</span>(sortedTools)
+<span class="c-kw">for</span> _, name := <span class="c-kw">range</span> sortedTools {
+    <span class="c-cmt">// inject into tooling section...</span>
+}
+
+<span class="c-cmt">// Date-only: không bust cache mỗi giây</span>
+<span class="c-kw">func</span> <span class="c-fn">buildTimeSection</span>() []<span class="c-typ">string</span> {
+    now := time.<span class="c-fn">Now</span>()
+    <span class="c-kw">return</span> []<span class="c-typ">string</span>{
+        fmt.<span class="c-fn">Sprintf</span>(<span class="c-str">"Current date: %s (UTC)"</span>, now.UTC().<span class="c-fn">Format</span>(<span class="c-str">"2006-01-02 Monday"</span>)),
+        <span class="c-str">""</span>,
+    }
+}</div>
+    </div>
+  </div>
+</section>
+
+<!-- S06: Provider Contributions -->
+<section class="band" id="s06">
+  <div class="band-inner">
+    <div class="sec-label" data-i18n="s06_label">06 — Provider Contributions</div>
+    <h2 class="sec-title" data-i18n="s06_title">Customize mà không sửa core</h2>
+    <p data-i18n="s06_intro">Khác nhau giữa các LLM provider đôi khi cần inject logic riêng vào prompt. GoClaw giải quyết bằng <code>PromptContributor</code> interface — provider implement, core không thay đổi.</p>
+
+    <div class="contrib-grid">
+      <div class="contrib-card contrib-card--stable">
+        <div class="contrib-label contrib-label--stable">StablePrefix</div>
+        <div class="contrib-prop">string</div>
+        <div class="contrib-desc" data-i18n="contrib_stable_desc">Inject trước cache boundary → là một phần của stable block → cache được</div>
+      </div>
+      <div class="contrib-card contrib-card--dynamic">
+        <div class="contrib-label contrib-label--dynamic">DynamicSuffix</div>
+        <div class="contrib-prop">string</div>
+        <div class="contrib-desc" data-i18n="contrib_dynamic_desc">Inject sau cache boundary → per-turn context: user locale, conversation metadata</div>
+      </div>
+      <div class="contrib-card contrib-card--override">
+        <div class="contrib-label contrib-label--override">SectionOverrides</div>
+        <div class="contrib-prop">map[string]string</div>
+        <div class="contrib-desc" data-i18n="contrib_override_desc">Override section theo ID. Chỉ 2 sections: <code>execution_bias</code>, <code>tool_call_style</code>. Safety bị blocked.</div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__hdr">internal/providers/prompt_contribution.go</div>
+      <div class="code-block__body"><span class="c-kw">type</span> <span class="c-typ">PromptContribution</span> <span class="c-kw">struct</span> {
+    StablePrefix     <span class="c-typ">string</span>            <span class="c-cmt">// trước cache boundary</span>
+    DynamicSuffix    <span class="c-typ">string</span>            <span class="c-cmt">// sau cache boundary</span>
+    SectionOverrides <span class="c-kw">map</span>[<span class="c-typ">string</span>]<span class="c-typ">string</span> <span class="c-cmt">// override section bằng ID</span>
+}
+
+<span class="c-kw">type</span> <span class="c-typ">PromptContributor</span> <span class="c-kw">interface</span> {
+    <span class="c-fn">PromptContribution</span>() *<span class="c-typ">PromptContribution</span>
+}
+
+<span class="c-cmt">// GPT-5.4 cần &lt;think&gt;...&lt;/think&gt; tags</span>
+contribution := &<span class="c-typ">PromptContribution</span>{
+    StablePrefix: <span class="c-str">"## Reasoning Format\nUse &lt;think&gt;...&lt;/think&gt; before each response."</span>,
+}</div>
+    </div>
+
+    <div class="callout callout--red">
+      <strong data-i18n="s06_safety_h">Safety section bị blocked:</strong> <span data-i18n="s06_safety">Không provider nào được override safety rules. Đây là hard constraint trong code, không phải convention.</span>
+    </div>
+  </div>
+</section>
+
+<!-- S07: Persona -->
+<section class="band" id="s07">
+  <div class="band-inner">
+    <div class="sec-label" data-i18n="s07_label">07 — Persona Primacy & Recency</div>
+    <h2 class="sec-title" data-i18n="s07_title">Giữ persona nhất quán</h2>
+    <p data-i18n="s07_intro">LLM có xu hướng bị ảnh hưởng bởi đầu và cuối của context (primacy + recency bias). GoClaw khai thác điều này để giữ persona nhất quán xuyên suốt run.</p>
+
+    <div class="persona-flow">
+      <div class="persona-zone persona-zone--primacy">
+        <div class="pz-label pz-label--p" data-i18n="pz_primacy">PRIMACY ZONE</div>
+        <div class="pz-item pz-item--soul">SOUL.md</div>
+        <div class="pz-item pz-item--soul">IDENTITY.md</div>
+        <div class="pz-note" data-i18n="pz_primacy_note">Đặt ngay sau identity line — trước tooling, safety, mọi thứ khác</div>
+      </div>
+      <div class="persona-zone persona-zone--body">
+        <div class="pz-label pz-label--m" data-i18n="pz_body">BODY SECTIONS</div>
+        <div class="pz-item">tooling</div>
+        <div class="pz-item">safety</div>
+        <div class="pz-item">skills</div>
+        <div class="pz-item">memory</div>
+        <div class="pz-item">workspace</div>
+        <div class="pz-item">context files</div>
+        <div class="pz-note" data-i18n="pz_body_note">300–2000+ tokens tùy mode</div>
+      </div>
+      <div class="persona-zone persona-zone--recency">
+        <div class="pz-label pz-label--r" data-i18n="pz_recency">RECENCY ZONE</div>
+        <div class="pz-item pz-item--echo">SOUL echo (~20 tokens)</div>
+        <div class="pz-note" data-i18n="pz_recency_note">GPT-only: extract Style + Vibe sections. Đủ để GPT "nhớ" tone ở generation point.</div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__hdr">needsSOULEcho() — provider detection</div>
+      <div class="code-block__body"><span class="c-kw">func</span> <span class="c-fn">needsSOULEcho</span>(providerType <span class="c-typ">string</span>) <span class="c-typ">bool</span> {
+    lower := strings.<span class="c-fn">ToLower</span>(providerType)
+    <span class="c-kw">switch</span> {
+    <span class="c-kw">case</span> lower == <span class="c-str">"openai"</span> || lower == <span class="c-str">"codex"</span>:
+        <span class="c-kw">return</span> <span class="c-num">true</span>
+    <span class="c-kw">case</span> strings.<span class="c-fn">Contains</span>(lower, <span class="c-str">"chatgpt"</span>):
+        <span class="c-kw">return</span> <span class="c-num">true</span>
+    }
+    <span class="c-kw">return</span> <span class="c-num">false</span>
+}
+<span class="c-cmt">// Anthropic/Claude đọc và nhớ system prompt đầu tốt → không cần echo</span>
+<span class="c-cmt">// GPT có recency bias mạnh hơn → cần echo cuối prompt</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- S08: Context-Aware Assembly -->
+<section class="band" id="s08">
+  <div class="band-inner">
+    <div class="sec-label" data-i18n="s08_label">08 — Context-Aware Assembly</div>
+    <h2 class="sec-title" data-i18n="s08_title">Mỗi agent khác nhau</h2>
+    <p data-i18n="s08_intro"><code>SystemPromptConfig</code> có 50+ fields. Assembly thay đổi theo context agent — không chỉ theo mode.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-head card-head--green" data-i18n="ctx1_h">Bootstrap Detection</div>
+        <p data-i18n="ctx1_p">Khi <code>BOOTSTRAP.md</code> có trong context files → first-run mode. Chỉ có <code>write_file</code>, không có skills/MCP/team/spawn. Sau onboarding, <code>BOOTSTRAP.md</code> bị cleanup — lần sau không còn bootstrap mode.</p>
+      </div>
+      <div class="card">
+        <div class="card-head card-head--sky" data-i18n="ctx2_h">Predefined vs Open Agent</div>
+        <p data-i18n="ctx2_p">Predefined agents wrap context files với <code>&lt;internal_config&gt;</code> tag. Open agents dùng <code>&lt;context_file&gt;</code> tag. Framing khác nhau → model treat content khác nhau → confidentiality hoạt động tốt hơn.</p>
+      </div>
+      <div class="card">
+        <div class="card-head card-head--amber" data-i18n="ctx3_h">Group Chat Detection</div>
+        <p data-i18n="ctx3_p"><code>PeerKind == "group"</code> inject hint: không reply khi người dùng đang nói với người khác. ChatTitle được sanitize (strip quotes, newlines, truncate 100 chars) để prevent prompt injection.</p>
+      </div>
+      <div class="card">
+        <div class="card-head card-head--violet" data-i18n="ctx4_h">Orchestration Mode</div>
+        <p data-i18n="ctx4_p"><strong>ModeSpawn:</strong> hide delegate + team_tasks. <strong>ModeDelegate:</strong> Delegation Targets section. <strong>ModeTeam:</strong> Team Workspace + Team Members sections. Mỗi mode unlock thêm tools và sections.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S09: PromptBuilder -->
+<section class="band" id="s09">
+  <div class="band-inner">
+    <div class="sec-label" data-i18n="s09_label">09 — PromptBuilder Interface</div>
+    <h2 class="sec-title" data-i18n="s09_title">Hướng tới template engine</h2>
+    <p data-i18n="s09_intro"><code>PromptBuilder</code> interface được thiết kế cho future extensibility. <code>BridgePromptBuilder</code> hiện tại map <code>PromptConfig</code> → <code>SystemPromptConfig</code> → <code>BuildSystemPrompt()</code> — bridge pattern giữ backward compat.</p>
+
+    <div class="code-block">
+      <div class="code-block__hdr">internal/agent/prompt_config_types.go — v3 interface</div>
+      <div class="code-block__body"><span class="c-kw">type</span> <span class="c-typ">PromptConfig</span> <span class="c-kw">struct</span> {
+    Identity      <span class="c-typ">bool</span>
+    Persona       <span class="c-typ">bool</span>
+    Instructions  <span class="c-typ">bool</span>
+    Tools         <span class="c-typ">bool</span>
+    Skills        <span class="c-typ">bool</span>
+    Team          <span class="c-typ">bool</span>
+    Workspace     <span class="c-typ">bool</span>
+    Memory        <span class="c-typ">bool</span>
+    Sandbox       <span class="c-typ">bool</span>
+    Orchestration <span class="c-typ">bool</span>
+
+    Mode            <span class="c-typ">PromptMode</span>
+    ProviderVariant <span class="c-typ">string</span> <span class="c-cmt">// "" = default, "codex", "dashscope"</span>
+
+    <span class="c-cmt">// Data payloads per section</span>
+    IdentityData   <span class="c-typ">IdentityData</span>
+    PersonaContent <span class="c-typ">string</span>
+    ToolsData      <span class="c-typ">ToolsSectionData</span>
+    <span class="c-cmt">// ...</span>
+}</div>
+    </div>
+
+    <div class="callout callout--violet">
+      <strong data-i18n="s09_bridge_h">Bridge Pattern:</strong> <span data-i18n="s09_bridge">Khi cần A/B testing hoặc provider-specific templates, swap <code>BridgePromptBuilder</code> bằng <code>TemplatePromptBuilder</code> mà không thay đổi gì ở pipeline layer.</span>
+    </div>
+  </div>
+</section>
+
+<!-- S10: Summary -->
+<section class="band" id="s10">
+  <div class="band-inner">
+    <div class="sec-label" data-i18n="s10_label">10 — Tổng kết</div>
+    <h2 class="sec-title" data-i18n="s10_title">Prompt là assembly output</h2>
+
+    <div class="table-wrap" style="overflow-x:auto;margin:0 0 24px">
+      <table class="summ-table">
+        <thead>
+          <tr>
+            <th data-i18n="th_concept">Concept</th>
+            <th data-i18n="th_solution">Giải pháp GoClaw</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-i18n="sum1_c">Multi-agent diversity</td>
+            <td data-i18n="sum1_s">PromptMode (full/task/minimal/none) với 3-layer resolution</td>
+          </tr>
+          <tr>
+            <td data-i18n="sum2_c">Token cost</td>
+            <td data-i18n="sum2_s">Cache boundary chia stable/dynamic, tool names sorted, date-only format</td>
+          </tr>
+          <tr>
+            <td data-i18n="sum3_c">Provider differences</td>
+            <td data-i18n="sum3_s">PromptContributor interface (StablePrefix, DynamicSuffix, SectionOverrides)</td>
+          </tr>
+          <tr>
+            <td data-i18n="sum4_c">Persona consistency</td>
+            <td data-i18n="sum4_s">Primacy (SOUL.md trước) + Recency (echo ở cuối, GPT-only)</td>
+          </tr>
+          <tr>
+            <td data-i18n="sum5_c">Maintainability</td>
+            <td data-i18n="sum5_s">Section builders as pure functions, gated by mode flags</td>
+          </tr>
+          <tr>
+            <td data-i18n="sum6_c">Extensibility</td>
+            <td data-i18n="sum6_s">PromptBuilder interface, bridge pattern → template engine khi cần</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 data-i18n="s10_refs_h">File references</h3>
+    <div class="resolution-ladder">
+      <div class="res-step">
+        <div class="res-n" style="color:var(--sky)">go</div>
+        <div class="res-label"><code>systemprompt.go</code></div>
+        <div class="res-desc" data-i18n="ref1_desc">BuildSystemPrompt() + tất cả section builders</div>
+      </div>
+      <div class="res-step">
+        <div class="res-n" style="color:var(--sky)">go</div>
+        <div class="res-label"><code>prompt_config_types.go</code></div>
+        <div class="res-desc" data-i18n="ref2_desc">PromptConfig block types (v3 interface)</div>
+      </div>
+      <div class="res-step">
+        <div class="res-n" style="color:var(--sky)">go</div>
+        <div class="res-label"><code>prompt_contribution.go</code></div>
+        <div class="res-desc" data-i18n="ref3_desc">PromptContributor interface + contribution struct</div>
+      </div>
+      <div class="res-step">
+        <div class="res-n" style="color:var(--sky)">go</div>
+        <div class="res-label"><code>context_stage.go</code></div>
+        <div class="res-desc" data-i18n="ref4_desc">Runtime injection pipeline (ContextStage)</div>
+      </div>
+      <div class="res-step">
+        <div class="res-n" style="color:var(--sky)">go</div>
+        <div class="res-label"><code>anthropic_request.go</code></div>
+        <div class="res-desc" data-i18n="ref5_desc">splitSystemPromptForCache() — cache boundary splitting</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="post-footer">
+  <div class="post-footer-inner">
+    <p class="footer-text" data-i18n="footer_text">
+      <strong style="color:var(--accent)">System Prompt Architecture</strong> của GoClaw: prompt không phải string — mà là <em>assembly output</em>. Mỗi section là một component độc lập, có thể test và swap. Caching không phải afterthought — nó được design vào core với marker, sorted output, và file classification.
+    </p>
+    <a href="/" class="back-link" data-i18n="footer_back">← Về blog</a>
+  </div>
+</footer>
+
+<script>
+(function() {
+  /* ─── i18n data ─── */
+  const T = {
+    vi: {
+      eyebrow: "Inside GoClaw",
+      title_html: "System Prompt<br><em>Architecture</em>",
+      deck: "Composable blocks · PromptMode gating · Cache boundary · Provider injection",
+      tag1: "prompt-engineering", tag2: "modular-design", tag3: "caching", date: "Tháng 4, 2026",
+      toc_label: "Mục", toc01: "01 Vấn đề", toc02: "02 Tổng quan", toc03: "03 Mode",
+      toc04: "04 Blocks", toc05: "05 Cache", toc06: "06 Provider",
+      toc07: "07 Persona", toc08: "08 Context", toc09: "09 Builder", toc10: "10 Tổng kết",
+      s01_label: "01 — Vấn đề", s01_title: "Prompt không phải string",
+      s01_intro: "Khi bạn build một AI agent production, system prompt không đơn giản là một string dài. Nó phải đáp ứng nhiều yêu cầu xung đột nhau — về nội dung, performance, và maintainability.",
+      pain1_h: "Về nội dung", pain1_p: "Main agent cần full instructions. Subagent chỉ cần subset nhỏ. Heartbeat monitor cần prompt cực kỳ slim. Cron job cần instructions khác hoàn toàn.",
+      pain2_h: "Về performance", pain2_p: "Token nhiều = latency cao. Prompt thay đổi mỗi request → không cache được. Anthropic caching tiết kiệm 90% chi phí — nhưng phải biết phần nào stable.",
+      pain3_h: "Về maintainability", pain3_p: "Prompt logic rải rác trong codebase là nightmare. Provider A cần reasoning format, Provider B cần plain text. Predefined vs open agent cần framing khác nhau.",
+      pain4_h: "Naive approach", pain4_p: "Một string template khổng lồ với hàng trăm if/else. Không scale. Không test được. Không cache được.",
+      s01_solution_head: "Giải pháp:", s01_solution: "GoClaw dùng <strong>composable prompt blocks</strong> — kiến trúc lắp ghép modular. Mỗi section là một Go function độc lập. <code>BuildSystemPrompt()</code> ghép tất cả lại theo thứ tự cố định.",
+      s02_label: "02 — Kiến trúc tổng quan", s02_title: "Pipeline từ RunRequest đến LLM",
+      s02_intro: "Toàn bộ prompt construction xảy ra một lần trong <code>ContextStage</code> — trước iteration loop đầu tiên. Các turns sau (tool calls) không rebuild lại prompt.",
+      s02_diag_title: "CONTEXT STAGE PIPELINE",
+      s02_why_h: "Tại sao tách stage riêng?", s02_why: "ContextStage chạy <strong>once</strong> ở setup. ThinkStage, ToolStage, PruneStage chạy trong vòng lặp. Tách biệt đảm bảo prompt không bị rebuild mỗi tool call và <code>OverheadTokens</code> được tính chính xác một lần.",
+      s03_label: "03 — PromptMode", s03_title: "4 mức độ chi tiết",
+      s03_intro: "GoClaw định nghĩa 4 mode. Không hardcode — resolve theo 4-layer priority.",
+      th_mode: "Mode", th_for: "Dành cho", th_includes: "Sections included",
+      mode_full_for: "Main agent, interactive", mode_full_inc: "Tất cả: tooling, safety, skills, memory, persona, spawn…",
+      mode_task_for: "Enterprise automation", mode_task_inc: "Lean: tooling, safety, execution bias, skills search, memory slim",
+      mode_min_for: "Subagent, cron", mode_min_inc: "Core only: tooling, workspace, pinned skills",
+      mode_none_for: "Identity-only contexts", mode_none_inc: "Identity line only",
+      s03_resolution_h: "3-layer Resolution",
+      res1_label: "Runtime override", res1_desc: "Hardcoded trong code gọi — ưu tiên tuyệt đối",
+      res2_label: "Auto-detect session", res2_desc: "IsHeartbeatSession() → Minimal · IsSubagentSession() → Task · IsCronSession() → Task",
+      res3_label: "Agent config (DB)", res3_desc: "Per-agent override từ database",
+      res4_label: "Default", res4_desc: "PromptFull — nếu không có override nào",
+      s03_minmode_h: "minMode(a, b):", s03_minmode: "Luôn chọn mode restrictive hơn. Runtime không thể override <em>lên</em> Full nếu auto-detect thấy subagent. Một subagent session key có prefix <code>subagent:</code> → luôn bị cap tại Task.",
+      s04_label: "04 — Composable Section Blocks", s04_title: "Assembly theo thứ tự cố định",
+      s04_intro: "<code>BuildSystemPrompt(cfg)</code> ghép <code>[]string</code> theo thứ tự cố định. Mỗi section là một pure function không có side effects.",
+      asm01_desc: "Agent identity + version", asm02_desc: "BOOTSTRAP.md — first-run onboarding",
+      asm03_desc: "SOUL.md — primacy zone, đặt trước tất cả", asm04_desc: "Tool usage instructions, tool names sorted",
+      asm05_desc: "Khi nào dùng tools vs reply trực tiếp", asm06_desc: "Safety rules — không provider nào được override",
+      asm07_desc: "Skills catalog + search hint", asm08_desc: "Workspace path + context",
+      asm09_desc: "Full / Slim / Minimal tùy mode", asm10_desc: "AGENTS.md, TOOLS.md, CAPABILITIES.md — ít thay đổi",
+      cache_boundary_label: "stable ↑ cached · dynamic ↓ not cached",
+      asm11_desc: "Date-only (không HH:MM:SS) — thay đổi hàng ngày", asm12_desc: "Per-turn extra context (provider injected)",
+      asm13_desc: "USER.md — per-user profile, thay đổi theo session", asm14_desc: "SOUL echo — recency reinforcement cuối prompt",
+      asm_all: "all modes", asm_if_bootstrap: "if BOOTSTRAP.md", asm_full_task: "full + task",
+      asm_full_only: "full only", asm_per_turn: "per-turn",
+      s05_label: "05 — Cache Boundary", s05_title: "Chia stable vs dynamic",
+      s05_intro: "Anthropic prompt caching hoạt động theo hash. Nếu prompt thay đổi mỗi request → không cache → pay full price. Trong GoClaw, 80-90% system prompt là stable. Giải pháp: một marker chia prompt thành 2 block.",
+      kpi1_val: "80-90%", kpi1_label: "Stable content", kpi2_val: "90%", kpi2_label: "Chi phí tiết kiệm",
+      kpi3_val: "1", kpi3_label: "Marker string", kpi4_val: "~20", kpi4_label: "Tokens SOUL echo",
+      s05_determ_h: "Determinism là bắt buộc", s05_determ_p: "Để cache hit, output phải hoàn toàn deterministic với cùng input. Tool names được sort trước khi inject. Time section dùng date-only.",
+      s06_label: "06 — Provider Contributions", s06_title: "Customize mà không sửa core",
+      s06_intro: "Khác nhau giữa các LLM provider đôi khi cần inject logic riêng vào prompt. GoClaw giải quyết bằng <code>PromptContributor</code> interface — provider implement, core không thay đổi.",
+      contrib_stable_desc: "Inject trước cache boundary → là một phần của stable block → cache được",
+      contrib_dynamic_desc: "Inject sau cache boundary → per-turn context: user locale, conversation metadata",
+      contrib_override_desc: "Override section theo ID. Chỉ 2 sections: <code>execution_bias</code>, <code>tool_call_style</code>. Safety bị blocked.",
+      s06_safety_h: "Safety section bị blocked:", s06_safety: "Không provider nào được override safety rules. Đây là hard constraint trong code, không phải convention.",
+      s07_label: "07 — Persona Primacy & Recency", s07_title: "Giữ persona nhất quán",
+      s07_intro: "LLM có xu hướng bị ảnh hưởng bởi đầu và cuối của context (primacy + recency bias). GoClaw khai thác điều này để giữ persona nhất quán xuyên suốt run.",
+      pz_primacy: "PRIMACY ZONE", pz_body: "BODY SECTIONS", pz_recency: "RECENCY ZONE",
+      pz_primacy_note: "Đặt ngay sau identity line — trước tooling, safety, mọi thứ khác",
+      pz_body_note: "300–2000+ tokens tùy mode",
+      pz_recency_note: "GPT-only: extract Style + Vibe sections. Đủ để GPT \"nhớ\" tone ở generation point.",
+      s08_label: "08 — Context-Aware Assembly", s08_title: "Mỗi agent khác nhau",
+      s08_intro: "<code>SystemPromptConfig</code> có 50+ fields. Assembly thay đổi theo context agent — không chỉ theo mode.",
+      ctx1_h: "Bootstrap Detection", ctx1_p: "Khi <code>BOOTSTRAP.md</code> có trong context files → first-run mode. Chỉ có <code>write_file</code>, không có skills/MCP/team/spawn. Sau onboarding, <code>BOOTSTRAP.md</code> bị cleanup — lần sau không còn bootstrap mode.",
+      ctx2_h: "Predefined vs Open Agent", ctx2_p: "Predefined agents wrap context files với <code>&lt;internal_config&gt;</code> tag. Open agents dùng <code>&lt;context_file&gt;</code> tag. Framing khác nhau → model treat content khác nhau → confidentiality hoạt động tốt hơn.",
+      ctx3_h: "Group Chat Detection", ctx3_p: "<code>PeerKind == \"group\"</code> inject hint: không reply khi người dùng đang nói với người khác. ChatTitle được sanitize (strip quotes, newlines, truncate 100 chars) để prevent prompt injection.",
+      ctx4_h: "Orchestration Mode", ctx4_p: "<strong>ModeSpawn:</strong> hide delegate + team_tasks. <strong>ModeDelegate:</strong> Delegation Targets section. <strong>ModeTeam:</strong> Team Workspace + Team Members sections. Mỗi mode unlock thêm tools và sections.",
+      s09_label: "09 — PromptBuilder Interface", s09_title: "Hướng tới template engine",
+      s09_intro: "<code>PromptBuilder</code> interface được thiết kế cho future extensibility. <code>BridgePromptBuilder</code> hiện tại map <code>PromptConfig</code> → <code>SystemPromptConfig</code> → <code>BuildSystemPrompt()</code> — bridge pattern giữ backward compat.",
+      s09_bridge_h: "Bridge Pattern:", s09_bridge: "Khi cần A/B testing hoặc provider-specific templates, swap <code>BridgePromptBuilder</code> bằng <code>TemplatePromptBuilder</code> mà không thay đổi gì ở pipeline layer.",
+      s10_label: "10 — Tổng kết", s10_title: "Prompt là assembly output",
+      th_concept: "Concept", th_solution: "Giải pháp GoClaw",
+      sum1_c: "Multi-agent diversity", sum1_s: "PromptMode (full/task/minimal/none) với 3-layer resolution",
+      sum2_c: "Token cost", sum2_s: "Cache boundary chia stable/dynamic, tool names sorted, date-only format",
+      sum3_c: "Provider differences", sum3_s: "PromptContributor interface (StablePrefix, DynamicSuffix, SectionOverrides)",
+      sum4_c: "Persona consistency", sum4_s: "Primacy (SOUL.md trước) + Recency (echo ở cuối, GPT-only)",
+      sum5_c: "Maintainability", sum5_s: "Section builders as pure functions, gated by mode flags",
+      sum6_c: "Extensibility", sum6_s: "PromptBuilder interface, bridge pattern → template engine khi cần",
+      s10_refs_h: "File references",
+      ref1_desc: "BuildSystemPrompt() + tất cả section builders",
+      ref2_desc: "PromptConfig block types (v3 interface)",
+      ref3_desc: "PromptContributor interface + contribution struct",
+      ref4_desc: "Runtime injection pipeline (ContextStage)",
+      ref5_desc: "splitSystemPromptForCache() — cache boundary splitting",
+      footer_text: "<strong style=\"color:var(--accent)\">System Prompt Architecture</strong> của GoClaw: prompt không phải string — mà là <em>assembly output</em>. Mỗi section là một component độc lập, có thể test và swap. Caching không phải afterthought — nó được design vào core với marker, sorted output, và file classification.",
+      footer_back: "← Về blog"
+    },
+    en: {
+      eyebrow: "Inside GoClaw",
+      title_html: "System Prompt<br><em>Architecture</em>",
+      deck: "Composable blocks · PromptMode gating · Cache boundary · Provider injection",
+      tag1: "prompt-engineering", tag2: "modular-design", tag3: "caching", date: "April 2026",
+      toc_label: "Sections", toc01: "01 Problem", toc02: "02 Overview", toc03: "03 Mode",
+      toc04: "04 Blocks", toc05: "05 Cache", toc06: "06 Provider",
+      toc07: "07 Persona", toc08: "08 Context", toc09: "09 Builder", toc10: "10 Summary",
+      s01_label: "01 — Problem", s01_title: "Prompt is not a string",
+      s01_intro: "When building a production AI agent, a system prompt isn't just a long string. It must satisfy competing requirements — around content, performance, and maintainability.",
+      pain1_h: "Content", pain1_p: "Main agent needs full instructions. Subagent needs a small subset. Heartbeat monitor needs an ultra-slim prompt. Cron job needs entirely different instructions.",
+      pain2_h: "Performance", pain2_p: "More tokens = higher latency. Prompt changes every request → no caching. Anthropic caching saves 90% cost — but you must know what's stable.",
+      pain3_h: "Maintainability", pain3_p: "Prompt logic scattered across codebase is a nightmare. Provider A needs reasoning format, Provider B needs plain text. Predefined vs open agent need different framing.",
+      pain4_h: "Naive approach", pain4_p: "One giant string template with hundreds of if/else. Doesn't scale. Can't test. Can't cache.",
+      s01_solution_head: "Solution:", s01_solution: "GoClaw uses <strong>composable prompt blocks</strong> — modular assembly architecture. Each section is an independent Go function. <code>BuildSystemPrompt()</code> assembles everything in fixed order.",
+      s02_label: "02 — Architecture", s02_title: "Pipeline from RunRequest to LLM",
+      s02_intro: "All prompt construction happens once inside <code>ContextStage</code> — before the first iteration loop. Subsequent turns (tool calls) do not rebuild the prompt.",
+      s02_diag_title: "CONTEXT STAGE PIPELINE",
+      s02_why_h: "Why a separate stage?", s02_why: "ContextStage runs <strong>once</strong> at setup. ThinkStage, ToolStage, PruneStage run in the loop. This separation ensures the prompt isn't rebuilt per tool call and <code>OverheadTokens</code> is calculated exactly once.",
+      s03_label: "03 — PromptMode", s03_title: "4 levels of detail",
+      s03_intro: "GoClaw defines 4 modes. Not hardcoded — resolved via 4-layer priority.",
+      th_mode: "Mode", th_for: "For", th_includes: "Sections included",
+      mode_full_for: "Main agent, interactive", mode_full_inc: "All: tooling, safety, skills, memory, persona, spawn…",
+      mode_task_for: "Enterprise automation", mode_task_inc: "Lean: tooling, safety, execution bias, skills search, slim memory",
+      mode_min_for: "Subagent, cron", mode_min_inc: "Core only: tooling, workspace, pinned skills",
+      mode_none_for: "Identity-only contexts", mode_none_inc: "Identity line only",
+      s03_resolution_h: "3-layer Resolution",
+      res1_label: "Runtime override", res1_desc: "Hardcoded in the calling code — highest priority",
+      res2_label: "Auto-detect session", res2_desc: "IsHeartbeatSession() → Minimal · IsSubagentSession() → Task · IsCronSession() → Task",
+      res3_label: "Agent config (DB)", res3_desc: "Per-agent override from database",
+      res4_label: "Default", res4_desc: "PromptFull — if no override applies",
+      s03_minmode_h: "minMode(a, b):", s03_minmode: "Always chooses the more restrictive mode. Runtime cannot override <em>up</em> to Full if auto-detect flags a subagent. A subagent session key with prefix <code>subagent:</code> is always capped at Task.",
+      s04_label: "04 — Composable Section Blocks", s04_title: "Fixed-order assembly",
+      s04_intro: "<code>BuildSystemPrompt(cfg)</code> assembles <code>[]string</code> in fixed order. Each section is a pure function with no side effects.",
+      asm01_desc: "Agent identity + version", asm02_desc: "BOOTSTRAP.md — first-run onboarding",
+      asm03_desc: "SOUL.md — primacy zone, placed before everything", asm04_desc: "Tool usage instructions, sorted tool names",
+      asm05_desc: "When to use tools vs direct reply", asm06_desc: "Safety rules — no provider can override",
+      asm07_desc: "Skills catalog + search hint", asm08_desc: "Workspace path + context",
+      asm09_desc: "Full / Slim / Minimal depending on mode", asm10_desc: "AGENTS.md, TOOLS.md, CAPABILITIES.md — rarely change",
+      cache_boundary_label: "stable ↑ cached · dynamic ↓ not cached",
+      asm11_desc: "Date-only (no HH:MM:SS) — changes daily", asm12_desc: "Per-turn extra context (provider injected)",
+      asm13_desc: "USER.md — per-user profile, changes per session", asm14_desc: "SOUL echo — recency reinforcement at end of prompt",
+      asm_all: "all modes", asm_if_bootstrap: "if BOOTSTRAP.md", asm_full_task: "full + task",
+      asm_full_only: "full only", asm_per_turn: "per-turn",
+      s05_label: "05 — Cache Boundary", s05_title: "Stable vs dynamic split",
+      s05_intro: "Anthropic prompt caching works by hash. If the prompt changes every request → no cache → pay full price. In GoClaw, 80-90% of the system prompt is stable. Solution: one marker splits the prompt into 2 blocks.",
+      kpi1_val: "80-90%", kpi1_label: "Stable content", kpi2_val: "90%", kpi2_label: "Cost savings",
+      kpi3_val: "1", kpi3_label: "Marker string", kpi4_val: "~20", kpi4_label: "SOUL echo tokens",
+      s05_determ_h: "Determinism is mandatory", s05_determ_p: "For cache hits, output must be fully deterministic for the same input. Tool names are sorted before injection. Time section uses date-only.",
+      s06_label: "06 — Provider Contributions", s06_title: "Customize without touching core",
+      s06_intro: "Differences between LLM providers sometimes require injecting custom logic into the prompt. GoClaw solves this with the <code>PromptContributor</code> interface — providers implement it, core doesn't change.",
+      contrib_stable_desc: "Injected before cache boundary → part of the stable block → cacheable",
+      contrib_dynamic_desc: "Injected after cache boundary → per-turn context: user locale, conversation metadata",
+      contrib_override_desc: "Override section by ID. Only 2 sections allowed: <code>execution_bias</code>, <code>tool_call_style</code>. Safety is blocked.",
+      s06_safety_h: "Safety section is blocked:", s06_safety: "No provider can override safety rules. This is a hard constraint in code, not a convention.",
+      s07_label: "07 — Persona Primacy & Recency", s07_title: "Keeping persona consistent",
+      s07_intro: "LLMs are influenced by the beginning and end of context (primacy + recency bias). GoClaw exploits this to keep persona consistent throughout the run.",
+      pz_primacy: "PRIMACY ZONE", pz_body: "BODY SECTIONS", pz_recency: "RECENCY ZONE",
+      pz_primacy_note: "Placed right after identity line — before tooling, safety, everything else",
+      pz_body_note: "300–2000+ tokens depending on mode",
+      pz_recency_note: "GPT-only: extract Style + Vibe sections. ~20 tokens — enough for GPT to remember tone at generation point.",
+      s08_label: "08 — Context-Aware Assembly", s08_title: "Every agent is different",
+      s08_intro: "<code>SystemPromptConfig</code> has 50+ fields. Assembly changes based on agent context — not just mode.",
+      ctx1_h: "Bootstrap Detection", ctx1_p: "When <code>BOOTSTRAP.md</code> is in context files → first-run mode. Only <code>write_file</code> available, no skills/MCP/team/spawn. After onboarding, <code>BOOTSTRAP.md</code> is cleaned up — next request has no bootstrap mode.",
+      ctx2_h: "Predefined vs Open Agent", ctx2_p: "Predefined agents wrap context files with <code>&lt;internal_config&gt;</code> tag. Open agents use <code>&lt;context_file&gt;</code> tag. Different framing → model treats content differently → confidentiality instructions work better.",
+      ctx3_h: "Group Chat Detection", ctx3_p: "<code>PeerKind == \"group\"</code> injects a hint: don't reply when user is talking to someone else. ChatTitle is sanitized (strip quotes, newlines, truncate 100 chars) to prevent prompt injection.",
+      ctx4_h: "Orchestration Mode", ctx4_p: "<strong>ModeSpawn:</strong> hide delegate + team_tasks. <strong>ModeDelegate:</strong> Delegation Targets section. <strong>ModeTeam:</strong> Team Workspace + Team Members sections. Each mode unlocks more tools and sections.",
+      s09_label: "09 — PromptBuilder Interface", s09_title: "Towards a template engine",
+      s09_intro: "The <code>PromptBuilder</code> interface is designed for future extensibility. <code>BridgePromptBuilder</code> currently maps <code>PromptConfig</code> → <code>SystemPromptConfig</code> → <code>BuildSystemPrompt()</code> — bridge pattern preserves backward compat.",
+      s09_bridge_h: "Bridge Pattern:", s09_bridge: "When A/B testing or provider-specific templates are needed, swap <code>BridgePromptBuilder</code> for <code>TemplatePromptBuilder</code> without touching the pipeline layer.",
+      s10_label: "10 — Summary", s10_title: "Prompt is assembly output",
+      th_concept: "Concept", th_solution: "GoClaw's solution",
+      sum1_c: "Multi-agent diversity", sum1_s: "PromptMode (full/task/minimal/none) with 3-layer resolution",
+      sum2_c: "Token cost", sum2_s: "Cache boundary splits stable/dynamic, sorted tool names, date-only format",
+      sum3_c: "Provider differences", sum3_s: "PromptContributor interface (StablePrefix, DynamicSuffix, SectionOverrides)",
+      sum4_c: "Persona consistency", sum4_s: "Primacy (SOUL.md first) + Recency (echo at end, GPT-only)",
+      sum5_c: "Maintainability", sum5_s: "Section builders as pure functions, gated by mode flags",
+      sum6_c: "Extensibility", sum6_s: "PromptBuilder interface, bridge pattern → template engine when needed",
+      s10_refs_h: "File references",
+      ref1_desc: "BuildSystemPrompt() + all section builders",
+      ref2_desc: "PromptConfig block types (v3 interface)",
+      ref3_desc: "PromptContributor interface + contribution struct",
+      ref4_desc: "Runtime injection pipeline (ContextStage)",
+      ref5_desc: "splitSystemPromptForCache() — cache boundary splitting",
+      footer_text: "<strong style=\"color:var(--accent)\">GoClaw's System Prompt Architecture</strong>: a prompt isn't a string — it's <em>assembly output</em>. Each section is an independent, testable, swappable component. Caching isn't an afterthought — it's designed into the core with a marker, sorted output, and file classification.",
+      footer_back: "← Back to blog"
+    }
+  };
+
+  /* ─── Apply translations ─── */
+  var currentLang = 'vi';
+
+  function setLang(lang) {
+    if (!T[lang]) return;
+    currentLang = lang;
+    var t = T[lang];
+    document.querySelectorAll('[data-i18n]').forEach(function(el) {
+      var key = el.getAttribute('data-i18n');
+      if (t[key] !== undefined) el.innerHTML = t[key];
+    });
+    // hero title special case
+    var titleEl = document.querySelector('.hero-title');
+    if (titleEl && t.title_html) titleEl.innerHTML = t.title_html;
+    // update lang buttons
+    document.getElementById('lang-vi').style.fontWeight = lang === 'vi' ? '700' : '400';
+    document.getElementById('lang-en').style.fontWeight = lang === 'en' ? '700' : '400';
+  }
+
+  /* ─── Lang buttons ─── */
+  document.getElementById('lang-vi').addEventListener('click', function() {
+    var slug = 'system-prompt-architecture';
+    window.location.href = '/drafts/' + slug + '?lang=vi';
+  });
+  document.getElementById('lang-en').addEventListener('click', function() {
+    var slug = 'system-prompt-architecture';
+    window.location.href = '/en/drafts/' + slug + '?lang=en';
+  });
+
+  /* ─── URL lang param ─── */
+  var params = new URLSearchParams(window.location.search);
+  var urlLang = params.get('lang');
+  if (urlLang && T[urlLang]) setLang(urlLang);
+
+  /* ─── Theme toggle ─── */
+  var html = document.documentElement;
+  var savedTheme = localStorage.getItem('theme') || 'dark';
+  html.setAttribute('data-theme', savedTheme);
+  document.getElementById('theme-toggle').addEventListener('click', function() {
+    var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  });
+
+  /* ─── TOC active highlight ─── */
+  var sections = document.querySelectorAll('[id^="s0"], [id^="s1"]');
+  var tocLinks = document.querySelectorAll('.toc-link[href]');
+  function updateTOC() {
+    var scrollY = window.scrollY + 80;
+    var active = null;
+    sections.forEach(function(s) {
+      if (s.offsetTop <= scrollY) active = s.id;
+    });
+    tocLinks.forEach(function(a) {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + active);
+    });
+  }
+  window.addEventListener('scroll', updateTOC, { passive: true });
+  updateTOC();
+})();
+</script>
+</body>
+</html>

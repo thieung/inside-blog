@@ -1,0 +1,13 @@
+Managing 100+ MCP tools across multiple servers? GoClaw v2.56.0 introduces Hybrid Search Mode.
+
+Keep 40 most-used tools inline in the system prompt. Push the rest to a BM25 search index. LLM discovers deferred tools on-demand via mcp_tool_search with English keywords.
+
+BM25 scoring: IDF weighting for rare terms, TF saturation (k1=1.2), length normalization (b=0.75). 3-phase locking prevents deadlocks during tool activation.
+
+The nice part: lazy activation lets LLM call deferred tools directly by name—no search round-trip needed if the tool is known from context.
+
+Also raised skill inline count from 40 → 60 (skill descriptions are shorter, token budget is the real constraint).
+
+Result: balance between discoverability and token efficiency. Common tools always available, rare tools still findable.
+
+https://goclaw.thieunv.space/posts/mcp-hybrid-search-mode

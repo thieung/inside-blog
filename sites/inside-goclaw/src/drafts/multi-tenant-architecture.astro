@@ -1,0 +1,1118 @@
+---
+import FloatHome from '@blog/core/components/FloatHome.astro';
+import ScrollReveal from '@blog/core/components/ScrollReveal.astro';
+import { getTranslation } from '@blog/core/utils/i18n-helpers';
+import translations from '@i18n/drafts/multi-tenant-architecture.json';
+
+const locale = Astro.currentLocale || 'vi';
+const t = getTranslation(translations, locale);
+---
+
+<!DOCTYPE html>
+<html lang={locale}>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>{t.page_title}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style is:global>
+:root {
+  /* Palette: deep navy base, teal-green accent — "secure infrastructure" */
+  --bg:          #080c12;
+  --bg2:         #0c1018;
+  --surface:     #0f1520;
+  --surface2:    #131c2a;
+  --surface3:    #192234;
+  --border:      rgba(255,255,255,0.06);
+  --border-hi:   rgba(0,212,170,0.2);
+  --text:        #c8d8e8;
+  --text-dim:    #4e6278;
+  --text-mid:    #7a94aa;
+  --text-hi:     #e8f4ff;
+  --accent:      #00d4aa;   /* teal-green: isolation/secure */
+  --accent-dim:  rgba(0,212,170,0.08);
+  --accent-mid:  rgba(0,212,170,0.15);
+  --warn:        #f59e0b;   /* amber: quota warnings */
+  --warn-dim:    rgba(245,158,11,0.08);
+  --danger:      #ef4444;   /* red: errors/fail */
+  --danger-dim:  rgba(239,68,68,0.08);
+  --blue:        #3b82f6;
+  --blue-dim:    rgba(59,130,246,0.08);
+  --violet:      #a78bfa;
+  --violet-dim:  rgba(167,139,250,0.08);
+  --mono:        'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+  --sans:        'Sora', system-ui, sans-serif;
+  /* Blueprint grid */
+  --grid-line:   rgba(0,212,170,0.035);
+}
+</style>
+<style>
+/* ── Reset ── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 48px 48px;
+  color: var(--text);
+  line-height: 1.75;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── Layout ── */
+.container { max-width: 860px; margin: 0 auto; padding: 0 28px; }
+section { padding: 80px 0; }
+.divider { width: 1px; height: 48px; background: linear-gradient(to bottom, transparent, var(--border-hi), transparent); margin: 0 auto; }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100dvh;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 80px 28px 60px;
+  max-width: 860px; margin: 0 auto;
+  position: relative;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--accent); border: 1px solid var(--border-hi);
+  padding: 5px 14px; border-radius: 4px;
+  margin-bottom: 40px;
+  width: fit-content;
+  animation: fadeSlideUp .7s ease both;
+}
+.hero-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: blink 2.5s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+.hero h1 {
+  font-size: clamp(40px, 7vw, 76px); font-weight: 800;
+  line-height: 1.06; letter-spacing: -.02em;
+  color: var(--text-hi);
+  animation: fadeSlideUp .8s ease .1s both;
+}
+.hero h1 .hl { color: var(--accent); }
+.hero-sub {
+  max-width: 580px; font-size: 17px; font-weight: 300;
+  color: var(--text-mid); margin-top: 24px; line-height: 1.65;
+  animation: fadeSlideUp .8s ease .2s both;
+}
+.hero-meta {
+  display: flex; gap: 32px; margin-top: 48px;
+  animation: fadeSlideUp .8s ease .35s both;
+  flex-wrap: wrap;
+}
+.hero-stat { display: flex; flex-direction: column; gap: 4px; }
+.hero-stat-num { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--accent); line-height: 1; }
+.hero-stat-label { font-size: 12px; color: var(--text-dim); letter-spacing: .06em; text-transform: uppercase; }
+.hero-sep { width: 1px; background: var(--border); align-self: stretch; }
+
+/* scroll cue */
+.hero-scroll {
+  position: absolute; bottom: 32px; left: 0; right: 0;
+  display: flex; justify-content: center;
+  animation: fadeSlideUp 1s ease .6s both;
+}
+.hero-scroll-line {
+  width: 1px; height: 48px;
+  background: linear-gradient(to bottom, var(--border-hi), transparent);
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+@keyframes scrollPulse { 0%{transform:scaleY(0);transform-origin:top} 50%{transform:scaleY(1);transform-origin:top} 51%{transform:scaleY(1);transform-origin:bottom} 100%{transform:scaleY(0);transform-origin:bottom} }
+
+@keyframes fadeSlideUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── Section headers ── */
+.sec-header { margin-bottom: 40px; }
+.sec-num {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .15em;
+  text-transform: uppercase; color: var(--text-dim);
+  display: flex; align-items: center; gap: 12px; margin-bottom: 8px;
+}
+.sec-num::before { content: ''; flex: 0 0 24px; height: 1px; background: var(--border-hi); }
+.sec-label { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 16px; display: block; }
+h2 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.1; letter-spacing: -.02em; color: var(--text-hi); }
+h2 .hl { color: var(--accent); }
+h3 { font-size: 17px; font-weight: 600; color: var(--text-hi); margin: 32px 0 12px; }
+p { font-size: 15.5px; color: var(--text-mid); margin-bottom: 14px; line-height: 1.75; }
+p:last-child { margin-bottom: 0; }
+strong { color: var(--text); font-weight: 600; }
+code {
+  font-family: var(--mono); font-size: 13px;
+  background: var(--accent-dim); color: var(--accent);
+  padding: 2px 8px; border-radius: 3px;
+  border: 1px solid var(--border-hi);
+}
+
+/* ── Mode cards ── */
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 32px 0; }
+.mode-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 28px; position: relative; overflow: hidden;
+  transition: border-color .2s;
+}
+.mode-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--border);
+}
+.mode-card.m-saas::before { background: var(--accent); }
+.mode-card:hover { border-color: var(--border-hi); }
+.mode-badge {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; padding: 3px 8px; border-radius: 3px;
+  display: inline-block; margin-bottom: 14px;
+}
+.mode-badge.b-single { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(59,130,246,.2); }
+.mode-badge.b-saas { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--border-hi); }
+.mode-card h4 { font-size: 15px; font-weight: 700; color: var(--text-hi); margin-bottom: 10px; }
+.mode-card p { font-size: 14px; }
+.mode-note { font-family: var(--mono); font-size: 12px; color: var(--text-dim); background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; margin-top: 16px; }
+.mode-note::before { content: '// '; color: var(--border-hi); }
+
+/* ── Connection type cards ── */
+.conn-stack { display: flex; flex-direction: column; gap: 1px; margin: 32px 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+.conn-row {
+  display: grid; grid-template-columns: 180px 1fr;
+  background: var(--surface); transition: background .15s;
+}
+.conn-row:hover { background: var(--surface2); }
+.conn-label {
+  padding: 20px 20px; border-right: 1px solid var(--border);
+  font-family: var(--mono); font-size: 12px; font-weight: 600;
+  color: var(--accent); display: flex; align-items: center; gap: 10px;
+}
+.conn-label svg { flex-shrink: 0; opacity: .7; }
+.conn-desc { padding: 20px 20px; font-size: 14px; color: var(--text-mid); display: flex; align-items: center; }
+
+/* ── Fail-closed alert ── */
+.alert {
+  border-radius: 8px; padding: 20px 24px; margin: 24px 0;
+  display: flex; gap: 16px; align-items: flex-start;
+}
+.alert.a-danger { background: var(--danger-dim); border: 1px solid rgba(239,68,68,.2); }
+.alert.a-accent { background: var(--accent-dim); border: 1px solid var(--border-hi); }
+.alert.a-warn { background: var(--warn-dim); border: 1px solid rgba(245,158,11,.2); }
+.alert-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.alert-content h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.alert.a-danger .alert-content h4 { color: var(--danger); }
+.alert.a-accent .alert-content h4 { color: var(--accent); }
+.alert.a-warn .alert-content h4 { color: var(--warn); }
+.alert-content p { font-size: 14px; margin: 0; }
+.tables-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+  margin-top: 12px;
+}
+.tables-badge::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--accent); opacity: .5; }
+
+/* ── SQL code blocks ── */
+.code-block {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; margin: 20px 0;
+}
+.code-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; background: var(--surface2); border-bottom: 1px solid var(--border);
+}
+.code-filename { font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
+.code-lang { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); opacity: .7; }
+.code-body { padding: 20px; overflow-x: auto; }
+.code-body pre { font-family: var(--mono); font-size: 13px; line-height: 1.8; white-space: pre; }
+.kw { color: var(--violet); }
+.fn { color: var(--accent); }
+.str { color: #4ade80; }
+.num { color: var(--warn); }
+.cmt { color: var(--text-dim); font-style: italic; }
+.op { color: var(--blue); }
+.punc { color: var(--text-mid); }
+
+/* ── Data table ── */
+.data-table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+.data-table thead tr { background: var(--surface2); border-bottom: 1px solid var(--border-hi); }
+.data-table th {
+  padding: 10px 16px; text-align: left;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-dim); white-space: nowrap;
+}
+.data-table tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+.data-table tbody tr:last-child { border-bottom: none; }
+.data-table tbody tr:hover { background: var(--surface2); }
+.data-table td { padding: 12px 16px; font-size: 14px; color: var(--text-mid); }
+.data-table td:first-child { font-family: var(--mono); font-size: 13px; color: var(--accent); font-weight: 600; }
+.data-table td:last-child { font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
+.table-wrap { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+
+/* ── Identity pattern box ── */
+.identity-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 20px 0; }
+.identity-box .pattern { font-family: var(--mono); font-size: 20px; font-weight: 600; color: var(--accent); letter-spacing: .05em; text-align: center; padding: 16px; background: var(--accent-dim); border-radius: 6px; margin-top: 12px; }
+.identity-box .pattern .dim { color: var(--text-dim); }
+
+/* ── 4-tier overlay ── */
+.tier-stack { display: flex; flex-direction: column; gap: 0; margin: 24px 0; }
+.tier-item {
+  display: flex; align-items: stretch; gap: 0;
+  position: relative;
+}
+.tier-num {
+  flex: 0 0 44px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  color: var(--text-dim); background: var(--surface2);
+  border-right: 1px solid var(--border);
+}
+.tier-body {
+  flex: 1; padding: 16px 20px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.tier-item:first-child .tier-body, .tier-item:first-child .tier-num { border-radius: 10px 0 0 0; border-top: 1px solid var(--border-hi); }
+.tier-item:first-child .tier-body { border-radius: 0 10px 0 0; border-left: 1px solid var(--border-hi); border-right: 1px solid var(--border-hi); }
+.tier-item:last-child .tier-body, .tier-item:last-child .tier-num { border-radius: 0 0 0 10px; border-bottom: 1px solid var(--border); }
+.tier-item:last-child .tier-body { border-radius: 0 0 10px 0; border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+.tier-item:not(:first-child):not(:last-child) .tier-body { border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+.tier-item:not(:first-child):not(:last-child) .tier-num { border-left: 1px solid var(--border); }
+.tier-name { font-size: 15px; font-weight: 600; color: var(--text-hi); }
+.tier-item:first-child .tier-name { color: var(--accent); }
+.tier-arrow { font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
+.tier-note { font-family: var(--mono); font-size: 12px; color: var(--text-dim); background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; margin-top: 0; border-radius: 0 0 10px 10px; border-top: none; }
+
+/* ── Quota system ── */
+.quota-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0; }
+.quota-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 24px; text-align: center; position: relative; overflow: hidden;
+}
+.quota-card::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  background: var(--accent); transform: scaleX(.4); transform-origin: left;
+  animation: fillBar 1.5s ease forwards;
+}
+.quota-card:nth-child(2)::after { animation-delay: .2s; transform: scaleX(.7); }
+.quota-card:nth-child(3)::after { animation-delay: .4s; transform: scaleX(.95); }
+@keyframes fillBar { from{transform:scaleX(0)} }
+.quota-window { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; }
+.quota-nums { font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--accent); line-height: 1; }
+.quota-nums .quota-total { font-size: 18px; color: var(--text-dim); }
+.quota-desc { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+
+/* quota config priority */
+.priority-chain {
+  display: flex; align-items: center; gap: 0; margin: 16px 0;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+}
+.priority-item {
+  flex: 1; padding: 12px 14px; text-align: center;
+  font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--text-mid);
+  border-right: 1px solid var(--border); position: relative;
+}
+.priority-item:last-child { border-right: none; }
+.priority-item::after { content: '>'; position: absolute; right: -8px; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 12px; z-index: 1; }
+.priority-item:last-child::after { display: none; }
+.priority-item.p-hi { color: var(--accent); background: var(--accent-dim); }
+
+/* quota error */
+.error-pill {
+  font-family: var(--mono); font-size: 13px;
+  background: var(--danger-dim); color: var(--danger);
+  border: 1px solid rgba(239,68,68,.2); border-radius: 6px;
+  padding: 12px 16px; margin: 16px 0; display: block;
+}
+
+/* ── Lane table ── */
+.lane-table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+.lane-table thead tr { background: var(--surface2); }
+.lane-table th {
+  padding: 10px 14px; text-align: left;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-dim);
+}
+.lane-table th:nth-child(2) { text-align: center; }
+.lane-table tbody tr { border-top: 1px solid var(--border); transition: background .15s; }
+.lane-table tbody tr:hover { background: var(--surface2); }
+.lane-table td { padding: 14px 14px; font-size: 14px; color: var(--text-mid); }
+.lane-table td:first-child { font-family: var(--mono); color: var(--accent); font-weight: 600; font-size: 13px; }
+.lane-table td:nth-child(2) { text-align: center; font-family: var(--mono); font-weight: 700; color: var(--text-hi); }
+.lane-bar { display: inline-block; height: 4px; border-radius: 2px; background: var(--accent); opacity: .6; margin-top: 6px; }
+
+/* ── Security checklist ── */
+.sec-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+.sec-list li {
+  display: flex; align-items: flex-start; gap: 12px;
+  font-size: 14px; color: var(--text-mid); padding: 12px 16px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+}
+.sec-list li::before { content: '✓'; color: var(--accent); font-family: var(--mono); font-weight: 700; flex-shrink: 0; }
+
+/* ── Lifecycle steps ── */
+.lifecycle { display: flex; flex-direction: column; gap: 0; margin: 32px 0; }
+.step {
+  display: grid; grid-template-columns: 56px 1fr;
+  gap: 0; position: relative;
+}
+.step-num {
+  display: flex; flex-direction: column; align-items: center; padding-top: 4px; gap: 0;
+}
+.step-circle {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--accent-dim); border: 1px solid var(--border-hi);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent);
+  flex-shrink: 0; z-index: 1;
+}
+.step-line { width: 1px; flex: 1; min-height: 24px; background: var(--border); }
+.step:last-child .step-line { display: none; }
+.step-content { padding: 0 0 32px 0; }
+.step-content h4 { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text-hi); margin-bottom: 12px; margin-top: 4px; }
+
+/* ── Scope table ── */
+.scope-table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+.scope-table thead tr { background: var(--surface2); }
+.scope-table th {
+  padding: 10px 14px; text-align: left;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-dim);
+}
+.scope-table tbody tr { border-top: 1px solid var(--border); transition: background .15s; }
+.scope-table tbody tr:hover { background: var(--surface2); }
+.scope-table td { padding: 13px 14px; font-size: 14px; color: var(--text-mid); }
+.scope-table td:first-child { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+.scope-role {
+  display: inline-block; font-family: var(--mono); font-size: 11px; padding: 2px 8px;
+  border-radius: 3px; background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+/* ── Budget distinction ── */
+.distinction { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+.dist-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 20px;
+}
+.dist-card p { font-size: 14px; margin: 0; }
+
+/* ── Summary section ── */
+.summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 32px 0; }
+.summary-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 28px;
+  position: relative; overflow: hidden;
+}
+.summary-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--accent); }
+.summary-card h4 { font-family: var(--mono); font-size: 12px; color: var(--accent); margin-bottom: 10px; letter-spacing: .06em; text-transform: uppercase; }
+.summary-card p { font-size: 14px; color: var(--text-mid); margin: 0; }
+
+/* ── Footer ── */
+.footer { border-top: 1px solid var(--border); padding: 60px 28px; text-align: center; }
+.footer-glyph { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; }
+.footer h3 { font-size: 22px; font-weight: 700; color: var(--text-hi); margin-bottom: 6px; }
+.footer p { font-size: 14px; color: var(--text-dim); }
+
+/* ── Reveal animation ── */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .container { padding: 0 18px; }
+  section { padding: 56px 0; }
+  .hero { padding: 60px 18px 48px; min-height: auto; }
+  .hero h1 { font-size: clamp(32px, 9vw, 48px); }
+  .hero-sub { font-size: 15px; }
+  .hero-meta { gap: 20px; }
+  .hero-stat-num { font-size: 24px; }
+  .mode-grid { grid-template-columns: 1fr; }
+  .conn-row { grid-template-columns: 1fr; }
+  .conn-label { border-right: none; border-bottom: 1px solid var(--border); }
+  .quota-grid { grid-template-columns: 1fr; }
+  .distinction { grid-template-columns: 1fr; }
+  .summary-grid { grid-template-columns: 1fr; }
+  .priority-chain { flex-direction: column; }
+  .priority-item { border-right: none; border-bottom: 1px solid var(--border); }
+  .priority-item::after { content: 'v'; top: auto; right: 50%; bottom: -10px; transform: translateX(50%); }
+  .priority-item:last-child::after { display: none; }
+  h2 { font-size: clamp(24px, 7vw, 34px); }
+  .tier-item { flex-direction: column; }
+  .tier-num { flex-direction: row; justify-content: flex-start; padding: 10px 14px; border-right: none; border-bottom: 1px solid var(--border); }
+  .data-table { display: block; overflow-x: auto; }
+  .lane-table { display: block; overflow-x: auto; }
+  .scope-table { display: block; overflow-x: auto; }
+  .code-body { padding: 14px; }
+  .code-body pre { font-size: 12px; }
+  .identity-box .pattern { font-size: 16px; }
+}
+</style>
+</head>
+<body>
+
+<FloatHome />
+
+<!-- ══ HERO ══ -->
+<header class="hero">
+  <div class="hero-badge">{t.hero_badge}</div>
+  <h1><Fragment set:html={t.hero_title} /></h1>
+  <p class="hero-sub">{t.hero_sub}</p>
+  <div class="hero-meta">
+    <div class="hero-stat">
+      <span class="hero-stat-num">40+</span>
+      <span class="hero-stat-label">Tables isolated</span>
+    </div>
+    <div class="hero-sep"></div>
+    <div class="hero-stat">
+      <span class="hero-stat-num">2</span>
+      <span class="hero-stat-label">Deployment modes</span>
+    </div>
+    <div class="hero-sep"></div>
+    <div class="hero-stat">
+      <span class="hero-stat-num">4</span>
+      <span class="hero-stat-label">Config tiers</span>
+    </div>
+    <div class="hero-sep"></div>
+    <div class="hero-stat">
+      <span class="hero-stat-num">0</span>
+      <span class="hero-stat-label">Tenant leaks</span>
+    </div>
+  </div>
+  <div class="hero-scroll"><div class="hero-scroll-line"></div></div>
+</header>
+
+<!-- ══ S01: BÀI TOÁN ══ -->
+<section>
+  <div class="container reveal">
+    <div class="sec-header">
+      <div class="sec-num"><span>{t.s01_num}</span></div>
+      <span class="sec-label">{t.s01_label}</span>
+      <h2><Fragment set:html={t.s01_title} /></h2>
+    </div>
+    <p>{t.s01_p1}</p>
+    <p>{t.s01_p2}</p>
+
+    <div class="mode-grid" style="margin-top:32px;">
+      <div class="mode-card">
+        <span class="mode-badge b-single">{t.mode1_badge}</span>
+        <h4>{t.mode1_title}</h4>
+        <p>{t.mode1_desc}</p>
+      </div>
+      <div class="mode-card m-saas">
+        <span class="mode-badge b-saas">{t.mode2_badge}</span>
+        <h4>{t.mode2_title}</h4>
+        <p>{t.mode2_desc}</p>
+      </div>
+    </div>
+    <div class="mode-note">{t.mode_note}</div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ══ S02: TENANT ISOLATION LAYER ══ -->
+<section>
+  <div class="container reveal">
+    <div class="sec-header">
+      <div class="sec-num"><span>{t.s02_num}</span></div>
+      <span class="sec-label">{t.s02_label}</span>
+      <h2><Fragment set:html={t.s02_title} /></h2>
+    </div>
+    <p><Fragment set:html={t.s02_p1} /></p>
+    <p><Fragment set:html={t.s02_p2} /></p>
+
+    <!-- Architecture flow diagram -->
+    <div class="code-block" style="margin:32px 0;">
+      <div class="code-header">
+        <span class="code-filename">isolation-flow</span>
+        <span class="code-lang">diagram</span>
+      </div>
+      <div class="code-body">
+        <pre><span class="cmt">┌──────────────────────────────────────────────────────────────────┐</span>
+<span class="cmt">│                      Entry Points                                │</span>
+<span class="cmt">└──────────────────────────────────────────────────────────────────┘</span>
+
+<span class="str">  HTTP API</span>          <span class="str">WebSocket</span>         <span class="str">Chat Channels</span>
+      │                  │                    │
+      └──────────────────┴────────────────────┘
+                         │
+                         ▼
+         <span class="fn">┌─────────────────────────────────┐</span>
+         <span class="fn">│     Tenant Isolation Layer      │</span>
+         <span class="fn">│  resolve(credentials) → ctx     │</span>
+         <span class="fn">└─────────────────────────────────┘</span>
+                         │
+          ┌──────────────┤
+          │              │
+          ▼              ▼
+   <span class="kw">ctx.tenant_id</span>    <span class="op">→ reject()</span>  <span class="cmt">← fail-closed</span>
+          │
+          ▼
+ <span class="fn">Agent Engine</span>
+          │
+ ┌────────┴─────────────────────────────┐
+ │  SQL: <span class="kw">WHERE tenant_id</span> = <span class="num">$N</span>         │
+ │  Tools, Memory, Sessions, Files      │
+ └──────────────────────────────────────┘</pre>
+      </div>
+    </div>
+
+    <!-- Connection types -->
+    <h3 style="margin-top:40px;">{locale === 'vi' ? 'Ba loại connection' : locale === 'zh' ? '三种连接类型' : locale === 'ja' ? '3つの接続タイプ' : 'Three Connection Types'}</h3>
+    <div class="conn-stack">
+      <div class="conn-row">
+        <div class="conn-label">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          {t.conn_http_label}
+        </div>
+        <div class="conn-desc">{t.conn_http_desc}</div>
+      </div>
+      <div class="conn-row">
+        <div class="conn-label">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          {t.conn_chan_label}
+        </div>
+        <div class="conn-desc">{t.conn_chan_desc}</div>
+      </div>
+      <div class="conn-row">
+        <div class="conn-label">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
+          {t.conn_dash_label}
+        </div>
+        <div class="conn-desc">{t.conn_dash_desc}</div>
+      </div>
+    </div>
+
+    <!-- Fail-closed alert -->
+    <div class="alert a-danger" style="margin-top:32px;">
+      <span class="alert-icon">⊘</span>
+      <div class="alert-content">
+        <h4>{t.fail_closed_title}</h4>
+        <p>{t.fail_closed_desc}</p>
+        <div class="tables-badge">{t.tables_note}</div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ══ S03: DATA SEGREGATION ══ -->
+<section>
+  <div class="container reveal">
+    <div class="sec-header">
+      <div class="sec-num"><span>{t.s03_num}</span></div>
+      <span class="sec-label">{t.s03_label}</span>
+      <h2><Fragment set:html={t.s03_title} /></h2>
+    </div>
+    <p><Fragment set:html={t.s03_p1} /></p>
+    <p>{t.s03_p2}</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-filename">query-pattern.sql</span>
+        <span class="code-lang">SQL</span>
+      </div>
+      <div class="code-body">
+        <pre><span class="cmt">-- agents</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">agents</span>
+<span class="kw">WHERE</span> <span class="op">tenant_id</span> = <span class="num">$1</span> <span class="kw">AND</span> <span class="op">status</span> = <span class="str">'active'</span>
+
+<span class="cmt">-- sessions (scoped to user within tenant)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">sessions</span>
+<span class="kw">WHERE</span> <span class="op">tenant_id</span> = <span class="num">$1</span> <span class="kw">AND</span> <span class="op">user_id</span> = <span class="num">$2</span></pre>
+      </div>
+    </div>
+
+    <!-- V3 stores table -->
+    <div class="table-wrap" style="margin:24px 0;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{t.tbl_store}</th>
+            <th>{t.tbl_purpose}</th>
+            <th>{t.tbl_scoping}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>{t.row1_store}</td><td>{t.row1_purpose}</td><td>{t.row1_scoping}</td></tr>
+          <tr><td>{t.row2_store}</td><td>{t.row2_purpose}</td><td>{t.row2_scoping}</td></tr>
+          <tr><td>{t.row3_store}</td><td>{t.row3_purpose}</td><td>{t.row3_scoping}</td></tr>
+          <tr><td>{t.row4_store}</td><td>{t.row4_purpose}</td><td>{t.row4_scoping}</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Master UUID -->
+    <div class="alert a-accent">
+      <span class="alert-icon">◎</span>
+      <div class="alert-content">
+        <h4>{t.master_uuid_label}</h4>
+        <p><code>0193a5b0-7000-7000-8000-000000000001</code></p>
+        <p style="margin-top:6px;">{t.master_uuid_note}</p>
+      </div>
+    </div>
+
+    <!-- Identity propagation -->
+    <h3>{t.identity_title}</h3>
+    <p><Fragment set:html={t.identity_p} /></p>
+    <div class="identity-box">
+      <div class="pattern">
+        <span class="dim">tenant.</span>{'{tenantId}'}<span class="dim">.user.</span>{'{userId}'}
+      </div>
+    </div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ══ S04: PER-TENANT CONFIG ══ -->
+<section>
+  <div class="container reveal">
+    <div class="sec-header">
+      <div class="sec-num"><span>{t.s04_num}</span></div>
+      <span class="sec-label">{t.s04_label}</span>
+      <h2><Fragment set:html={t.s04_title} /></h2>
+    </div>
+    <p>{t.s04_p1}</p>
+
+    <h3>{t.cfg_providers_title}</h3>
+    <p>{t.cfg_providers_desc}</p>
+
+    <!-- Provider illustration -->
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-filename">provider-config</span>
+        <span class="code-lang">example</span>
+      </div>
+      <div class="code-body">
+        <pre><span class="cmt">// Tenant A</span>
+<span class="op">provider</span>: <span class="str">"anthropic"</span>
+<span class="op">model</span>:    <span class="str">"claude-opus-4-5"</span>
+<span class="op">api_key</span>: <span class="str">"sk-ant-***"</span>   <span class="cmt">← Tenant A's own key</span>
+
+<span class="cmt">// Tenant B</span>
+<span class="op">provider</span>: <span class="str">"openai"</span>
+<span class="op">model</span>:    <span class="str">"gpt-4o"</span>
+<span class="op">api_key</span>: <span class="str">"sk-***"</span>       <span class="cmt">← Tenant B's own key</span>
+
+<span class="cmt">// Same GoClaw instance orchestrates both</span></pre>
+      </div>
+    </div>
+
+    <h3>{t.cfg_tools_title}</h3>
+    <p>{t.cfg_tools_desc}</p>
+
+    <!-- 4-tier stack -->
+    <div class="tier-stack">
+      <div class="tier-item">
+        <div class="tier-num">01</div>
+        <div class="tier-body">
+          <span class="tier-name">{t.tier1}</span>
+          <span class="tier-arrow">{locale === 'vi' ? 'cao nhất' : locale === 'zh' ? '最高优先级' : locale === 'ja' ? '最高優先' : 'highest'}</span>
+        </div>
+      </div>
+      <div class="tier-item">
+        <div class="tier-num">02</div>
+        <div class="tier-body">
+          <span class="tier-name">{t.tier2}</span>
+          <span class="tier-arrow">↓ fallback</span>
+        </div>
+      </div>
+      <div class="tier-item">
+        <div class="tier-num">03</div>
+        <div class="tier-body">
+          <span class="tier-name">{t.tier3}</span>
+          <span class="tier-arrow">↓ fallback</span>
+        </div>
+      </div>
+      <div class="tier-item">
+        <div class="tier-num">04</div>
+        <div class="tier-body">
+          <span class="tier-name">{t.tier4}</span>
+          <span class="tier-arrow">{locale === 'vi' ? 'mặc định' : locale === 'zh' ? '默认' : locale === 'ja' ? 'デフォルト' : 'default'}</span>
+        </div>
+      </div>
+    </div>
+    <div class="tier-note">{t.tier_note}</div>
+
+    <h3>{t.cfg_skills_title}</h3>
+    <p><Fragment set:html={t.cfg_skills_desc} /></p>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ══ S05: RESOURCE QUOTAS ══ -->
+<section>
+  <div class="container reveal">
+    <div class="sec-header">
+      <div class="sec-num"><span>{t.s05_num}</span></div>
+      <span class="sec-label">{t.s05_label}</span>
+      <h2><Fragment set:html={t.s05_title} /></h2>
+    </div>
+    <p>{t.s05_p1}</p>
+    <p>{t.s05_p2}</p>
+
+    <h3>{t.quota_channel_title}</h3>
+    <p>{t.quota_channel_desc}</p>
+
+    <!-- Rolling window cards -->
+    <div class="quota-grid">
+      <div class="quota-card">
+        <div class="quota-window">{t.quota_window_hour}</div>
+        <div class="quota-nums">40<span class="quota-total">/40</span></div>
+        <div class="quota-desc">limit/hour</div>
+      </div>
+      <div class="quota-card">
+        <div class="quota-window">{t.quota_window_day}</div>
+        <div class="quota-nums">120<span class="quota-total">/200</span></div>
+        <div class="quota-desc">limit/day</div>
+      </div>
+      <div class="quota-card">
+        <div class="quota-window">{t.quota_window_week}</div>
+        <div class="quota-nums">640<span class="quota-total">/1000</span></div>
+        <div class="quota-desc">limit/week</div>
+      </div>
+    </div>
+
+    <!-- SQL query -->
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-filename">quota-check.sql</span>
+        <span class="code-lang">SQL</span>
+      </div>
+      <div class="code-body">
+        <pre><span class="kw">SELECT</span>
+    <span class="fn">COUNT</span>(*) <span class="kw">FILTER</span> (<span class="kw">WHERE</span> created_at >= <span class="num">$2</span>) <span class="kw">AS</span> hour_count,
+    <span class="fn">COUNT</span>(*) <span class="kw">FILTER</span> (<span class="kw">WHERE</span> created_at >= <span class="num">$3</span>) <span class="kw">AS</span> day_count,
+    <span class="fn">COUNT</span>(*) <span class="kw">FILTER</span> (<span class="kw">WHERE</span> created_at >= <span class="num">$4</span>) <span class="kw">AS</span> week_count
+<span class="kw">FROM</span> <span class="fn">traces</span>
+<span class="kw">WHERE</span> user_id = <span class="num">$1</span>
+  <span class="kw">AND</span> parent_trace_id <span class="kw">IS NULL</span>
+  <span class="kw">AND</span> created_at >= <span class="num">$4</span>   <span class="cmt">-- week boundary = oldest window</span></pre>
+      </div>
+    </div>
+    <p style="font-family:var(--mono);font-size:12px;color:var(--text-dim);margin-top:4px;">{t.quota_sql_note}</p>
+
+    <span class="error-pill">{t.quota_error}</span>
+
+    <!-- Config priority -->
+    <h3>{t.quota_config_title}</h3>
+    <p>{t.quota_config_p}</p>
+    <div class="priority-chain">
+      <div class="priority-item p-hi">Group</div>
+      <div class="priority-item">Channel</div>
+      <div class="priority-item">Provider</div>
+      <div class="priority-item">Default</div>
+    </div>
+
+    <!-- Optimistic increment -->
+    <h3>{t.optimistic_title}</h3>
+    <p>{t.optimistic_p}</p>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-filename">quota_checker.go</span>
+        <span class="code-lang">Go</span>
+      </div>
+      <div class="code-body">
+        <pre><span class="kw">func</span> (<span class="op">qc</span> *<span class="fn">QuotaChecker</span>) <span class="fn">Increment</span>(userID <span class="kw">string</span>) {'{'}
+    <span class="op">qc</span>.<span class="fn">mu</span>.<span class="fn">Lock</span>()
+    <span class="kw">defer</span> <span class="op">qc</span>.<span class="fn">mu</span>.<span class="fn">Unlock</span>()
+    <span class="kw">if</span> c, ok := <span class="op">qc</span>.<span class="fn">cache</span>[userID]; ok {'{'}
+        c.hour++
+        c.day++
+        c.week++
+    {'}'}
+{'}'}</pre>
+      </div>
+    </div>
+
+    <!-- Tool budget -->
+    <h3>{t.budget_title}</h3>
+    <p>{t.budget_p1}</p>
+    <p>{t.budget_p2}</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-filename">tool_stage.go</span>
+        <span class="code-lang">Go</span>
+      </div>
+      <div class="code-body">
+        <pre><span class="cmt">// Soft stop — no crash, no error</span>
+<span class="kw">if</span> s.<span class="op">deps</span>.<span class="fn">Config</span>.<span class="op">MaxToolCalls</span> > <span class="num">0</span> &&
+   state.<span class="fn">Tool</span>.<span class="op">TotalToolCalls</span> >= s.<span class="op">deps</span>.<span class="fn">Config</span>.<span class="op">MaxToolCalls</span> {'{'}
+    s.<span class="op">result</span> = <span class="fn">BreakLoop</span>   <span class="cmt">// → FinalizeStage flushes content</span>
+{'}'}</pre>
+      </div>
+    </div>
+
+    <h3>{t.budget_distinct_title}</h3>
+    <div class="distinction">
+      <div class="dist-card">
+        <p><Fragment set:html={t.budget_maxiter} /></p>
+      </div>
+      <div class="dist-card">
+        <p><Fragment set:html={t.budget_maxtool} /></p>
+      </div>
+    </div>
+    <p style="font-family:var(--mono);font-size:13px;color:var(--text-dim);">{t.budget_example}</p>
+
+    <!-- Hot-reload -->
+    <h3>{t.hotreload_title}</h3>
+    <p>{t.hotreload_p}</p>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-filename">config_methods.go → gateway.go</span>
+        <span class="code-lang">Go</span>
+      </div>
+      <div class="code-body">
+        <pre><span class="cmt">// 1. Config changes broadcast via pub/sub</span>
+<span class="fn">eventBus</span>.<span class="fn">Broadcast</span>(<span class="fn">Event</span>{'{'}
+    <span class="op">Name</span>:    bus.<span class="fn">TopicConfigChanged</span>,
+    <span class="op">Payload</span>: m.<span class="fn">cfg</span>,
+{'}'})
+
+<span class="cmt">// 2. Gateway subscribes and feeds QuotaChecker</span>
+<span class="fn">msgBus</span>.<span class="fn">Subscribe</span>(<span class="str">"quota-config-reload"</span>, <span class="kw">func</span>(evt bus.<span class="fn">Event</span>) {'{'}
+    updatedCfg := evt.<span class="op">Payload</span>.(*config.<span class="fn">Config</span>)
+    <span class="fn">quotaChecker</span>.<span class="fn">UpdateConfig</span>(*updatedCfg.<span class="fn">Gateway</span>.<span class="op">Quota</span>)
+{'}'})   <span class="cmt">// no restart needed</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ══ S06: SHARED INFRASTRUCTURE ══ -->
+<section>
+  <div class="container reveal">
+    <div class="sec-header">
+      <div class="sec-num"><span>{t.s06_num}</span></div>
+      <span class="sec-label">{t.s06_label}</span>
+      <h2><Fragment set:html={t.s06_title} /></h2>
+    </div>
+
+    <h3>{t.lanes_title}</h3>
+    <p>{t.lanes_desc}</p>
+
+    <div class="table-wrap">
+      <table class="lane-table">
+        <thead>
+          <tr>
+            <th>Lane</th>
+            <th>Concurrency</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{t.lane_main}</td>
+            <td>30<div class="lane-bar" style="width:60px;"></div></td>
+            <td>{t.lane_main_desc}</td>
+          </tr>
+          <tr>
+            <td>{t.lane_sub}</td>
+            <td>50<div class="lane-bar" style="width:100px;"></div></td>
+            <td>{t.lane_sub_desc}</td>
+          </tr>
+          <tr>
+            <td>{t.lane_team}</td>
+            <td>100<div class="lane-bar" style="width:200px;max-width:100%;"></div></td>
+            <td>{t.lane_team_desc}</td>
+          </tr>
+          <tr>
+            <td>{t.lane_cron}</td>
+            <td>30<div class="lane-bar" style="width:60px;"></div></td>
+            <td>{t.lane_cron_desc}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>{t.security_title}</h3>
+    <p><Fragment set:html={t.security_p} /></p>
+    <ul class="sec-list">
+      <li>{t.sec1}</li>
+      <li>{t.sec2}</li>
+      <li>{t.sec3}</li>
+      <li>{t.sec4}</li>
+    </ul>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ══ S07: TENANT LIFECYCLE ══ -->
+<section>
+  <div class="container reveal">
+    <div class="sec-header">
+      <div class="sec-num"><span>{t.s07_num}</span></div>
+      <span class="sec-label">{t.s07_label}</span>
+      <h2><Fragment set:html={t.s07_title} /></h2>
+    </div>
+
+    <div class="lifecycle">
+      <!-- Step 1 -->
+      <div class="step">
+        <div class="step-num">
+          <div class="step-circle">1</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-content">
+          <h4>POST /rpc → tenants.create</h4>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-filename">{locale === 'vi' ? '1. Tạo tenant' : locale === 'zh' ? '1. 创建租户' : locale === 'ja' ? '1. テナント作成' : '1. Create tenant'}</span>
+              <span class="code-lang">HTTP</span>
+            </div>
+            <div class="code-body">
+              <pre><span class="op">POST</span> /rpc
+{'{'}
+  <span class="str">"method"</span>: <span class="str">"tenants.create"</span>,
+  <span class="str">"params"</span>: {'{'}
+    <span class="str">"name"</span>: <span class="str">"Acme Corp"</span>,
+    <span class="str">"slug"</span>: <span class="str">"acme"</span>
+  {'}'}
+{'}'}
+<span class="cmt">// → {'{'}id: "tenant-uuid", slug: "acme"{'}'}</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step">
+        <div class="step-num">
+          <div class="step-circle">2</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-content">
+          <h4>POST /rpc → tenants.users.add</h4>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-filename">{locale === 'vi' ? '2. Thêm user' : locale === 'zh' ? '2. 添加用户' : locale === 'ja' ? '2. ユーザー追加' : '2. Add user'}</span>
+              <span class="code-lang">HTTP</span>
+            </div>
+            <div class="code-body">
+              <pre><span class="op">POST</span> /rpc
+{'{'}
+  <span class="str">"method"</span>: <span class="str">"tenants.users.add"</span>,
+  <span class="str">"params"</span>: {'{'}
+    <span class="str">"tenant_id"</span>: <span class="str">"tenant-uuid"</span>,
+    <span class="str">"user_id"</span>:   <span class="str">"user-123"</span>,
+    <span class="str">"role"</span>:      <span class="str">"admin"</span>
+  {'}'}
+{'}'}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="step">
+        <div class="step-num">
+          <div class="step-circle">3</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-content">
+          <h4>POST /rpc → api_keys.create</h4>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-filename">{locale === 'vi' ? '3. Tạo API key' : locale === 'zh' ? '3. 创建 API 密钥' : locale === 'ja' ? '3. API キー作成' : '3. Create API key'}</span>
+              <span class="code-lang">HTTP</span>
+            </div>
+            <div class="code-body">
+              <pre><span class="op">POST</span> /rpc
+{'{'}
+  <span class="str">"method"</span>: <span class="str">"api_keys.create"</span>,
+  <span class="str">"params"</span>: {'{'}
+    <span class="str">"tenant_id"</span>: <span class="str">"tenant-uuid"</span>,
+    <span class="str">"scopes"</span>: [<span class="str">"operator.write"</span>]
+  {'}'}
+{'}'}
+<span class="cmt">// → {'{'}key: "goclaw_sk_abc123..."{'}'}</span>
+<span class="cmt">// Store in backend secrets — never send to browser</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scope table -->
+    <h3>{t.scope_title}</h3>
+    <div class="table-wrap">
+      <table class="scope-table">
+        <thead>
+          <tr>
+            <th>Scope</th>
+            <th>Role</th>
+            <th>{locale === 'vi' ? 'Quyền' : locale === 'zh' ? '权限' : locale === 'ja' ? '権限' : 'Permissions'}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{t.scope_admin}</td>
+            <td><span class="scope-role">{t.scope_admin_role}</span></td>
+            <td>{t.scope_admin_desc}</td>
+          </tr>
+          <tr>
+            <td>{t.scope_write}</td>
+            <td><span class="scope-role">{t.scope_write_role}</span></td>
+            <td>{t.scope_write_desc}</td>
+          </tr>
+          <tr>
+            <td>{t.scope_read}</td>
+            <td><span class="scope-role">{t.scope_read_role}</span></td>
+            <td>{t.scope_read_desc}</td>
+          </tr>
+          <tr>
+            <td>{t.scope_prov}</td>
+            <td><span class="scope-role">{t.scope_prov_role}</span></td>
+            <td>{t.scope_prov_desc}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<!-- ══ S08: SUMMARY ══ -->
+<section>
+  <div class="container reveal">
+    <div class="sec-header">
+      <div class="sec-num"><span>{t.s08_num}</span></div>
+      <span class="sec-label">{t.s08_label}</span>
+      <h2><Fragment set:html={t.s08_title} /></h2>
+    </div>
+    <p><Fragment set:html={t.s08_p1} /></p>
+    <p>{t.s08_p2}</p>
+
+    <div class="summary-grid" style="margin-top:40px;">
+      <div class="summary-card">
+        <h4>Fail-Closed</h4>
+        <p>{locale === 'vi' ? 'Missing tenant = error. Không bao giờ return unfiltered data.' : locale === 'zh' ? '缺少租户 = 错误。绝不返回未过滤的数据。' : locale === 'ja' ? 'テナント欠如 = エラー。フィルタリングされていないデータは返しません。' : 'Missing tenant = error. Never returns unfiltered data.'}</p>
+      </div>
+      <div class="summary-card">
+        <h4>WHERE tenant_id = $N</h4>
+        <p>{locale === 'vi' ? '40+ tables. Filter ở DB level, không phải application layer.' : locale === 'zh' ? '40+ 张表。在 DB 层过滤，而非应用层。' : locale === 'ja' ? '40+ テーブル。DB レベルでフィルタリング、アプリ層ではありません。' : '40+ tables. Filter at DB level, not application layer.'}</p>
+      </div>
+      <div class="summary-card">
+        <h4>4-Tier Config</h4>
+        <p>{locale === 'vi' ? 'Per-agent → per-tenant → global → defaults. Specific wins.' : locale === 'zh' ? 'Per-agent → per-tenant → global → defaults。具体优先。' : locale === 'ja' ? 'Per-agent → per-tenant → global → defaults。具体的なものが優先。' : 'Per-agent → per-tenant → global → defaults. Specific wins.'}</p>
+      </div>
+      <div class="summary-card">
+        <h4>2-Layer Quotas</h4>
+        <p>{locale === 'vi' ? 'Channel rolling windows + tool budget per-run. Hot-reload via pub/sub.' : locale === 'zh' ? '频道滚动窗口 + 每次运行工具预算。通过 pub/sub 热重载。' : locale === 'ja' ? 'チャンネルローリングウィンドウ + 実行ごとのツールバジェット。pub/sub 経由でホットリロード。' : 'Channel rolling windows + tool budget per-run. Hot-reload via pub/sub.'}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer class="footer">
+  <div class="footer-glyph">GoClaw</div>
+  <h3>{t.footer_text}</h3>
+  <p>{t.footer_sub}</p>
+</footer>
+
+<ScrollReveal />
+
+</body>
+</html>

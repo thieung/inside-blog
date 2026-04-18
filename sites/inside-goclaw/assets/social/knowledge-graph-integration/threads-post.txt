@@ -1,0 +1,5 @@
+GoClaw v2.15.0 có Knowledge Graph — agent nhớ quan hệ giữa người, dự án, tổ chức chứ không chỉ nhớ text thô.
+
+LLM tự trích xuất entities sau mỗi hội thoại, lưu vào graph store. Tìm kiếm qua multi-hop traversal (recursive CTE, sâu 3 bậc) + semantic search bằng pgvector 🧠
+
+https://goclaw.thieunv.space/posts/knowledge-graph-integration

@@ -50,6 +50,9 @@
   --clr-concept:    #e8a020;
   --clr-location:   #ef4444;
   --clr-org:        #06b6d4;
+  --clr-technology: #ec4899;
+  --clr-product:    #84cc16;
+  --clr-document:   #f59e0b;
 
   --radius-sm:  6px;
   --radius-md:  10px;
@@ -520,7 +523,26 @@ code {
 .eb-event    { color:var(--clr-event);   border-color:var(--clr-event);   background:rgba(167,139,250,0.08); }
 .eb-concept  { color:var(--clr-concept); border-color:var(--clr-concept); background:rgba(232,160,32,0.08); }
 .eb-location { color:var(--clr-location);border-color:var(--clr-location);background:rgba(239,68,68,0.08); }
-.eb-org      { color:var(--clr-org);     border-color:var(--clr-org);     background:rgba(6,182,212,0.08); }
+.eb-org        { color:var(--clr-org);        border-color:var(--clr-org);        background:rgba(6,182,212,0.08); }
+.eb-technology { color:var(--clr-technology); border-color:var(--clr-technology); background:rgba(236,72,153,0.08); }
+.eb-product    { color:var(--clr-product);    border-color:var(--clr-product);    background:rgba(132,204,22,0.08); }
+.eb-document   { color:var(--clr-document);   border-color:var(--clr-document);   background:rgba(245,158,11,0.08); }
+.version-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--teal);
+  background: var(--teal-dim);
+  border: 1px solid color-mix(in srgb, var(--teal) 20%, transparent);
+  padding: 2px 8px;
+  border-radius: 99px;
+  letter-spacing: 0.5px;
+  vertical-align: middle;
+  margin-left: 6px;
+}
 
 .type-grid {
   display: flex;
@@ -868,7 +890,7 @@ li { margin-bottom: 7px; font-size: 15px; }
 
 <script>
 (function(){
-  var saved = localStorage.getItem('kg-theme') || 'dark';
+  var saved = localStorage.getItem('goclaw-blog-theme') || 'dark';
   document.documentElement.setAttribute('data-theme', saved);
   document.addEventListener('DOMContentLoaded', function(){
     var btn = document.getElementById('themeToggle');
@@ -877,7 +899,7 @@ li { margin-bottom: 7px; font-size: 15px; }
       var cur = document.documentElement.getAttribute('data-theme') || 'dark';
       var nxt = cur === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', nxt);
-      localStorage.setItem('kg-theme', nxt);
+      localStorage.setItem('goclaw-blog-theme', nxt);
       btn.textContent = nxt === 'dark' ? '☀' : '◐';
       location.reload();
     });
@@ -889,7 +911,7 @@ li { margin-bottom: 7px; font-size: 15px; }
 
 <!-- ── HEADER ── -->
 <header class="header-area">
-  <div class="post-eyebrow" data-i18n="eyebrow">GoClaw Blog — v2.47.0 Release</div>
+  <div class="post-eyebrow" data-i18n="eyebrow">Inside GoClaw — v2.47.0 Release</div>
   <h1 class="post-title">Force-Directed <em>Knowledge Graph</em> Visualization</h1>
   <p class="post-deck" data-i18n="hero_sub">Xây dựng bộ nhớ ngữ nghĩa từ hội thoại — kiến trúc, trực quan hóa và các tối ưu hóa trong v2.47.x</p>
   <div class="post-meta">
@@ -931,8 +953,8 @@ li { margin-bottom: 7px; font-size: 15px; }
 
 <div class="kpi-strip">
   <div class="kpi-item"><div class="kpi-value">3</div><div class="kpi-label" data-i18n="kpi_1">Tầng kiến trúc</div></div>
-  <div class="kpi-item"><div class="kpi-value">7</div><div class="kpi-label" data-i18n="kpi_2">Loại thực thể</div></div>
-  <div class="kpi-item"><div class="kpi-value">17</div><div class="kpi-label" data-i18n="kpi_3">Loại quan hệ</div></div>
+  <div class="kpi-item"><div class="kpi-value">10</div><div class="kpi-label" data-i18n="kpi_2">Loại thực thể</div></div>
+  <div class="kpi-item"><div class="kpi-value">21</div><div class="kpi-label" data-i18n="kpi_3">Loại quan hệ</div></div>
   <div class="kpi-item"><div class="kpi-value">11</div><div class="kpi-label" data-i18n="kpi_4">API Endpoints</div></div>
   <div class="kpi-item"><div class="kpi-value">10</div><div class="kpi-label" data-i18n="kpi_5">Perf Opts</div></div>
 </div>
@@ -942,7 +964,7 @@ li { margin-bottom: 7px; font-size: 15px; }
   <p data-i18n="prereq_intro">Để sử dụng Knowledge Graph, bạn cần cấu hình hai thành phần:</p>
   <ol>
     <li data-i18n="prereq_1" data-i18n-html="1"><strong>Embedding Provider &amp; Model</strong> — KG cần một embedding model để tạo vector cho semantic search và deduplication. Vào <strong>Dashboard → Settings → Embedding</strong>, chọn provider (ví dụ: OpenAI, Anthropic) và model embedding phù hợp (ví dụ: <code>text-embedding-3-small</code>). Không có embedding, KG sẽ chỉ dùng Full-Text Search mà không có khả năng tìm kiếm ngữ nghĩa.</li>
-    <li data-i18n="prereq_2" data-i18n-html="1"><strong>Extraction Provider &amp; Model</strong> — Cần chọn LLM provider/model để trích xuất entities và relations từ văn bản. Cấu hình này nằm ngay trên <strong>Dashboard UI</strong>, biểu tượng <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M14 17H5"/><path d="M19 7h-9"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg> nằm bên cạnh icon chuyển đổi dark/light mode, ở góc trên bên phải của trang KG.</li>
+    <li data-i18n="prereq_2" data-i18n-html="1"><strong>Extraction Provider &amp; Model</strong> — Cần chọn LLM provider/model để trích xuất entities và relations từ văn bản. Cấu hình này nằm ngay trên <strong>Dashboard UI</strong>, biểu tượng <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M14 17H5"/><path d="M19 7h-9"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg> nằm bên cạnh icon chuyển đổi dark/light mode, ở góc trên bên phải của header.</li>
   </ol>
 </div>
 
@@ -1036,6 +1058,10 @@ graph TD
   <span class="eb eb-concept">concept</span>
   <span class="eb eb-location">location</span>
   <span class="eb eb-org">organization</span>
+  <span class="eb eb-technology">technology</span>
+  <span class="eb eb-product">product</span>
+  <span class="eb eb-document">document</span>
+  <span class="version-badge">v2.55.0</span>
 </div>
 
 <section class="diagram-shell">
@@ -1101,7 +1127,7 @@ erDiagram
     <li data-i18n="field_confidence" data-i18n-html="1"><code>confidence</code> — 1.0 = explicit mention, 0.7 = inferred, 0.4 = weakly inferred. Entities dưới 0.75 bị loại bỏ</li>
     <li data-i18n="field_embedding" data-i18n-html="1"><code>embedding vector(1536)</code> — pgvector cho semantic search qua HNSW index</li>
     <li data-i18n="field_tsv" data-i18n-html="1"><code>tsv tsvector</code> — Full-text search vector với GIN index</li>
-    <li data-i18n="field_relation_type" data-i18n-html="1"><code>relation_type</code> — 17 loại quan hệ được định nghĩa sẵn: <code>works_on</code>, <code>manages</code>, <code>reports_to</code>, <code>depends_on</code>, <code>blocks</code>, v.v.</li>
+    <li data-i18n="field_relation_type" data-i18n-html="1"><code>relation_type</code> — 21 loại quan hệ được định nghĩa sẵn: <code>works_on</code>, <code>manages</code>, <code>reports_to</code>, <code>depends_on</code>, <code>blocks</code>, v.v.</li>
   </ul>
 </div>
 
@@ -1151,7 +1177,7 @@ graph TD
 
 <div class="card card--accent-left" style="border-left-color:var(--clr-project);">
   <div class="card-label" style="color:var(--clr-project);" data-i18n="llm_label">LLM Extraction</div>
-  <p style="margin-bottom:0;" data-i18n="llm_desc">Sử dụng system prompt định nghĩa sẵn 7 entity types và 17 relation types. Temperature = 0 đảm bảo kết quả deterministic. Max tokens: 8192.</p>
+  <p style="margin-bottom:0;" data-i18n="llm_desc">Sử dụng system prompt định nghĩa sẵn 10 entity types và 21 relation types. Temperature = 0 đảm bảo kết quả deterministic. Max tokens: 8192.</p>
 </div>
 
 <div class="card card--accent-left" style="border-left-color:var(--clr-task);">
@@ -1174,6 +1200,7 @@ graph TD
       <tr><td data-i18n="rel_group3">Hành động</td><td><code>created</code> <code>completed</code> <code>assigned_to</code> <code>scheduled_for</code></td></tr>
       <tr><td data-i18n="rel_group4">Vị trí</td><td><code>located_in</code> <code>based_at</code></td></tr>
       <tr><td data-i18n="rel_group5">Công nghệ</td><td><code>uses</code> <code>implements</code> <code>integrates_with</code></td></tr>
+      <tr><td data-i18n="rel_group7" data-i18n-html="1">Tri thức <span class="version-badge">v2.55.0</span></td><td><code>authored</code> <code>references</code> <code>provides</code> <code>requires</code></td></tr>
       <tr><td data-i18n="rel_group6">Fallback</td><td><code>related_to</code></td></tr>
     </tbody>
   </table>
@@ -1243,7 +1270,7 @@ graph TD
 
     UNION ALL
 
-    -- Recursive: đi theo edges, tăng depth, ngăn chu kỳ
+    -- Forward: source → target
     SELECT e.*, p.depth + 1,
            p.path || e.id::text,
            r.relation_type
@@ -1251,13 +1278,29 @@ graph TD
     JOIN kg_relations r ON p.id = r.source_entity_id
     JOIN kg_entities e ON r.target_entity_id = e.id
     WHERE p.depth &lt; $max_depth
-      AND NOT e.id::text = ANY(p.path)  -- Ngăn chu kỳ
+      AND NOT e.id::text = ANY(p.path)
+
+    UNION ALL
+
+    -- Reverse: target → source (prefix ~)
+    SELECT e.*, p.depth + 1,
+           p.path || e.id::text,
+           '~' || r.relation_type
+    FROM paths p
+    JOIN kg_relations r ON p.id = r.target_entity_id
+    JOIN kg_entities e ON r.source_entity_id = e.id
+    WHERE p.depth &lt; $max_depth
+      AND NOT e.id::text = ANY(p.path)
 )
 SELECT ... FROM paths WHERE depth > 1</pre>
 </div>
 
 <div class="callout" data-i18n="s6_safety_callout" data-i18n-html="1">
   <strong>An toàn:</strong> Cycle prevention qua path array. Statement timeout 5 giây ngăn query chạy quá lâu. Max depth cap tại 3 hops.
+</div>
+
+<div class="callout" style="border-left-color:var(--teal);" data-i18n="s6_bidir_callout" data-i18n-html="1">
+  <span class="version-badge">v2.53.0</span> <strong>Bidirectional traversal:</strong> Reverse edges (target → source) được thêm qua UNION ALL thứ hai. Relation type có prefix <code>~</code> (ví dụ: <code>~manages</code>) để phân biệt hướng. Giúp khám phá đầy đủ graph khi entity chỉ xuất hiện ở phía target.
 </div>
 
 <h3>Traversal Result</h3>
@@ -1269,6 +1312,10 @@ SELECT ... FROM paths WHERE depth > 1</pre>
   path: string[]        // Các entity ID trên đường đi
   via: string           // Loại quan hệ ở hop cuối cùng
 }</pre>
+</div>
+
+<div class="callout" style="border-left-color:var(--teal);">
+  <span class="version-badge">v2.53.0</span> <span data-i18n="s6_dialog_callout" data-i18n-html="1"><strong>Entity Detail Dialog</strong> mở rộng với Table/Graph tabs — tab Graph render kết quả traversal dưới dạng ReactFlow visualization. Auto-traverse khi mở dialog.</span>
 </div>
 
 <h3 data-i18n="s6_demo_title">Minh hoạ Depth Traversal</h3>
@@ -1305,6 +1352,9 @@ SELECT ... FROM paths WHERE depth > 1</pre>
       </div>
       <div class="depth-node" style="color:var(--clr-concept);border-color:var(--clr-concept);background:rgba(232,160,32,0.08);">
         Microservices <small>via: uses (Project X)</small>
+      </div>
+      <div class="depth-node" style="color:var(--clr-person);border-color:var(--clr-person);background:rgba(249,115,22,0.08);">
+        Dave <small>via: ~reports_to (Bob)</small>
       </div>
     </div>
   </div>
@@ -1428,8 +1478,8 @@ import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
 import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
 import {CSS2DRenderer,CSS2DObject} from 'three/addons/renderers/CSS2DRenderer.js';
 
-const TCH={person:0xf97316,project:0x3b82f6,task:0x10b981,event:0xa78bfa,concept:0xe8a020,location:0xef4444,organization:0x06b6d4};
-const TCHS={person:'#f97316',project:'#3b82f6',task:'#10b981',event:'#a78bfa',concept:'#e8a020',location:'#ef4444',organization:'#06b6d4'};
+const TCH={person:0xf97316,project:0x3b82f6,task:0x10b981,event:0xa78bfa,concept:0xe8a020,location:0xef4444,organization:0x06b6d4,technology:0xec4899,product:0x84cc16,document:0xf59e0b};
+const TCHS={person:'#f97316',project:'#3b82f6',task:'#10b981',event:'#a78bfa',concept:'#e8a020',location:'#ef4444',organization:'#06b6d4',technology:'#ec4899',product:'#84cc16',document:'#f59e0b'};
 
 const entities=[
   {id:'e1',name:'GoClaw',type:'project',extId:'goclaw',desc:'Multi-tenant AI agent gateway',confidence:.95,p:[0,0,0]},
@@ -1451,6 +1501,8 @@ const entities=[
   {id:'e31',name:'WhatsApp',type:'concept',extId:'whatsapp',desc:'WhatsApp channel',confidence:.82,p:[4,-3,-1]},
   {id:'e9',name:'HCMC',type:'location',extId:'hcmc',desc:'Ho Chi Minh City',confidence:.9,p:[-2,-4,-1]},
   {id:'e34',name:'Singapore',type:'location',extId:'singapore',desc:'Regional office',confidence:.8,p:[-5,-3,-2]},
+  {id:'e35',name:'PostgreSQL',type:'technology',extId:'postgresql',desc:'Primary database',confidence:.92,p:[3,3,2]},
+  {id:'e36',name:'GoClaw Pro',type:'product',extId:'goclaw-pro',desc:'Premium offering',confidence:.85,p:[-3,-1,3]},
   {id:'e16',name:'SEO',type:'task',extId:'seo-opt',desc:'Search optimization',confidence:.75,p:[3,-4,2]},
   {id:'e17',name:'VN SMBs',type:'concept',extId:'vn-smbs',desc:'Target market',confidence:.78,p:[5,-4,0]},
 ];
@@ -1462,6 +1514,7 @@ const rels=[
   {s:'e7',t:'e1',tp:'VARIANT_OF'},{s:'e6',t:'e15',tp:'BELONGS_TO'},{s:'e8',t:'e15',tp:'WORKS_AT'},
   {s:'e8',t:'e2',tp:'REPORTS_TO'},{s:'e14',t:'e6',tp:'BELONGS_TO'},{s:'e14',t:'e2',tp:'REPORTS_TO'},
   {s:'e8',t:'e9',tp:'LOCATED_IN'},{s:'e19',t:'e1',tp:'RELATED_TO'},{s:'e16',t:'e17',tp:'TARGETS'},
+  {s:'e1',t:'e35',tp:'USES'},{s:'e36',t:'e1',tp:'VARIANT_OF'},
 ];
 const nMap=new Map(entities.map(e=>[e.id,e]));
 
@@ -1963,7 +2016,7 @@ async function initDiagram(shell) {
       else if (a === 'zoom-one') { zoom = 1; panX = (viewport.clientWidth - canvas._baseW) / 2; panY = 0; }
       else if (a === 'zoom-expand') {
         const w = window.open('', '_blank');
-        w.document.write('<html><body style="margin:0;display:flex;justify-content:center;background:#06090f;">' + canvas.innerHTML + '<scr' + 'ipt>fetch("/i18n/force-directed-knowledge-graphs.json").then(function(r){return r.json()}).then(function(T){function setLang(lang){document.documentElement.lang=lang;document.querySelectorAll(".lang-btn").forEach(function(b){b.classList.toggle("active",b.dataset.lang===lang)});document.querySelectorAll("[data-i18n]").forEach(function(el){var k=el.getAttribute("data-i18n");var v=T[lang]&&T[lang][k];if(v)el.innerHTML=v});}document.querySelectorAll(".lang-btn").forEach(function(b){b.addEventListener("click",function(){setLang(b.dataset.lang)})});var p=window.location.pathname.split("/");var L=p[1];if(["en","zh","ja"].indexOf(L)>=0)setLang(L);var obs=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("visible");obs.unobserve(e.target)}})},{threshold:.15});document.querySelectorAll(".reveal").forEach(function(el){obs.observe(el)});});<\/scr' + 'ipt></body></html>');
+        w.document.write('<html><body style="margin:0;display:flex;justify-content:center;background:#06090f;">' + canvas.innerHTML + '</body></html>');
         return;
       }
       update();
@@ -2040,53 +2093,503 @@ document.querySelectorAll('.diagram-shell').forEach(initDiagram);
 
 <!-- ════ i18n ════ -->
 <script>
-fetch('/i18n/force-directed-knowledge-graphs.json')
-  .then(function(r) { return r.json(); })
-  .then(function(T) {
-    function setLang(lang) {
-      document.documentElement.lang = lang;
-      document.querySelectorAll('.lang-btn').forEach(function(b) {
-        b.classList.toggle('active', b.dataset.lang === lang);
-        b.style.display = '';
-      });
-      document.querySelectorAll('[data-i18n]').forEach(function(el) {
-        var key = el.getAttribute('data-i18n');
-        var val = T[lang] && T[lang][key];
-        if (val !== undefined) {
-          if (el.hasAttribute('data-i18n-html')) {
-            el.innerHTML = val;
-          } else {
-            el.innerHTML = val;
-          }
-        }
-      });
+const T = {
+  vi: {},
+  en: {
+    eyebrow: 'Inside GoClaw — v2.47.0 Release',
+    hero_sub: 'Building semantic memory from conversations — architecture, visualization, and performance optimizations in v2.47.x',
+    toc_label: 'Contents',
+    toc_s1: '1. Introduction', toc_s2: '2. Architecture', toc_s3: '3. Data Model',
+    toc_s4: '4. Entity Extraction', toc_s5: '5. Hybrid Search', toc_s6: '6. Depth Visualization',
+    toc_s7: '7. Deduplication', toc_s8: '8. React Graph', toc_s9: '9. Performance', toc_s10: '10. Multi-Tenancy', toc_s11: '11. API Reference',
+    s1_label: '01 — Introduction', s1_title: 'What is Knowledge Graph in GoClaw?',
+    s1_intro: '<strong>GoClaw</strong> is a multi-tenant AI agent gateway built on PostgreSQL. The <strong>Knowledge Graph (KG)</strong> was introduced in <strong>v2.15.0</strong>, enabling AI agents to build long-term semantic memory from conversations. v2.47.x brings important improvements to <em>depth visualization</em> and <em>performance optimization</em>.',
+    s1_intro2: 'Rather than only remembering individual chat snippets, agents can understand the <em>relationships</em> between entities — who does what, which projects are linked, and which deadlines are approaching.',
+    kpi_1: 'Architecture Layers', kpi_2: 'Entity Types', kpi_3: 'Relation Types', kpi_4: 'API Endpoints', kpi_5: 'Perf Opts',
+    prereq_label: 'Required setup before use',
+    prereq_intro: 'To use the Knowledge Graph, you need to configure two components:',
+    prereq_1: '<strong>Embedding Provider &amp; Model</strong> — KG requires an embedding model to generate vectors for semantic search and deduplication. Go to <strong>Dashboard → Settings → Embedding</strong>, select a provider (e.g. OpenAI, Anthropic) and an appropriate embedding model (e.g. <code>text-embedding-3-small</code>). Without embeddings, KG will use only Full-Text Search with no semantic search capability.',
+    prereq_2: '<strong>Extraction Provider &amp; Model</strong> — Select an LLM provider/model to extract entities and relations from text. This config lives on the <strong>Dashboard UI</strong>, the <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M14 17H5"/><path d="M19 7h-9"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg> icon next to the dark/light mode toggle, in the top-right corner of the KG page.',
+    s1_layers_intro: 'The Knowledge Graph operates across three layers:',
+    s1_layer1: '<strong>Extraction Layer</strong> — Uses an LLM to mine entities and relations from conversation text, with confidence scoring',
+    s1_layer2: '<strong>Storage Layer</strong> — PostgreSQL with pgvector (embeddings), Full-Text Search (FTS), and an automatic deduplication system',
+    s1_layer3: '<strong>Visualization Layer</strong> — ReactFlow + D3 force-directed graph with theme support, depth visualization, and a 50-entity DOM performance limit',
+    s2_label: '02 — Architecture', s2_title: 'Architecture Overview',
+    diagram_hint: 'Ctrl/Cmd + wheel to zoom · Drag to pan · Double-click to fit',
+    s2_flow_title: 'Main Processing Flow',
+    s3_label: '03 — Data Model', s3_title: 'Schema and Entity Types',
+    s3_entity_types: 'Entity Types',
+    s3_er_hint: 'ER Diagram — Relationships between database tables',
+    s3_fields_title: 'Key Fields',
+    field_external_id: '<code>external_id</code> — Canonical identifier assigned by the LLM (lowercase, hyphen-separated). Unique constraint prevents duplicates within the same agent+user scope',
+    field_confidence: '<code>confidence</code> — 1.0 = explicit mention, 0.7 = inferred, 0.4 = weakly inferred. Entities below 0.75 are discarded',
+    field_embedding: '<code>embedding vector(1536)</code> — pgvector for semantic search via HNSW index',
+    field_tsv: '<code>tsv tsvector</code> — Full-text search vector with GIN index',
+    field_relation_type: '<code>relation_type</code> — 21 pre-defined relation types: <code>works_on</code>, <code>manages</code>, <code>reports_to</code>, <code>depends_on</code>, <code>blocks</code>, etc.',
+    s4_label: '04 — Entity Extraction', s4_title: 'Entity Extraction Pipeline',
+    s4_diagram_hint: 'Extraction workflow from text to database',
+    s4_steps_title: 'Step Details',
+    chunking_label: 'Chunking',
+    chunking_desc: 'Text longer than 12,000 characters is split at paragraph boundaries (<code>\\n\\n</code>). Each chunk is extracted independently; results are merged by external_id.',
+    llm_label: 'LLM Extraction',
+    llm_desc: 'Uses a pre-defined system prompt specifying 10 entity types and 21 relation types. Temperature = 0 ensures deterministic output. Max tokens: 8192.',
+    json_label: 'JSON Sanitization',
+    json_desc: 'Fixes common LLM JSON errors: malformed decimals (<code>"0. 85"</code> → <code>"0.85"</code>), trailing commas. Only processes characters outside quoted strings to preserve string values.',
+    tx_label: 'Transactional Ingest',
+    tx_desc: 'All-or-nothing: entities and relations are upserted in a single transaction. External_id unique constraint ensures idempotency. After upsert, batch embeddings are generated from <code>name + description</code>.',
+    s4_rel_types_title: 'Relation Types',
+    rel_th_group: 'Group', rel_th_type: 'Relation Types',
+    rel_group1: 'People ↔ Work', rel_group2: 'Structure', rel_group3: 'Actions', rel_group4: 'Location', rel_group5: 'Technology', rel_group6: 'Fallback', rel_group7: 'Knowledge <span class="version-badge">v2.55.0</span>',
+    s5_label: '05 — Hybrid Search', s5_title: 'Hybrid Search',
+    s5_diagram_hint: 'Combining FTS and Vector Search',
+    s5_intro: 'Hybrid search uses two parallel methods:',
+    s5_fts: '<strong>FTS (weight 0.3)</strong> — Uses <code>plainto_tsquery(\'simple\', query)</code> and <code>ts_rank()</code> for keyword search. Fast and precise for exact matches',
+    s5_vec: '<strong>Vector (weight 0.7)</strong> — Embeds the query, uses HNSW index for K-Nearest Neighbors. Similarity = <code>1 - cosine_distance</code>. Catches equivalent language',
+    s5_fallback: '<strong>Fallback</strong> — If the embedding provider is unavailable, uses 100% FTS',
+    s6_label: '06 — Depth Visualization', s6_title: 'Graph Traversal and Depth Visualization',
+    s6_highlight: '<strong>This is the standout feature of v2.47.x.</strong> Depth visualization lets users "explore" the graph in layers — starting from one entity and traversing relationships to discover related entities at 1, 2, 3 hops.',
+    s6_cte_title: 'Recursive CTE — The Core',
+    s6_cte_intro: 'Traversal uses a PostgreSQL recursive CTE to walk the graph:',
+    s6_safety_callout: '<strong>Safety:</strong> Cycle prevention via path array. Statement timeout of 5 seconds prevents long-running queries. Max depth capped at 3 hops.',
+    s6_bidir_callout: '<span class="version-badge">v2.53.0</span> <strong>Bidirectional traversal:</strong> Reverse edges (target → source) added via a second UNION ALL. Relation types prefixed with <code>~</code> (e.g. <code>~manages</code>) to distinguish direction. Enables full graph discovery when an entity only appears as a target.',
+    s6_dialog_callout: '<strong>Entity Detail Dialog</strong> expanded with Table/Graph tabs — Graph tab renders traversal results as ReactFlow visualization. Auto-traverse on dialog open.',
+    s6_demo_title: 'Depth Traversal Illustration',
+    s6_demo_intro: 'Starting from "Alice" and exploring relationships:',
+    s6_result_intro: 'Each traversal result includes:',
+    s6_result_depth: '<strong>depth</strong> — Number of hops from the starting entity',
+    s6_result_path: '<strong>path</strong> — Array of entity IDs forming the breadcrumb for the UI',
+    s6_result_via: '<strong>via</strong> — Relation type traversed at the last hop',
+    s6_result_outro: 'The frontend groups results by depth, with color coding by entity type and a breadcrumb path for each entity.',
+    s7_label: '07 — Deduplication', s7_title: 'Deduplication Strategy',
+    s7_diagram_hint: 'Dedup workflow after extraction',
+    s7_threshold_label: 'Decision Thresholds',
+    s7_th_threshold: 'Threshold', s7_th_value: 'Value', s7_th_action: 'Action',
+    s7_auto_merge_action: 'Auto-merge, keep entity with higher confidence',
+    s7_candidate_action: 'Flag for manual user review',
+    s7_skip_action: 'Not a duplicate',
+    s7_merge_label: 'Merge Operation',
+    s7_merge_intro: 'The merge process runs in a transaction with an advisory lock:',
+    s7_merge_1: 'Confirm both entities exist in scope',
+    s7_merge_2: 'Re-point all relations from source to target',
+    s7_merge_3: 'Remove duplicate relations (same type and endpoints)',
+    s7_merge_4: 'Delete source entity (CASCADE removes orphans)',
+    s7_merge_5: 'Update kg_dedup_candidates status → \'merged\'',
+    s8_label: '08 — React Graph Visualization', s8_title: 'Interactive 3D Graph Demo',
+    s8_hint: 'Click a node to highlight edges (glow + particles along edge). Double-click for details. Drag to rotate, scroll to zoom.',
+    s8_force_params_title: 'Force Layout Parameters',
+    s8_th_param: 'Parameter', s8_th_value: 'Value', s8_th_purpose: 'Purpose', s8_th_meaning: 'Meaning',
+    s8_link_dist_desc: 'Spring distance between linked nodes',
+    s8_spring_desc: 'Attraction force between linked nodes',
+    s8_charge_desc: 'Repulsion force — prevents overlap',
+    s8_collide_desc: 'Non-overlapping zone',
+    s8_limit_desc: 'DOM limit for performance',
+    s8_mass_title: 'Entity Mass (affects size and repulsion)',
+    mass_org: 'Largest node — central hub',
+    mass_project: 'Large node — connects many components',
+    mass_person: 'Medium node — participant',
+    mass_task: 'Small node — specific work item',
+    mass_others: 'Auxiliary nodes',
+    s8_adaptive_title: 'Adaptive Force Params',
+    s8_degree_title: 'Degree Centrality Selection',
+    s8_adaptive_intro: 'Force layout automatically scales to the actual node count — tighter for small graphs (&lt;30 nodes), spread for large graphs (60+):',
+    s8_degree_desc: 'Previously, the API returned entities sorted by <code>created_at DESC</code> — older hub nodes with many connections could be excluded from GRAPH_LIMIT. Now entities are sorted by connection count (degree centrality) before slicing, ensuring hub nodes always appear in the graph.',
+    s8_degree_callout: '<strong>Backend note:</strong> Degree ranking currently runs client-side on API data. Next improvement: add <code>sort=connections</code> query param to the backend so the API returns the most-connected entities.',
+    s8_theme_title: 'Theme-Aware Rendering',
+    s8_theme_desc: 'The graph supports real-time theme switching. When the theme changes but data doesn\'t, only node colors are updated via <code>setNodes</code> — no re-layout. When data changes, a full re-layout runs via <code>computeForceLayout</code>.',
+    s9_label: '09 — Performance Optimization', s9_title: '10 performance improvements in v2.47.x',
+    before_label: 'Before', after_label: 'After',
+    p1_title: '1. O(1) Entity Lookup via Map',
+    p2_title: '2. Pre-computed Edge Style Constants',
+    p2_before: 'Creating new edge style objects on every render → GC pressure during pan/zoom',
+    p2_after: 'Define <code>EDGE_STYLE_DEFAULT</code> and <code>EDGE_STYLE_FADED</code> once — zero allocation',
+    p3_title: '3. EntityNode Memoization',
+    p3_before: 'Re-render all nodes on pan/zoom',
+    p3_after: '<code>memo(EntityNode)</code> — only re-renders when data changes, skips viewport interactions',
+    p4_title: '4. Force Simulation Tick Cap',
+    p4_before: 'Unbounded ticks → O(n²) for large graphs',
+    p4_after: 'Cap ticks with <code>Math.ceil(log(n))</code> → O(log n) convergence',
+    p57_title: '5–7. Additional Fixes', p57_th_issue: 'Issue',
+    p5_issue: 'Double fitView (componentDidMount + manual)', p5_fix: 'Single call in useEffect',
+    p6_issue: 'Fetch 200 entities, render 50 (wasted API calls)', p6_fix: 'Fetch 50 matching GRAPH_LIMIT',
+    p7_issue: 'Theme change O(n×m) node lookup', p7_fix: 'Pre-compute entityMap — O(n) total',
+    p8_title: '8. Deferred Dialog Open',
+    p8_before: 'Node click triggers edge restyle + dialog mount simultaneously — INP <strong>808ms</strong>',
+    p8_after: '<code>setTimeout(0)</code> decouples edge restyle from dialog mount — INP <strong>&lt;100ms</strong>',
+    p9_title: '9. Memoized RelationsTable',
+    p9_before: 'Render full relations table — <strong>792ms</strong> INP for entities with many relations',
+    p9_after: '<code>React.memo</code> + initial 50-row limit + "Show all" button — INP <strong>&lt;100ms</strong>',
+    p10_title: '10. Adaptive Force Params',
+    p10_before: 'Fixed force params — graphs &lt;30 nodes too sparse, large graphs too cramped',
+    p10_after: 'Scale link distance, charge, center pull, collide radius by node count — natural layout at any size',
+    s9_summary_callout: '<strong>Summary:</strong> 10 optimizations focused on the <em>rendering path</em> and <em>interaction responsiveness</em> — reduced allocation, fewer re-renders, deferred dialog mount, adaptive layout, and degree-ranked entity selection. Result: 50-node graph renders smoothly with INP &lt;100ms.',
+    s10_label: '10 — Multi-Tenancy', s10_title: 'Multi-Tenancy and Security',
+    s10_scope_label: 'Scope Filtering',
+    s10_scope_intro: 'Every KG query is filtered by scope:',
+    s10_scope_helper: 'The <code>scopeClause(ctx, paramIdx)</code> helper automatically appends tenant filters based on context.',
+    s10_sec_label: 'Security',
+    s10_sec_1: '<strong>Advisory locks</strong> — Prevent concurrent merge operations on the same agent',
+    s10_sec_2: '<strong>Statement timeout 5s</strong> — Prevents traversal queries from running too long (graph cycles, oversized graphs)',
+    s10_sec_3: '<strong>Parameterized queries</strong> — All user inputs use <code>$1, $2, ...</code>, no string concatenation',
+    s10_sec_4: '<strong>RBAC</strong> — KG access controlled by role (admin/operator/viewer)',
+    s11_label: '11 — API Reference', s11_title: 'API Reference',
+    s11_th_purpose: 'Purpose',
+    api_1: 'List/search entities with type filter',
+    api_2: 'Entity detail + related relations',
+    api_3: 'Create/update entity',
+    api_4: 'Delete entity',
+    api_5: 'Graph data for visualization (limit 50+150)',
+    api_6: 'Depth traversal from entity (max 3 hops)',
+    api_7: 'LLM extraction + inline dedup',
+    api_8: 'Entity/relation counts by type',
+    api_9: 'List pending dedup candidates',
+    api_10: 'Bulk scan all entities for duplicates',
+    api_11: 'Merge source entity into target',
+    footer_text: 'GoClaw v2.47.x Knowledge Graph',
+    footer_back: '← Back to blog',
+  },
+  zh: {
+    eyebrow: 'GoClaw 博客 — v2.47.0 发布',
+    hero_sub: '从对话中构建语义记忆——v2.47.x 的架构、可视化与性能优化',
+    toc_label: '目录',
+    toc_s1: '1. 简介', toc_s2: '2. 架构', toc_s3: '3. 数据模型',
+    toc_s4: '4. 实体抽取', toc_s5: '5. 混合搜索', toc_s6: '6. 深度可视化',
+    toc_s7: '7. 去重', toc_s8: '8. React 图', toc_s9: '9. 性能', toc_s10: '10. 多租户', toc_s11: '11. API 参考',
+    s1_label: '01 — 简介', s1_title: 'GoClaw 中的知识图谱是什么？',
+    s1_intro: '<strong>GoClaw</strong> 是一个基于 PostgreSQL 构建的多租户 AI 智能体网关。<strong>知识图谱（KG）</strong>自 <strong>v2.15.0</strong> 引入，使 AI 智能体能够从对话中建立持久的语义记忆。v2.47.x 在<em>深度可视化</em>和<em>性能优化</em>方面带来了重要改进。',
+    s1_intro2: '智能体不再仅仅记住独立的聊天片段，而是能够理解实体之间的<em>关系</em>——谁在做什么、哪些项目相互关联，以及哪些截止日期即将到来。',
+    kpi_1: '架构层数', kpi_2: '实体类型', kpi_3: '关系类型', kpi_4: 'API 端点', kpi_5: '性能优化',
+    prereq_label: '使用前必须完成的配置',
+    prereq_intro: '要使用知识图谱，需要配置两个组件：',
+    prereq_1: '<strong>Embedding 提供商 &amp; 模型</strong>——KG 需要一个嵌入模型来为语义搜索和去重生成向量。前往 <strong>Dashboard → Settings → Embedding</strong>，选择提供商（如 OpenAI、Anthropic）和合适的嵌入模型（如 <code>text-embedding-3-small</code>）。没有嵌入，KG 只能使用全文搜索，无法进行语义搜索。',
+    prereq_2: '<strong>抽取提供商 &amp; 模型</strong>——需要选择 LLM 提供商/模型来从文本中抽取实体和关系。此配置位于 <strong>Dashboard UI</strong> 上，<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M14 17H5"/><path d="M19 7h-9"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg> 图标位于 KG 页面右上角的深色/浅色切换旁。',
+    s1_layers_intro: '知识图谱通过三个层次运作：',
+    s1_layer1: '<strong>抽取层</strong>——使用 LLM 从对话文本中挖掘实体和关系，并进行置信度评分',
+    s1_layer2: '<strong>存储层</strong>——PostgreSQL 配合 pgvector（向量嵌入）、全文搜索（FTS）和自动去重系统',
+    s1_layer3: '<strong>可视化层</strong>——ReactFlow + D3 力导向图，支持主题切换、深度可视化，以及 50 个实体的 DOM 性能限制',
+    s2_label: '02 — 架构', s2_title: '总体架构',
+    diagram_hint: 'Ctrl/Cmd + 滚轮缩放 · 拖拽平移 · 双击适配',
+    s2_flow_title: '主处理流程',
+    s3_label: '03 — 数据模型', s3_title: 'Schema 与实体类型',
+    s3_entity_types: '实体类型',
+    s3_er_hint: 'ER 图——数据库表之间的关系',
+    s3_fields_title: '关键字段',
+    field_external_id: '<code>external_id</code> — LLM 指定的规范标识符（小写、连字符分隔）。唯一约束确保在同一 agent+user 范围内不重复',
+    field_confidence: '<code>confidence</code> — 1.0 = 明确提及，0.7 = 推断，0.4 = 弱推断。低于 0.75 的实体会被丢弃',
+    field_embedding: '<code>embedding vector(1536)</code> — pgvector 通过 HNSW 索引实现语义搜索',
+    field_tsv: '<code>tsv tsvector</code> — 带 GIN 索引的全文搜索向量',
+    field_relation_type: '<code>relation_type</code> — 21 种预定义关系类型：<code>works_on</code>、<code>manages</code>、<code>reports_to</code>、<code>depends_on</code>、<code>blocks</code> 等',
+    s4_label: '04 — 实体抽取', s4_title: '实体抽取流水线',
+    s4_diagram_hint: '从文本到数据库的抽取工作流',
+    s4_steps_title: '步骤详解',
+    chunking_label: '分块',
+    chunking_desc: '超过 12,000 字符的文本在段落边界（<code>\\n\\n</code>）处分割。每个块独立抽取，结果通过 external_id 合并。',
+    llm_label: 'LLM 抽取',
+    llm_desc: '使用预定义的系统提示，指定 10 种实体类型和 21 种关系类型。Temperature = 0 确保结果确定性。最大 token 数：8192。',
+    json_label: 'JSON 清理',
+    json_desc: '修复 LLM 输出中常见的 JSON 错误：格式错误的小数（<code>"0. 85"</code> → <code>"0.85"</code>），尾随逗号。仅处理引号字符串外的字符，以保留字符串值。',
+    tx_label: '事务性写入',
+    tx_desc: '全有或全无：实体和关系在单个事务中 upsert。external_id 唯一约束确保幂等性。upsert 后，从 <code>name + description</code> 批量生成嵌入。',
+    s4_rel_types_title: '关系类型',
+    rel_th_group: '分组', rel_th_type: '关系类型',
+    rel_group1: '人员 ↔ 工作', rel_group2: '结构', rel_group3: '动作', rel_group4: '地点', rel_group5: '技术', rel_group6: '兜底', rel_group7: '知识 <span class="version-badge">v2.55.0</span>',
+    s5_label: '05 — 混合搜索', s5_title: '混合搜索',
+    s5_diagram_hint: '结合全文搜索和向量搜索',
+    s5_intro: '混合搜索并行使用两种方法：',
+    s5_fts: '<strong>全文搜索（权重 0.3）</strong>——使用 <code>plainto_tsquery(\'simple\', query)</code> 和 <code>ts_rank()</code> 进行关键词搜索。对精确匹配快速准确',
+    s5_vec: '<strong>向量搜索（权重 0.7）</strong>——对查询进行嵌入，使用 HNSW 索引实现 K 近邻搜索。相似度 = <code>1 - 余弦距离</code>。能捕捉等价语言',
+    s5_fallback: '<strong>降级</strong>——若 Embedding 提供商不可用，使用 100% 全文搜索',
+    s6_label: '06 — 深度可视化', s6_title: '图遍历与深度可视化',
+    s6_highlight: '<strong>这是 v2.47.x 的核心亮点功能。</strong>深度可视化允许用户按层次"探索"图——从一个实体出发，通过关系遍历，发现距离 1、2、3 跳的相关实体。',
+    s6_cte_title: '递归 CTE — 核心所在',
+    s6_cte_intro: '遍历使用 PostgreSQL 递归 CTE 遍历图：',
+    s6_safety_callout: '<strong>安全性：</strong>通过路径数组防止环路。5 秒语句超时防止查询运行过久。最大深度限制为 3 跳。',
+    s6_bidir_callout: '<span class="version-badge">v2.53.0</span> <strong>双向遍历：</strong>通过第二个 UNION ALL 添加反向边（target → source）。关系类型以 <code>~</code> 为前缀（例如 <code>~manages</code>）以区分方向。当实体仅作为目标出现时，可完整发现图。',
+    s6_dialog_callout: '<strong>实体详情对话框</strong>扩展了表格/图形选项卡——图形选项卡将遍历结果渲染为 ReactFlow 可视化。打开对话框时自动遍历。',
+    s6_demo_title: '深度遍历示意',
+    s6_demo_intro: '从"Alice"开始探索关系：',
+    s6_result_intro: '每个遍历结果包含：',
+    s6_result_depth: '<strong>depth</strong> — 从起始实体的跳数距离',
+    s6_result_path: '<strong>path</strong> — 构成 UI 面包屑的实体 ID 数组',
+    s6_result_via: '<strong>via</strong> — 最后一跳经过的关系类型',
+    s6_result_outro: '前端按深度分组展示结果，按实体类型着色，并为每个实体显示面包屑路径。',
+    s7_label: '07 — 去重', s7_title: '去重策略',
+    s7_diagram_hint: '抽取后的去重工作流',
+    s7_threshold_label: '决策阈值',
+    s7_th_threshold: '阈值', s7_th_value: '值', s7_th_action: '操作',
+    s7_auto_merge_action: '自动合并，保留置信度更高的实体',
+    s7_candidate_action: '标记供用户手动审核',
+    s7_skip_action: '非重复项',
+    s7_merge_label: '合并操作',
+    s7_merge_intro: '合并过程在带咨询锁的事务中执行：',
+    s7_merge_1: '确认两个实体在范围内存在',
+    s7_merge_2: '将所有关系从源实体重新指向目标实体',
+    s7_merge_3: '删除重复关系（相同类型和端点）',
+    s7_merge_4: '删除源实体（CASCADE 删除孤立项）',
+    s7_merge_5: '将 kg_dedup_candidates 状态更新为 \'merged\'',
+    s8_label: '08 — React 图可视化', s8_title: '交互式 3D 图演示',
+    s8_hint: '点击节点高亮边（辉光 + 粒子沿边流动）。双击查看详情。拖拽旋转，滚轮缩放。',
+    s8_force_params_title: '力导向布局参数',
+    s8_th_param: '参数', s8_th_value: '值', s8_th_purpose: '目的', s8_th_meaning: '含义',
+    s8_link_dist_desc: '连接节点之间的弹簧距离',
+    s8_spring_desc: '连接节点之间的吸引力',
+    s8_charge_desc: '排斥力——防止重叠',
+    s8_collide_desc: '非重叠区域',
+    s8_limit_desc: 'DOM 性能限制',
+    s8_mass_title: '实体质量（影响大小和排斥力）',
+    mass_org: '最大节点——中心枢纽',
+    mass_project: '大节点——连接多个组件',
+    mass_person: '中等节点——参与者',
+    mass_task: '小节点——具体工作项',
+    mass_others: '辅助节点',
+    s8_adaptive_title: '自适应力参数',
+    s8_degree_title: '度中心性选择',
+    s8_adaptive_intro: '力导向布局根据实际节点数自动调整——小图（&lt;30 节点）更紧凑，大图（60+）更分散：',
+    s8_degree_desc: '此前 API 按 <code>created_at DESC</code> 返回实体——连接数多的旧枢纽节点可能被排除在 GRAPH_LIMIT 之外。现在实体在切片前按连接数（度中心性）排序，确保枢纽节点始终出现在图中。',
+    s8_degree_callout: '<strong>后端说明：</strong>度排名目前在客户端对 API 数据执行。下一步改进：在后端添加 <code>sort=connections</code> 查询参数，使 API 返回连接最多的实体。',
+    s8_theme_title: '主题感知渲染',
+    s8_theme_desc: '图支持实时主题切换。主题变化但数据不变时，仅通过 <code>setNodes</code> 更新节点颜色——不重新布局。数据变化时，通过 <code>computeForceLayout</code> 完整重新布局。',
+    s9_label: '09 — 性能优化', s9_title: 'v2.47.x 中的 10 项性能改进',
+    before_label: '之前', after_label: '之后',
+    p1_title: '1. O(1) 实体查找（通过 Map）',
+    p2_title: '2. 预计算边样式常量',
+    p2_before: '每次渲染创建新的边样式对象 → 平移/缩放时 GC 压力',
+    p2_after: '一次性定义 <code>EDGE_STYLE_DEFAULT</code> 和 <code>EDGE_STYLE_FADED</code> — 零分配',
+    p3_title: '3. EntityNode 记忆化',
+    p3_before: '平移/缩放时重新渲染所有节点',
+    p3_after: '<code>memo(EntityNode)</code> — 仅在数据变化时重渲染，跳过视口交互',
+    p4_title: '4. 力模拟 Tick 上限',
+    p4_before: '无界 tick → 大图 O(n²)',
+    p4_after: '用 <code>Math.ceil(log(n))</code> 限制 tick → O(log n) 收敛',
+    p57_title: '5–7. 其他修复', p57_th_issue: '问题',
+    p5_issue: '双重 fitView（componentDidMount + 手动）', p5_fix: '在 useEffect 中单次调用',
+    p6_issue: '获取 200 个实体，渲染 50 个（浪费 API）', p6_fix: '获取 50 个匹配 GRAPH_LIMIT',
+    p7_issue: '主题切换 O(n×m) 节点查找', p7_fix: '预计算 entityMap — O(n) 总计',
+    p8_title: '8. 延迟对话框打开',
+    p8_before: '节点点击同时触发边重绘 + 对话框挂载 — INP <strong>808ms</strong>',
+    p8_after: '<code>setTimeout(0)</code> 将边重绘与对话框挂载解耦 — INP <strong>&lt;100ms</strong>',
+    p9_title: '9. 关系表格记忆化',
+    p9_before: '渲染完整关系表 — 关系多的实体 INP <strong>792ms</strong>',
+    p9_after: '<code>React.memo</code> + 初始限制 50 行 + "显示全部"按钮 — INP <strong>&lt;100ms</strong>',
+    p10_title: '10. 自适应力参数',
+    p10_before: '固定力参数 — &lt;30 节点图过于分散，大图过于拥挤',
+    p10_after: '根据节点数缩放链接距离、电荷、中心拉力、碰撞半径——任意大小下布局自然',
+    s9_summary_callout: '<strong>总结：</strong>10 项优化聚焦于<em>渲染路径</em>和<em>交互响应性</em>——减少内存分配、减少重渲染、延迟对话框挂载、自适应布局和度排名实体选择。结果：50 节点图以 INP &lt;100ms 流畅渲染。',
+    s10_label: '10 — 多租户', s10_title: '多租户与安全',
+    s10_scope_label: '范围过滤',
+    s10_scope_intro: '所有 KG 查询都按范围过滤：',
+    s10_scope_helper: '<code>scopeClause(ctx, paramIdx)</code> 助手根据上下文自动附加租户过滤器。',
+    s10_sec_label: '安全',
+    s10_sec_1: '<strong>咨询锁</strong>——防止同一智能体上的并发合并操作',
+    s10_sec_2: '<strong>语句超时 5 秒</strong>——防止遍历查询运行过久（图环路、图过大）',
+    s10_sec_3: '<strong>参数化查询</strong>——所有用户输入使用 <code>$1, $2, ...</code>，无字符串拼接',
+    s10_sec_4: '<strong>RBAC</strong>——按角色控制 KG 访问权限（管理员/操作员/查看者）',
+    s11_label: '11 — API 参考', s11_title: 'API 参考',
+    s11_th_purpose: '目的',
+    api_1: '按类型过滤列出/搜索实体',
+    api_2: '实体详情 + 相关关系',
+    api_3: '创建/更新实体',
+    api_4: '删除实体',
+    api_5: '可视化图数据（限制 50+150）',
+    api_6: '从实体进行深度遍历（最多 3 跳）',
+    api_7: 'LLM 抽取 + 内联去重',
+    api_8: '按类型统计实体/关系数量',
+    api_9: '列出待处理去重候选项',
+    api_10: '批量扫描所有实体查找重复项',
+    api_11: '将源实体合并到目标',
+    footer_text: 'GoClaw v2.47.x 知识图谱',
+    footer_back: '← 返回博客',
+  },
+  ja: {
+    eyebrow: 'GoClaw ブログ — v2.47.0 リリース',
+    hero_sub: '会話からセマンティックメモリを構築する — v2.47.x のアーキテクチャ、可視化、パフォーマンス最適化',
+    toc_label: '目次',
+    toc_s1: '1. はじめに', toc_s2: '2. アーキテクチャ', toc_s3: '3. データモデル',
+    toc_s4: '4. エンティティ抽出', toc_s5: '5. ハイブリッド検索', toc_s6: '6. 深度可視化',
+    toc_s7: '7. 重複排除', toc_s8: '8. React グラフ', toc_s9: '9. パフォーマンス', toc_s10: '10. マルチテナント', toc_s11: '11. API リファレンス',
+    s1_label: '01 — はじめに', s1_title: 'GoClaw におけるナレッジグラフとは？',
+    s1_intro: '<strong>GoClaw</strong> は PostgreSQL 上に構築されたマルチテナント AI エージェントゲートウェイです。<strong>ナレッジグラフ（KG）</strong>は <strong>v2.15.0</strong> で導入され、AI エージェントが会話から長期的なセマンティックメモリを構築できるようにします。v2.47.x では<em>深度可視化</em>と<em>パフォーマンス最適化</em>に関する重要な改善をもたらします。',
+    s1_intro2: '個々のチャットスニペットを記憶するだけでなく、エージェントはエンティティ間の<em>関係</em>を理解できます——誰が何をしているか、どのプロジェクトが連携しているか、そしてどのデッドラインが迫っているか。',
+    kpi_1: 'アーキテクチャ層', kpi_2: 'エンティティタイプ', kpi_3: '関係タイプ', kpi_4: 'API エンドポイント', kpi_5: 'パフォーマンス最適化',
+    prereq_label: '使用前の必須設定',
+    prereq_intro: 'ナレッジグラフを使用するには、2 つのコンポーネントを設定する必要があります：',
+    prereq_1: '<strong>エンベッディングプロバイダー &amp; モデル</strong> — KG はセマンティック検索と重複排除のためのベクトルを生成するエンベッディングモデルが必要です。<strong>Dashboard → Settings → Embedding</strong> に移動し、プロバイダー（例：OpenAI、Anthropic）と適切なエンベッディングモデル（例：<code>text-embedding-3-small</code>）を選択してください。エンベッディングなしでは、KG は全文検索のみを使用し、セマンティック検索機能はありません。',
+    prereq_2: '<strong>抽出プロバイダー &amp; モデル</strong> — テキストからエンティティとリレーションを抽出する LLM プロバイダー/モデルを選択する必要があります。この設定は <strong>Dashboard UI</strong> 上にあり、KG ページの右上のダーク/ライトモード切替の隣にある <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M14 17H5"/><path d="M19 7h-9"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg> アイコンです。',
+    s1_layers_intro: 'ナレッジグラフは 3 つの層を通じて機能します：',
+    s1_layer1: '<strong>抽出層</strong> — LLM を使用して会話テキストからエンティティとリレーションを抽出し、信頼度スコアリングを行います',
+    s1_layer2: '<strong>ストレージ層</strong> — pgvector（エンベッディング）、全文検索（FTS）、自動重複排除システムを備えた PostgreSQL',
+    s1_layer3: '<strong>可視化層</strong> — テーマサポート、深度可視化、50 エンティティの DOM パフォーマンス制限を備えた ReactFlow + D3 力指向グラフ',
+    s2_label: '02 — アーキテクチャ', s2_title: 'アーキテクチャ概要',
+    diagram_hint: 'Ctrl/Cmd + ホイールでズーム · ドラッグでパン · ダブルクリックでフィット',
+    s2_flow_title: 'メイン処理フロー',
+    s3_label: '03 — データモデル', s3_title: 'スキーマとエンティティタイプ',
+    s3_entity_types: 'エンティティタイプ',
+    s3_er_hint: 'ER 図 — データベーステーブル間の関係',
+    s3_fields_title: '主要フィールド',
+    field_external_id: '<code>external_id</code> — LLM が割り当てる正規識別子（小文字、ハイフン区切り）。ユニーク制約が同一 agent+user スコープ内での重複を防止',
+    field_confidence: '<code>confidence</code> — 1.0 = 明示的な言及、0.7 = 推論、0.4 = 弱い推論。0.75 未満のエンティティは破棄',
+    field_embedding: '<code>embedding vector(1536)</code> — HNSW インデックスによるセマンティック検索のための pgvector',
+    field_tsv: '<code>tsv tsvector</code> — GIN インデックス付き全文検索ベクトル',
+    field_relation_type: '<code>relation_type</code> — 21 種類の事前定義関係タイプ：<code>works_on</code>、<code>manages</code>、<code>reports_to</code>、<code>depends_on</code>、<code>blocks</code> など',
+    s4_label: '04 — エンティティ抽出', s4_title: 'エンティティ抽出パイプライン',
+    s4_diagram_hint: 'テキストからデータベースへの抽出ワークフロー',
+    s4_steps_title: '各ステップの詳細',
+    chunking_label: 'チャンキング',
+    chunking_desc: '12,000 文字を超えるテキストは段落境界（<code>\\n\\n</code>）で分割されます。各チャンクは独立して抽出され、結果は external_id でマージされます。',
+    llm_label: 'LLM 抽出',
+    llm_desc: '10 種類のエンティティタイプと 21 種類のリレーションタイプを指定する事前定義システムプロンプトを使用します。Temperature = 0 で決定論的な出力を保証。最大トークン数：8192。',
+    json_label: 'JSON サニタイゼーション',
+    json_desc: 'LLM 出力の一般的な JSON エラーを修正：不正な小数（<code>"0. 85"</code> → <code>"0.85"</code>）、末尾のカンマ。文字列値を保持するため、引用符で囲まれた文字列の外側の文字のみを処理。',
+    tx_label: 'トランザクション取り込み',
+    tx_desc: '全か無か：エンティティとリレーションは単一トランザクションでアップサートされます。external_id ユニーク制約が冪等性を保証。アップサート後、<code>name + description</code> からバッチエンベッディングを生成。',
+    s4_rel_types_title: '関係タイプ',
+    rel_th_group: 'グループ', rel_th_type: '関係タイプ',
+    rel_group1: '人物 ↔ 作業', rel_group2: '構造', rel_group3: 'アクション', rel_group4: '場所', rel_group5: 'テクノロジー', rel_group6: 'フォールバック', rel_group7: 'ナレッジ <span class="version-badge">v2.55.0</span>',
+    s5_label: '05 — ハイブリッド検索', s5_title: 'ハイブリッド検索',
+    s5_diagram_hint: '全文検索とベクトル検索の組み合わせ',
+    s5_intro: 'ハイブリッド検索は 2 つの並列メソッドを使用します：',
+    s5_fts: '<strong>全文検索（重み 0.3）</strong> — キーワード検索に <code>plainto_tsquery(\'simple\', query)</code> と <code>ts_rank()</code> を使用。完全一致に対して高速かつ正確',
+    s5_vec: '<strong>ベクトル検索（重み 0.7）</strong> — クエリをエンベッドし、K 近傍探索に HNSW インデックスを使用。類似度 = <code>1 - コサイン距離</code>。同義語を捕捉',
+    s5_fallback: '<strong>フォールバック</strong> — エンベッディングプロバイダーが利用不可の場合、100% 全文検索を使用',
+    s6_label: '06 — 深度可視化', s6_title: 'グラフ探索と深度可視化',
+    s6_highlight: '<strong>これは v2.47.x の目玉機能です。</strong>深度可視化により、ユーザーはグラフを層ごとに「探索」できます——1 つのエンティティから始め、1、2、3 ホップの距離にある関連エンティティを発見するためにリレーションをたどります。',
+    s6_cte_title: '再帰 CTE — コアの仕組み',
+    s6_cte_intro: '探索は PostgreSQL の再帰 CTE を使用してグラフをたどります：',
+    s6_safety_callout: '<strong>安全性：</strong>パス配列によるサイクル防止。5 秒のステートメントタイムアウトが長時間実行クエリを防止。最大深度は 3 ホップに制限。',
+    s6_bidir_callout: '<span class="version-badge">v2.53.0</span> <strong>双方向探索：</strong>2 番目の UNION ALL でリバースエッジ（target → source）を追加。関係タイプに <code>~</code> プレフィックス（例：<code>~manages</code>）で方向を区別。エンティティがターゲットとしてのみ存在する場合のグラフ全体の発見を可能にします。',
+    s6_dialog_callout: '<strong>エンティティ詳細ダイアログ</strong>がテーブル/グラフタブで拡張——グラフタブは探索結果を ReactFlow ビジュアライゼーションとしてレンダリング。ダイアログ表示時に自動探索。',
+    s6_demo_title: '深度探索の図解',
+    s6_demo_intro: '"Alice" から始めてリレーションを探索：',
+    s6_result_intro: '各探索結果には以下が含まれます：',
+    s6_result_depth: '<strong>depth</strong> — 開始エンティティからのホップ数',
+    s6_result_path: '<strong>path</strong> — UI のパンくずを形成するエンティティ ID の配列',
+    s6_result_via: '<strong>via</strong> — 最後のホップで通過した関係タイプ',
+    s6_result_outro: 'フロントエンドは深度ごとに結果をグループ化し、エンティティタイプに応じて色分けし、各エンティティにパンくずパスを表示します。',
+    s7_label: '07 — 重複排除', s7_title: '重複排除戦略',
+    s7_diagram_hint: '抽出後の重複排除ワークフロー',
+    s7_threshold_label: '判定閾値',
+    s7_th_threshold: '閾値', s7_th_value: '値', s7_th_action: 'アクション',
+    s7_auto_merge_action: '自動マージ、信頼度の高いエンティティを保持',
+    s7_candidate_action: 'ユーザーの手動レビュー用にフラグ',
+    s7_skip_action: '重複なし',
+    s7_merge_label: 'マージ操作',
+    s7_merge_intro: 'マージプロセスはアドバイザリーロック付きのトランザクション内で実行されます：',
+    s7_merge_1: '両エンティティがスコープ内に存在することを確認',
+    s7_merge_2: 'すべてのリレーションをソースからターゲットに再指定',
+    s7_merge_3: '重複リレーションを削除（同一タイプとエンドポイント）',
+    s7_merge_4: 'ソースエンティティを削除（CASCADE で孤立項を削除）',
+    s7_merge_5: 'kg_dedup_candidates ステータスを \'merged\' に更新',
+    s8_label: '08 — React グラフ可視化', s8_title: 'インタラクティブ 3D グラフデモ',
+    s8_hint: 'ノードをクリックしてエッジをハイライト（グロー + エッジに沿ったパーティクル）。ダブルクリックで詳細表示。ドラッグで回転、スクロールでズーム。',
+    s8_force_params_title: '力導向レイアウトパラメータ',
+    s8_th_param: 'パラメータ', s8_th_value: '値', s8_th_purpose: '目的', s8_th_meaning: '意味',
+    s8_link_dist_desc: '連結ノード間のバネ距離',
+    s8_spring_desc: '連結ノード間の引力',
+    s8_charge_desc: '斥力 — 重なりを防止',
+    s8_collide_desc: '非重複ゾーン',
+    s8_limit_desc: 'パフォーマンスのための DOM 制限',
+    s8_mass_title: 'エンティティ質量（サイズと斥力に影響）',
+    mass_org: '最大ノード — 中心ハブ',
+    mass_project: '大ノード — 多くのコンポーネントを接続',
+    mass_person: '中ノード — 参加者',
+    mass_task: '小ノード — 具体的な作業項目',
+    mass_others: '補助ノード',
+    s8_adaptive_title: 'アダプティブ力パラメータ',
+    s8_degree_title: '次数中心性選択',
+    s8_adaptive_intro: '力導向レイアウトは実際のノード数に自動的にスケールします——小グラフ（&lt;30 ノード）はより密に、大グラフ（60+）はより広く：',
+    s8_degree_desc: '以前は API が <code>created_at DESC</code> でエンティティを返していました——多くの接続を持つ古いハブノードが GRAPH_LIMIT から除外される可能性がありました。現在はスライス前に接続数（次数中心性）でエンティティをソートし、ハブノードが常にグラフに表示されることを保証します。',
+    s8_degree_callout: '<strong>バックエンドメモ：</strong>現在、次数ランキングは API データに対してクライアントサイドで実行されます。次の改善：バックエンドに <code>sort=connections</code> クエリパラメータを追加して、API が最も接続されたエンティティを返すようにします。',
+    s8_theme_title: 'テーマ対応レンダリング',
+    s8_theme_desc: 'グラフはリアルタイムのテーマ切り替えをサポートします。テーマが変わってもデータが変わらない場合、<code>setNodes</code> でノードの色だけを更新——再レイアウトなし。データが変わる場合は <code>computeForceLayout</code> で完全再レイアウト。',
+    s9_label: '09 — パフォーマンス最適化', s9_title: 'v2.47.x での 10 項目のパフォーマンス改善',
+    before_label: '改善前', after_label: '改善後',
+    p1_title: '1. O(1) エンティティ検索（Map 使用）',
+    p2_title: '2. エッジスタイル定数の事前計算',
+    p2_before: '毎レンダーで新しいエッジスタイルオブジェクトを作成 → パン/ズーム時の GC 負荷',
+    p2_after: '<code>EDGE_STYLE_DEFAULT</code> と <code>EDGE_STYLE_FADED</code> を一度定義 — ゼロ割り当て',
+    p3_title: '3. EntityNode メモ化',
+    p3_before: 'パン/ズーム時にすべてのノードを再レンダー',
+    p3_after: '<code>memo(EntityNode)</code> — データ変更時のみ再レンダー、ビューポート操作をスキップ',
+    p4_title: '4. 力シミュレーションのティック上限',
+    p4_before: '無制限ティック → 大グラフで O(n²)',
+    p4_after: '<code>Math.ceil(log(n))</code> でティックを制限 → O(log n) 収束',
+    p57_title: '5–7. 追加修正', p57_th_issue: '問題',
+    p5_issue: '二重 fitView（componentDidMount + 手動）', p5_fix: 'useEffect で単一呼び出し',
+    p6_issue: '200 エンティティを取得、50 をレンダー（API の無駄）', p6_fix: 'GRAPH_LIMIT に合わせて 50 を取得',
+    p7_issue: 'テーマ変更 O(n×m) ノード検索', p7_fix: 'entityMap を事前計算 — O(n) 合計',
+    p8_title: '8. ダイアログオープンの遅延',
+    p8_before: 'ノードクリックがエッジ再スタイルとダイアログマウントを同時にトリガー — INP <strong>808ms</strong>',
+    p8_after: '<code>setTimeout(0)</code> でエッジ再スタイルとダイアログマウントを分離 — INP <strong>&lt;100ms</strong>',
+    p9_title: '9. RelationsTable のメモ化',
+    p9_before: 'リレーションテーブル全体をレンダー — リレーション数の多いエンティティで INP <strong>792ms</strong>',
+    p9_after: '<code>React.memo</code> + 初期 50 行制限 + "すべて表示"ボタン — INP <strong>&lt;100ms</strong>',
+    p10_title: '10. アダプティブ力パラメータ',
+    p10_before: '固定の力パラメータ — &lt;30 ノードのグラフが疎すぎ、大グラフが密すぎ',
+    p10_after: 'ノード数に応じてリンク距離、電荷、中心引力、衝突半径をスケール — あらゆるサイズで自然なレイアウト',
+    s9_summary_callout: '<strong>まとめ：</strong>10 項目の最適化は<em>レンダリングパス</em>と<em>インタラクション応答性</em>に焦点を当てています——割り当て削減、再レンダー削減、ダイアログマウントの遅延、アダプティブレイアウト、次数ランク付きエンティティ選択。結果：50 ノードのグラフが INP &lt;100ms でスムーズにレンダーされます。',
+    s10_label: '10 — マルチテナント', s10_title: 'マルチテナントとセキュリティ',
+    s10_scope_label: 'スコープフィルタリング',
+    s10_scope_intro: 'すべての KG クエリはスコープでフィルタリングされます：',
+    s10_scope_helper: '<code>scopeClause(ctx, paramIdx)</code> ヘルパーがコンテキストに基づいてテナントフィルターを自動的に追加します。',
+    s10_sec_label: 'セキュリティ',
+    s10_sec_1: '<strong>アドバイザリーロック</strong> — 同一エージェントでの並行マージ操作を防止',
+    s10_sec_2: '<strong>ステートメントタイムアウト 5 秒</strong> — 長時間実行の探索クエリを防止（グラフサイクル、過大グラフ）',
+    s10_sec_3: '<strong>パラメータ化クエリ</strong> — すべてのユーザー入力は <code>$1, $2, ...</code> を使用、文字列連結なし',
+    s10_sec_4: '<strong>RBAC</strong> — ロールによる KG アクセス制御（admin/operator/viewer）',
+    s11_label: '11 — API リファレンス', s11_title: 'API リファレンス',
+    s11_th_purpose: '目的',
+    api_1: 'タイプフィルターでエンティティを一覧/検索',
+    api_2: 'エンティティ詳細 + 関連リレーション',
+    api_3: 'エンティティの作成/更新',
+    api_4: 'エンティティの削除',
+    api_5: '可視化用グラフデータ（制限 50+150）',
+    api_6: 'エンティティからの深度探索（最大 3 ホップ）',
+    api_7: 'LLM 抽出 + インライン重複排除',
+    api_8: 'タイプ別エンティティ/リレーション数',
+    api_9: '保留中の重複排除候補を一覧',
+    api_10: '重複を探すための全エンティティ一括スキャン',
+    api_11: 'ソースエンティティをターゲットにマージ',
+    footer_text: 'GoClaw v2.47.x ナレッジグラフ',
+    footer_back: '← ブログに戻る',
+  }
+};
+
+let currentLang = 'vi';
+
+function setLang(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    const val = T[lang]?.[key];
+    if (val !== undefined) {
+      el.innerHTML = val;
     }
-
-    document.querySelectorAll('.lang-btn').forEach(function(b) {
-      b.addEventListener('click', function() { setLang(b.dataset.lang); });
-    });
-
-    // Detect locale from URL path prefix (/en/posts/..., /zh/posts/..., /ja/posts/...)
-    var pathParts = window.location.pathname.split('/');
-    var pathLang = pathParts[1];
-    if (['en', 'zh', 'ja'].indexOf(pathLang) >= 0) {
-      setLang(pathLang);
-    }
-
-    // Also support ?lang= query param (legacy)
-    var urlLang = new URLSearchParams(window.location.search).get('lang');
-    if (urlLang && ['vi', 'en', 'zh', 'ja'].indexOf(urlLang) >= 0) {
-      setLang(urlLang);
-    }
-
-    // Scroll reveal
-    var obs = new IntersectionObserver(function(es) {
-      es.forEach(function(e) {
-        if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
-      });
-    }, { threshold: 0.15 });
-    document.querySelectorAll('.reveal').forEach(function(el) { obs.observe(el); });
   });
+  // Update home links to preserve locale
+  const homeHref = lang === 'vi' ? '/' : '/' + lang;
+  document.querySelectorAll('a[href="/"], a[href="/en"], a[href="/zh"], a[href="/ja"], a[href="/en/"], a[href="/zh/"], a[href="/ja/"]').forEach(a => a.href = homeHref);
+}
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const lang = btn.dataset.lang;
+    // Navigate to locale URL so back-navigation preserves lang
+    const slug = window.location.pathname.replace(/^\/(en|zh|ja)\//, '/').replace(/^\//, '');
+    const newPath = lang === 'vi' ? '/' + slug : '/' + lang + '/' + slug;
+    if (window.location.pathname !== newPath) {
+      window.location.href = newPath;
+    } else {
+      setLang(lang);
+    }
+  });
+});
+
+// Detect lang from URL path (e.g. /en/posts/...) or query param (?lang=xx)
+const pathMatch = window.location.pathname.match(/^\/(en|zh|ja)\//);
+const urlLang = new URLSearchParams(window.location.search).get('lang');
+const detectedLang = urlLang || (pathMatch && pathMatch[1]) || null;
+if (detectedLang && ['vi','en','zh','ja'].includes(detectedLang)) setLang(detectedLang);
 </script>
 
 </body>

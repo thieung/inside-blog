@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoClaw — Self-Evolution Engine</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ─── Design Tokens ─── */
+:root {
+  --font-body: 'Geist', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', 'SF Mono', Consolas, monospace;
+  --bg:          #0b0a0f;
+  --bg-alt:      #100f16;
+  --surface:     #16141f;
+  --surface2:    #1c192a;
+  --surface3:    #221f33;
+  --border:      rgba(255,255,255,0.06);
+  --border-hi:   rgba(255,255,255,0.11);
+  --text:        #b0a8c8;
+  --text-dim:    #524870;
+  --text-bright: #e0d8f4;
+  --text-hi:     #f4f0ff;
+  /* amber — primary accent */
+  --accent:      #f59e0b;
+  --accent-dim:  rgba(245,158,11,0.08);
+  --accent-hi:   #fbbf24;
+  --accent-glow: rgba(245,158,11,0.18);
+  /* violet — skill layer */
+  --violet:      #a78bfa;
+  --violet-dim:  rgba(167,139,250,0.08);
+  --violet-hi:   #c4b5fd;
+  --violet-glow: rgba(167,139,250,0.15);
+  /* rose — metrics layer */
+  --rose:        #fb7185;
+  --rose-dim:    rgba(251,113,133,0.08);
+  /* green — safe/verified */
+  --green:       #34d399;
+  --green-dim:   rgba(52,211,153,0.08);
+  --teal:        #2dd4bf;
+  --teal-dim:    rgba(45,212,191,0.08);
+  --red:         #f87171;
+  --red-dim:     rgba(248,113,113,0.08);
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 20px;
+}
+[data-theme="light"] {
+  --bg: #f5f3ff; --bg-alt: #ede9fb; --surface: #ffffff; --surface2: #f0ecfa; --surface3: #e4dff5;
+  --border: rgba(0,0,0,0.07); --border-hi: rgba(0,0,0,0.12);
+  --text: #3b3455; --text-dim: #7a6e94; --text-bright: #1e1830; --text-hi: #0f0c1e;
+  --accent: #d97706; --accent-dim: rgba(217,119,6,0.08); --accent-hi: #b45309; --accent-glow: rgba(217,119,6,0.1);
+  --violet: #7c3aed; --violet-dim: rgba(124,58,237,0.08); --violet-hi: #6d28d9; --violet-glow: rgba(124,58,237,0.1);
+  --rose: #e11d48; --rose-dim: rgba(225,29,72,0.08);
+  --green: #059669; --green-dim: rgba(5,150,105,0.08);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-body); background: var(--bg); color: var(--text); line-height: 1.7; min-height: 100dvh; -webkit-font-smoothing: antialiased; }
+
+/* grain overlay */
+body::after { content:''; position:fixed; inset:0; z-index:9999; pointer-events:none; opacity:0.018;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.15'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+[data-theme="light"] body::after { opacity:0.04; }
+
+/* ─── Nav buttons ─── */
+.fixed-nav { position:fixed; top:16px; right:16px; z-index:600; display:flex; gap:6px; }
+.nav-btn { width:36px; height:36px; border-radius:var(--radius-sm); border:1px solid var(--border-hi);
+  background:color-mix(in srgb, var(--surface) 85%, transparent); backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px); color:var(--text-dim); cursor:pointer; display:flex;
+  align-items:center; justify-content:center; font-size:15px; transition:background .15s, color .15s;
+  text-decoration:none; font-family:var(--font-body); }
+.nav-btn:hover { background:var(--surface3); color:var(--text-bright); }
+
+/* ─── Hero ─── */
+.hero-band { min-height:58dvh; display:flex; flex-direction:column; justify-content:center;
+  padding:80px 32px 52px; position:relative; background:var(--bg-alt);
+  border-bottom:1px solid var(--border); overflow:hidden; }
+
+/* DNA helix decorative rings */
+.hero-dna { position:absolute; right:60px; top:50%; transform:translateY(-50%); width:220px; height:280px; pointer-events:none; }
+.dna-strand { position:absolute; inset:0; }
+.dna-node { position:absolute; border-radius:50%; }
+.dna-node.amber { background:color-mix(in srgb, var(--accent) 22%, transparent); }
+.dna-node.violet { background:color-mix(in srgb, var(--violet) 18%, transparent); }
+.dna-node.rose { background:color-mix(in srgb, var(--rose) 15%, transparent); }
+.dna-line { position:absolute; height:1px; background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 25%, transparent), color-mix(in srgb, var(--violet) 20%, transparent)); transform-origin:left center; }
+
+.hero-inner { max-width:900px; margin:0 auto; width:100%; position:relative; z-index:2; }
+.post-eyebrow { font-family:var(--font-mono); font-size:11px; font-weight:500; letter-spacing:2.5px;
+  text-transform:uppercase; color:var(--accent); margin-bottom:24px; display:inline-flex;
+  align-items:center; gap:10px; padding:5px 14px; border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-radius:var(--radius-sm); background:var(--accent-dim); }
+.post-eyebrow::before { content:'◈'; font-size:9px; flex-shrink:0; }
+.post-title { font-size:clamp(2rem, 4vw, 3.2rem); font-weight:700; color:var(--text-hi);
+  letter-spacing:-0.04em; line-height:1.08; max-width:780px; margin-bottom:20px; }
+.post-title em { color:var(--accent); font-style:normal; }
+.post-title .vi { color:var(--violet); font-style:normal; }
+.post-deck { font-size:1.1rem; color:var(--text-dim); max-width:600px; line-height:1.65;
+  font-weight:400; margin-bottom:28px; }
+.post-meta { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.meta-tag { font-family:var(--font-mono); font-size:10px; letter-spacing:.5px; padding:3px 10px;
+  border-radius:var(--radius-sm); border:1px solid var(--border-hi); color:var(--text-dim); background:var(--surface); }
+.meta-tag--amber { border-color:color-mix(in srgb, var(--accent) 35%, transparent); color:var(--accent); background:var(--accent-dim); }
+.meta-tag--violet { border-color:color-mix(in srgb, var(--violet) 35%, transparent); color:var(--violet); background:var(--violet-dim); }
+
+/* ─── TOC ─── */
+.toc-bar { position:sticky; top:0; z-index:200; display:flex; gap:2px; align-items:center;
+  justify-content:center; overflow-x:auto; -webkit-overflow-scrolling:touch;
+  background:color-mix(in srgb, var(--bg-alt) 88%, transparent); backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--border); padding:10px 32px; }
+.toc-bar::-webkit-scrollbar { display:none; }
+.toc-label { font-family:var(--font-mono); font-size:9px; font-weight:600; letter-spacing:2px;
+  text-transform:uppercase; color:var(--text-dim); white-space:nowrap; flex-shrink:0;
+  padding-right:10px; margin-right:6px; border-right:1px solid var(--border); }
+.toc-link { display:block; font-size:11px; color:var(--text-dim); text-decoration:none;
+  padding:4px 9px; border-radius:var(--radius-sm); transition:all .15s; white-space:nowrap;
+  flex-shrink:0; font-weight:400; }
+.toc-link:hover { color:var(--text); background:var(--surface2); }
+.toc-link.active { color:var(--accent-hi); background:var(--accent-dim); font-weight:600; }
+
+/* ─── Sections ─── */
+.section-band { width:100%; padding:52px 32px; border-bottom:1px solid var(--border); }
+.section-band:nth-child(odd) { background:var(--bg); }
+.section-band:nth-child(even) { background:var(--bg-alt); }
+.section-band .band-inner { max-width:900px; margin:0 auto; }
+.sec-label { font-family:var(--font-mono); font-size:10px; font-weight:500; letter-spacing:2px;
+  text-transform:uppercase; color:var(--accent); display:flex; align-items:center; gap:10px;
+  margin:0 0 6px; scroll-margin-top:56px; }
+.sec-label::before { content:'◈'; color:var(--text-dim); font-size:8px; flex-shrink:0; }
+.sec-label.violet { color:var(--violet); }
+.sec-label.rose { color:var(--rose); }
+h2.sec-title { font-size:1.55rem; font-weight:700; color:var(--text-bright); letter-spacing:-0.025em;
+  margin-bottom:18px; line-height:1.2; }
+h3 { font-size:1.05rem; font-weight:600; color:var(--text-bright); margin:28px 0 10px; letter-spacing:-0.01em; }
+p { margin-bottom:14px; font-size:15px; }
+strong { color:var(--text-bright); font-weight:600; }
+code { font-family:var(--font-mono); font-size:.84em; background:var(--surface2);
+  color:var(--accent-hi); padding:2px 7px; border-radius:3px; border:1px solid var(--border); }
+
+/* ─── Three Tiers Overview ─── */
+.three-tiers { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border);
+  border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; margin:24px 0; }
+.tier-card { background:var(--surface); padding:22px 18px; }
+.tier-icon { font-size:1.8rem; margin-bottom:10px; }
+.tier-name { font-family:var(--font-mono); font-size:11px; font-weight:700; letter-spacing:1.5px;
+  text-transform:uppercase; margin-bottom:6px; }
+.tier-name.amber { color:var(--accent); }
+.tier-name.violet { color:var(--violet); }
+.tier-name.rose { color:var(--rose); }
+.tier-goal { font-size:12.5px; color:var(--text-dim); line-height:1.5; margin-bottom:10px; }
+.tier-badge { display:inline-block; font-family:var(--font-mono); font-size:10px; padding:3px 8px;
+  border-radius:var(--radius-sm); }
+.tier-badge.amber { background:var(--accent-dim); color:var(--accent); border:1px solid color-mix(in srgb,var(--accent) 25%,transparent); }
+.tier-badge.violet { background:var(--violet-dim); color:var(--violet); border:1px solid color-mix(in srgb,var(--violet) 25%,transparent); }
+.tier-badge.rose { background:var(--rose-dim); color:var(--rose); border:1px solid color-mix(in srgb,var(--rose) 25%,transparent); }
+
+/* ─── Code File ─── */
+.code-file { border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin:14px 0 22px; }
+.code-file__header { display:flex; align-items:center; gap:8px; padding:10px 16px;
+  background:var(--surface2); border-bottom:1px solid var(--border);
+  font-family:var(--font-mono); font-size:11px; color:var(--text-dim); }
+.code-file__header::before { content:'▸'; color:var(--accent); font-size:10px; flex-shrink:0; }
+.code-file__body { font-family:var(--font-mono); font-size:12.5px; line-height:1.65; padding:16px;
+  background:var(--surface); white-space:pre-wrap; word-break:break-word;
+  max-height:480px; overflow:auto; color:var(--text); scrollbar-width:thin;
+  scrollbar-color:var(--surface3) transparent; }
+.code-file__body::-webkit-scrollbar { width:5px; height:5px; }
+.code-file__body::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:3px; }
+
+/* ─── Cards ─── */
+.card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md);
+  padding:18px 22px; margin-bottom:14px; }
+.card--amber { border-left:3px solid var(--accent); }
+.card--violet { border-left:3px solid var(--violet); }
+.card--rose { border-left:3px solid var(--rose); }
+.card--green { border-left:3px solid var(--green); }
+.card--red { border-left:3px solid var(--red); }
+.card-label { font-family:var(--font-mono); font-size:10px; font-weight:600; letter-spacing:1.5px;
+  text-transform:uppercase; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+.card-label::before { content:'▹'; font-size:9px; opacity:.5; flex-shrink:0; }
+.card-label.amber { color:var(--accent); }
+.card-label.violet { color:var(--violet); }
+.card-label.rose { color:var(--rose); }
+.card-label.green { color:var(--green); }
+.card-label.red { color:var(--red); }
+
+/* ─── Tables ─── */
+.table-wrap { overflow-x:auto; margin:12px 0 22px; }
+.data-table { width:100%; border-collapse:collapse; font-size:13.5px; }
+.data-table th { font-family:var(--font-mono); font-size:10px; text-transform:uppercase;
+  letter-spacing:1.5px; color:var(--text-dim); text-align:left; padding:10px 14px;
+  border-bottom:1px solid var(--border-hi); background:var(--surface2); }
+.data-table td { padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:top; }
+.data-table tr:last-child td { border-bottom:none; }
+.data-table tr:hover td { background:var(--surface2); }
+.data-table td:first-child { font-weight:600; color:var(--text-bright); white-space:nowrap; }
+
+/* ─── Flow Diagram ─── */
+.flow-diagram { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+  padding:28px 20px; margin:18px 0 24px; position:relative; overflow:hidden; }
+.flow-diagram::before { content:''; position:absolute; top:-40px; right:-40px; width:150px; height:150px;
+  background:radial-gradient(circle, var(--accent-glow), transparent 70%); pointer-events:none; }
+.flow-label { font-family:var(--font-mono); font-size:10px; letter-spacing:2px;
+  text-transform:uppercase; color:var(--text-dim); margin-bottom:20px; text-align:center; }
+.flow-col { display:flex; flex-direction:column; align-items:center; gap:0; }
+.flow-node { padding:9px 18px; border-radius:var(--radius-md); font-family:var(--font-mono);
+  font-size:12px; text-align:center; white-space:nowrap; }
+.flow-node--neutral { background:var(--surface2); border:1px solid var(--border-hi); color:var(--text); }
+.flow-node--amber { background:var(--accent-dim); border:1px solid color-mix(in srgb,var(--accent) 28%,transparent); color:var(--accent); }
+.flow-node--violet { background:var(--violet-dim); border:1px solid color-mix(in srgb,var(--violet) 28%,transparent); color:var(--violet); }
+.flow-node--rose { background:var(--rose-dim); border:1px solid color-mix(in srgb,var(--rose) 28%,transparent); color:var(--rose); }
+.flow-node--green { background:var(--green-dim); border:1px solid color-mix(in srgb,var(--green) 28%,transparent); color:var(--green); }
+.flow-arrow { display:flex; align-items:center; justify-content:center; color:var(--text-dim);
+  font-size:16px; height:26px; }
+.flow-row { display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
+.flow-branch { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:4px 0; }
+.flow-branch-item { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.flow-branch-label { font-family:var(--font-mono); font-size:10px; color:var(--text-dim); }
+
+/* ─── Layer Guards Table ─── */
+.guard-layers { display:flex; flex-direction:column; gap:0; margin:16px 0 22px; }
+.guard-layer { display:flex; align-items:stretch; border:1px solid var(--border);
+  border-radius:var(--radius-sm); overflow:hidden; margin-bottom:8px; }
+.guard-layer__num { width:44px; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-mono); font-size:14px; font-weight:700; color:var(--accent);
+  background:var(--accent-dim); border-right:1px solid color-mix(in srgb,var(--accent) 20%,transparent);
+  flex-shrink:0; }
+.guard-layer__body { padding:12px 16px; flex:1; }
+.guard-layer__name { font-size:13px; font-weight:600; color:var(--text-bright); margin-bottom:2px; }
+.guard-layer__desc { font-size:13px; color:var(--text-dim); }
+
+/* ─── Nudge Timeline ─── */
+.nudge-timeline { display:flex; flex-direction:column; gap:0; margin:16px 0 20px; }
+.nudge-item { display:flex; align-items:flex-start; gap:16px; position:relative;
+  padding:12px 0 12px 56px; }
+.nudge-item::before { content:attr(data-pct); position:absolute; left:0; top:12px;
+  width:42px; height:34px; border-radius:var(--radius-sm); display:flex; align-items:center;
+  justify-content:center; font-family:var(--font-mono); font-size:11px; font-weight:700;
+  border:1px solid var(--accent); color:var(--accent); background:var(--accent-dim); }
+.nudge-item:not(:last-child)::after { content:''; position:absolute; left:20px; top:46px;
+  bottom:0; width:1px; background:var(--border-hi); }
+.nudge-item__content { padding:8px 14px; border-radius:var(--radius-sm); border:1px solid var(--border);
+  background:var(--surface); flex:1; font-family:var(--font-mono); font-size:12.5px;
+  color:var(--text-dim); font-style:italic; line-height:1.6; }
+
+/* ─── Token Cost Table ─── */
+.token-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border);
+  border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; margin:20px 0; }
+.token-cell { background:var(--surface); padding:14px 10px; text-align:center; }
+.token-val { font-family:var(--font-mono); font-size:1.4rem; font-weight:700;
+  color:var(--text-bright); line-height:1; margin-bottom:4px; }
+.token-val.amber { color:var(--accent); }
+.token-val.violet { color:var(--violet); }
+.token-lbl { font-family:var(--font-mono); font-size:9px; text-transform:uppercase;
+  letter-spacing:1.5px; color:var(--text-dim); }
+
+/* ─── Rules Cards ─── */
+.rules-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:18px 0 22px; }
+.rule-card { background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-md); padding:18px 16px; }
+.rule-card__icon { font-size:1.5rem; margin-bottom:10px; }
+.rule-card__name { font-family:var(--font-mono); font-size:11px; font-weight:700;
+  letter-spacing:1px; color:var(--rose); margin-bottom:6px; text-transform:uppercase; }
+.rule-card__trigger { font-size:12.5px; color:var(--text-dim); margin-bottom:8px; line-height:1.5; }
+.rule-card__action { font-size:12px; color:var(--text); padding:7px 10px;
+  background:var(--rose-dim); border-radius:var(--radius-sm);
+  border:1px solid color-mix(in srgb,var(--rose) 20%,transparent); }
+
+/* ─── Callout ─── */
+.callout { border:1px solid var(--border); border-top:2px solid var(--accent); padding:14px 18px;
+  background:var(--surface); border-radius:0 0 var(--radius-md) var(--radius-md);
+  margin:14px 0 20px; font-size:14px; }
+.callout.violet { border-top-color:var(--violet); }
+.callout.rose { border-top-color:var(--rose); }
+.callout strong { color:var(--accent-hi); }
+.callout.violet strong { color:var(--violet-hi); }
+
+/* ─── Feedback Loop ─── */
+.feedback-loop { background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-xl); padding:32px 24px; margin:20px 0 24px;
+  position:relative; overflow:hidden; }
+.feedback-loop::after { content:''; position:absolute; bottom:-60px; left:-60px; width:160px; height:160px;
+  background:radial-gradient(circle, var(--violet-glow), transparent 70%); pointer-events:none; }
+.fl-label { font-family:var(--font-mono); font-size:10px; letter-spacing:2px;
+  text-transform:uppercase; color:var(--text-dim); text-align:center; margin-bottom:24px; }
+.fl-circles { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.fl-circle { text-align:center; padding:20px 12px; border-radius:var(--radius-lg);
+  border:1px solid var(--border); position:relative; }
+.fl-circle.amber { background:color-mix(in srgb,var(--accent-dim) 60%,transparent); border-color:color-mix(in srgb,var(--accent) 20%,transparent); }
+.fl-circle.violet { background:color-mix(in srgb,var(--violet-dim) 60%,transparent); border-color:color-mix(in srgb,var(--violet) 20%,transparent); }
+.fl-circle.rose { background:color-mix(in srgb,var(--rose-dim) 60%,transparent); border-color:color-mix(in srgb,var(--rose) 20%,transparent); }
+.fl-circle__level { font-family:var(--font-mono); font-size:10px; letter-spacing:1.5px;
+  text-transform:uppercase; margin-bottom:8px; }
+.fl-circle.amber .fl-circle__level { color:var(--accent); }
+.fl-circle.violet .fl-circle__level { color:var(--violet); }
+.fl-circle.rose .fl-circle__level { color:var(--rose); }
+.fl-circle__title { font-size:13px; font-weight:600; color:var(--text-bright); margin-bottom:6px; }
+.fl-circle__desc { font-size:12px; color:var(--text-dim); line-height:1.5; }
+
+/* ─── File Ref table compact ─── */
+.file-ref-list { display:flex; flex-direction:column; gap:6px; margin:14px 0 20px; }
+.file-ref { display:flex; align-items:baseline; gap:12px; padding:8px 14px;
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); }
+.file-ref__path { font-family:var(--font-mono); font-size:11.5px; color:var(--accent-hi);
+  flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:55%; }
+.file-ref__role { font-size:12.5px; color:var(--text-dim); }
+
+/* ─── Getting started ─── */
+.gs-steps { counter-reset:gs; margin:20px 0; }
+.gs-step { position:relative; padding:18px 22px 18px 64px; background:var(--surface);
+  border:1px solid var(--border); border-radius:var(--radius-md); margin-bottom:10px;
+  counter-increment:gs; }
+.gs-step::before { content:counter(gs); position:absolute; left:16px; top:18px;
+  width:32px; height:32px; border-radius:50%; display:flex; align-items:center;
+  justify-content:center; font-family:var(--font-mono); font-size:14px; font-weight:700;
+  background:var(--accent-dim); color:var(--accent);
+  border:1px solid color-mix(in srgb,var(--accent) 25%,transparent); }
+.gs-step h4 { font-size:14px; font-weight:600; color:var(--text-bright); margin-bottom:5px; }
+.gs-step p { margin:0; font-size:14px; }
+
+ul, ol { padding-left:22px; margin-bottom:14px; }
+li { margin-bottom:6px; font-size:14.5px; }
+
+/* ─── Footer ─── */
+.footer-band { padding:48px 32px; background:var(--bg-alt); border-top:1px solid var(--border); text-align:center; }
+.footer-text { font-size:1.05rem; color:var(--text-dim); max-width:600px; margin:0 auto 12px; line-height:1.5; }
+.footer-text em { color:var(--accent); font-style:normal; font-weight:600; }
+.footer-ver { font-family:var(--font-mono); font-size:11px; color:var(--text-dim); opacity:.5; }
+.footer-back { display:inline-block; margin-top:16px; font-family:var(--font-mono); font-size:12px;
+  color:var(--text-dim); text-decoration:none; padding:6px 14px; border:1px solid var(--border-hi);
+  border-radius:var(--radius-sm); transition:all .15s; }
+.footer-back:hover { color:var(--accent); border-color:color-mix(in srgb,var(--accent) 30%,transparent); }
+
+.reveal { opacity:0; transform:translateY(18px); transition:opacity .6s ease, transform .6s ease; }
+.reveal.visible { opacity:1; transform:translateY(0); }
+
+@media (max-width:900px) { .three-tiers { grid-template-columns:1fr; } .token-grid { grid-template-columns:repeat(2,1fr); } .rules-grid { grid-template-columns:1fr; } .fl-circles { grid-template-columns:1fr; } }
+@media (max-width:640px) {
+  .hero-band { min-height:auto; padding:56px 16px 32px; }
+  .hero-dna { display:none; }
+  .section-band { padding:36px 16px; }
+  .toc-bar { padding:8px 12px; justify-content:flex-start; }
+  .toc-label { display:none; }
+  .pain-strip, .three-tiers { grid-template-columns:1fr; }
+  .flow-branch { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Fixed Nav -->
+<nav class="fixed-nav">
+  <a class="nav-btn" href="/" aria-label="Home" id="home-btn">←</a>
+  <button class="nav-btn" id="theme-btn" aria-label="Toggle theme">◐</button>
+</nav>
+
+<!-- Hero -->
+<header class="hero-band">
+  <!-- DNA helix decoration -->
+  <div class="hero-dna" aria-hidden="true">
+    <div class="dna-strand">
+      <div class="dna-node amber" style="width:18px;height:18px;top:10%;left:20%"></div>
+      <div class="dna-node violet" style="width:14px;height:14px;top:10%;right:20%"></div>
+      <div class="dna-line" style="top:calc(10% + 7px);left:calc(20% + 18px);width:42%;transform:rotate(2deg)"></div>
+      <div class="dna-node rose" style="width:12px;height:12px;top:23%;left:45%"></div>
+      <div class="dna-node amber" style="width:16px;height:16px;top:35%;left:15%"></div>
+      <div class="dna-node violet" style="width:18px;height:18px;top:35%;right:15%"></div>
+      <div class="dna-line" style="top:calc(35% + 7px);left:calc(15% + 16px);width:52%;transform:rotate(-3deg)"></div>
+      <div class="dna-node rose" style="width:14px;height:14px;top:48%;left:40%"></div>
+      <div class="dna-node violet" style="width:12px;height:12px;top:60%;left:18%"></div>
+      <div class="dna-node amber" style="width:16px;height:16px;top:60%;right:18%"></div>
+      <div class="dna-line" style="top:calc(60% + 6px);left:calc(18% + 12px);width:48%;transform:rotate(4deg)"></div>
+      <div class="dna-node rose" style="width:10px;height:10px;top:73%;left:42%"></div>
+      <div class="dna-node amber" style="width:14px;height:14px;top:85%;left:22%"></div>
+      <div class="dna-node violet" style="width:12px;height:12px;top:85%;right:22%"></div>
+      <div class="dna-line" style="top:calc(85% + 6px);left:calc(22% + 14px);width:40%;transform:rotate(-2deg)"></div>
+    </div>
+  </div>
+
+  <div class="hero-inner">
+    <div class="post-eyebrow" data-i18n="eyebrow">GoClaw — AI Infrastructure</div>
+    <h1 class="post-title">
+      <em data-i18n="title_em">Self-Evolution Engine</em><br>
+      <span class="vi" data-i18n="title_vi">Hệ thống tự tiến hóa</span>
+    </h1>
+    <p class="post-deck" data-i18n="deck">Ba vòng phản hồi khép kín: agent tinh chỉnh phong cách giao tiếp, đóng gói workflow thành skill, và metrics hệ thống liên tục đề xuất cải tiến.</p>
+    <div class="post-meta">
+      <span class="meta-tag meta-tag--amber" data-i18n="tag1">Self-Evolve</span>
+      <span class="meta-tag meta-tag--violet" data-i18n="tag2">Skill Learning</span>
+      <span class="meta-tag" data-i18n="tag3">Metrics Engine</span>
+      <span class="meta-tag" data-i18n="tag4">GoClaw</span>
+    </div>
+  </div>
+</header>
+
+<!-- TOC -->
+<nav class="toc-bar" aria-label="Table of contents">
+  <span class="toc-label">TOC</span>
+  <a class="toc-link" href="#s01" data-i18n="toc01">01 Vấn đề</a>
+  <a class="toc-link" href="#s02" data-i18n="toc02">02 SOUL.md</a>
+  <a class="toc-link" href="#s03" data-i18n="toc03">03 Skill Loop</a>
+  <a class="toc-link" href="#s04" data-i18n="toc04">04 Nudges</a>
+  <a class="toc-link" href="#s05" data-i18n="toc05">05 Metrics</a>
+  <a class="toc-link" href="#s06" data-i18n="toc06">06 Guardrails</a>
+  <a class="toc-link" href="#s07" data-i18n="toc07">07 Bảo mật</a>
+  <a class="toc-link" href="#s08" data-i18n="toc08">08 Grants</a>
+  <a class="toc-link" href="#s09" data-i18n="toc09">09 Token</a>
+  <a class="toc-link" href="#s10" data-i18n="toc10">10 Config</a>
+  <a class="toc-link" href="#s11" data-i18n="toc11">11 Kết luận</a>
+</nav>
+
+<!-- S01 — Problem -->
+<section class="section-band" id="s01">
+  <div class="band-inner reveal">
+    <p class="sec-label" data-i18n="s01_label">01 — Vấn đề</p>
+    <h2 class="sec-title" data-i18n="s01_title">Agent truyền thống không thể cải thiện</h2>
+    <p data-i18n="s01_intro">Hầu hết AI agent hoạt động theo vòng lặp cố định: nhận input → suy nghĩ → trả lời. Khi workflow phức tạp lặp lại, agent vẫn phải "học lại từ đầu" mỗi lượt — không nhớ rằng mình đã làm điều này hàng chục lần trước.</p>
+
+    <div class="three-tiers">
+      <div class="tier-card">
+        <div class="tier-icon">🗣️</div>
+        <div class="tier-name amber" data-i18n="tier1_name">Self-Evolution</div>
+        <div class="tier-goal" data-i18n="tier1_goal">Điều chỉnh phong cách giao tiếp theo thời gian qua SOUL.md</div>
+        <span class="tier-badge amber" data-i18n="tier1_scope">Conversation-level</span>
+      </div>
+      <div class="tier-card">
+        <div class="tier-icon">🔧</div>
+        <div class="tier-name violet" data-i18n="tier2_name">Skill Learning</div>
+        <div class="tier-goal" data-i18n="tier2_goal">Đóng gói workflow lặp lại thành skill tái sử dụng</div>
+        <span class="tier-badge violet" data-i18n="tier2_scope">Session-level</span>
+      </div>
+      <div class="tier-card">
+        <div class="tier-icon">📊</div>
+        <div class="tier-name rose" data-i18n="tier3_name">Metrics Engine</div>
+        <div class="tier-goal" data-i18n="tier3_goal">Cron job phân tích 7-day metrics, đề xuất cải tiến tham số</div>
+        <span class="tier-badge rose" data-i18n="tier3_scope">System-level</span>
+      </div>
+    </div>
+
+    <p data-i18n="s01_missing">Không có cơ chế nào để: <strong data-i18n="s01_m1">nhớ pattern</strong> (workflow nào hiệu quả, tool nào hay fail), <strong data-i18n="s01_m2">phản ánh</strong> (nhận ra sự lặp lại và đóng gói), <strong data-i18n="s01_m3">thích nghi</strong> (điều chỉnh hành vi dựa trên feedback thực tế). GoClaw giải quyết từng bài toán bằng một cơ chế riêng biệt.</p>
+  </div>
+</section>
+
+<!-- S02 — SOUL.md -->
+<section class="section-band" id="s02">
+  <div class="band-inner reveal">
+    <p class="sec-label" data-i18n="s02_label">02 — Tầng 1: Self-Evolution</p>
+    <h2 class="sec-title" data-i18n="s02_title">SOUL.md — Tiến hóa phong cách giao tiếp</h2>
+
+    <p data-i18n="s02_intro">Mỗi predefined agent có file <code>SOUL.md</code> định nghĩa tone, giọng văn, cách phản hồi. Khi <code>self_evolve = true</code>, agent được phép tự cập nhật file này — dùng chính <code>write_file</code> tool vốn có, được intercepted bởi <code>ContextFileInterceptor</code> để route vào PostgreSQL.</p>
+
+    <h3 data-i18n="s02_limits_h">Giới hạn an toàn — CAN / MUST NOT</h3>
+
+    <div class="code-file">
+      <div class="code-file__header">internal/agent/systemprompt.go — buildSelfEvolveSection()</div>
+      <div class="code-file__body">You may update SOUL.md to refine communication style (tone, voice, vocabulary, response style).
+
+What you CAN evolve:
+- Tone, voice, and manner of speaking
+- Response style and formatting preferences
+- Vocabulary and phrasing patterns
+- Interaction patterns based on user feedback
+
+What you MUST NOT change:
+- Your name, identity, or contact information
+- Your core purpose or role
+- Any content in IDENTITY.md or AGENTS.md (these remain locked)</div>
+    </div>
+
+    <h3 data-i18n="s02_enforce_h">Enforcement ở 3 tầng</h3>
+    <div class="guard-layers">
+      <div class="guard-layer">
+        <div class="guard-layer__num">1</div>
+        <div class="guard-layer__body">
+          <div class="guard-layer__name" data-i18n="gl1_name">System Prompt</div>
+          <div class="guard-layer__desc"><code>systemprompt.go</code> — <span data-i18n="gl1_desc">CAN/MUST NOT guidance inject khi mỗi request</span></div>
+        </div>
+      </div>
+      <div class="guard-layer">
+        <div class="guard-layer__num">2</div>
+        <div class="guard-layer__body">
+          <div class="guard-layer__name" data-i18n="gl2_name">Context File Interceptor</div>
+          <div class="guard-layer__desc"><code>context_file_interceptor.go</code> — <span data-i18n="gl2_desc">Chỉ SOUL.md và CAPABILITIES.md mới writable</span></div>
+        </div>
+      </div>
+      <div class="guard-layer">
+        <div class="guard-layer__num">3</div>
+        <div class="guard-layer__body">
+          <div class="guard-layer__name" data-i18n="gl3_name">File Locking</div>
+          <div class="guard-layer__desc" data-i18n="gl3_desc">IDENTITY.md, AGENTS.md luôn read-only — không thể sửa qua bất kỳ path nào</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong data-i18n="s02_note_h">Lưu ý:</strong> <span data-i18n="s02_note">Agent chỉ có thể thay đổi <em>cách</em> nó nói chuyện, không thể thay đổi <em>nó là ai</em>. Chi phí token: ~95 tokens/request. Chỉ áp dụng với predefined agents.</span>
+    </div>
+  </div>
+</section>
+
+<!-- S03 — Skill Learning Loop -->
+<section class="section-band" id="s03">
+  <div class="band-inner reveal">
+    <p class="sec-label violet" data-i18n="s03_label">03 — Tầng 2: Skill Learning Loop</p>
+    <h2 class="sec-title" data-i18n="s03_title">Đóng gói workflow thành Skill</h2>
+
+    <p data-i18n="s03_intro">Khi một predefined agent hoàn thành task phức tạp (nhiều tool calls), hệ thống không để workflow đó biến mất. Ba điểm chạm trong agent loop để phát hiện và đóng gói pattern.</p>
+
+    <div class="flow-diagram">
+      <div class="flow-label" data-i18n="fl_label">Skill Learning Flow</div>
+      <div class="flow-col">
+        <div class="flow-node flow-node--neutral" data-i18n="fl_n1">Admin bật <code>skill_evolve = true</code></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node flow-node--violet" data-i18n="fl_n2">System prompt: hướng dẫn SHOULD/SHOULD NOT tạo skill</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node flow-node--neutral" data-i18n="fl_n3">Agent xử lý task (think → act → observe)</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node flow-node--amber" data-i18n="fl_n4">Budget milestone nudge (70% / 90%)</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node flow-node--neutral" data-i18n="fl_n5">Task hoàn thành — totalToolCalls ≥ skill_nudge_interval?</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row">
+          <div class="flow-branch-item">
+            <div class="flow-branch-label" data-i18n="fl_no">Không</div>
+            <div class="flow-node flow-node--neutral" data-i18n="fl_normal">Response bình thường</div>
+          </div>
+          <div class="flow-branch-item">
+            <div class="flow-branch-label" data-i18n="fl_yes">Có</div>
+            <div class="flow-node flow-node--violet" data-i18n="fl_postscript">Postscript: "Save as skill?"</div>
+          </div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node flow-node--green" data-i18n="fl_create">User "save as skill" → <code>skill_manage(create)</code> → Auto-granted</div>
+      </div>
+    </div>
+
+    <h3 data-i18n="s03_postscript_h">Postscript — Lời đề nghị cuối bài</h3>
+    <div class="code-file">
+      <div class="code-file__header">internal/agent/loop_pipeline_callbacks.go</div>
+      <div class="code-file__body">---
+_This task involved several steps. Want me to save the process as a
+reusable skill? Reply "save as skill" or "skip"._</div>
+    </div>
+
+    <div class="callout violet">
+      <strong data-i18n="s03_consent_h">Nguyên tắc:</strong> <span data-i18n="s03_consent">Không có skill nào được tạo mà không có sự đồng ý tường minh của user. Postscript chỉ là lời đề nghị — user phải reply "save as skill" thì agent mới gọi <code>skill_manage(create)</code>.</span>
+    </div>
+
+    <h3 data-i18n="s03_manage_h">skill_manage Tool — Actions</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr>
+          <th data-i18n="th_action">Action</th>
+          <th data-i18n="th_params">Params</th>
+          <th data-i18n="th_desc">Mô tả</th>
+        </tr></thead>
+        <tbody>
+          <tr><td><code>create</code></td><td><code>content</code> (SKILL.md)</td><td data-i18n="sm_create">Tạo skill mới từ workflow</td></tr>
+          <tr><td><code>patch</code></td><td><code>slug, find, replace</code></td><td data-i18n="sm_patch">Cập nhật một phần skill đã tạo</td></tr>
+          <tr><td><code>delete</code></td><td><code>slug</code></td><td data-i18n="sm_delete">Xóa mềm, move vào <code>.trash/</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card card--violet">
+      <div class="card-label violet" data-i18n="gating_label">Tool Gating</div>
+      <p data-i18n="gating_desc" style="margin:0;font-size:14px;">Khi <code>skill_evolve = false</code>, <code>skill_manage</code> hoàn toàn ẩn với LLM — bị filter khỏi <code>toolDefs</code> trước khi gửi lên provider và khỏi <code>toolNames</code> trong system prompt. Tool vẫn tồn tại trong shared registry (admin thấy), nhưng agent không có awareness về nó.</p>
+    </div>
+  </div>
+</section>
+
+<!-- S04 — Budget Nudges -->
+<section class="section-band" id="s04">
+  <div class="band-inner reveal">
+    <p class="sec-label" data-i18n="s04_label">04 — Budget Nudges</p>
+    <h2 class="sec-title" data-i18n="s04_title">Ephemeral messages giữa agent loop</h2>
+
+    <p data-i18n="s04_intro">Khi ngưỡng iteration bị đạt, hai ephemeral nudge được inject vào giữa agent loop — không được persist vào session history, không tốn token về sau. Vai trò: nhắc agent <em>suy nghĩ về khả năng tái sử dụng</em> trong khi vẫn còn budget.</p>
+
+    <div class="nudge-timeline">
+      <div class="nudge-item" data-pct="70%">
+        <div class="nudge-item__content">[System] You are at 70% of your iteration budget. Consider whether any patterns from this session would make a good skill.</div>
+      </div>
+      <div class="nudge-item" data-pct="90%">
+        <div class="nudge-item__content">[System] You are at 90% of your iteration budget. If this session involved reusable patterns, consider saving them as a skill before completing.</div>
+      </div>
+      <div class="nudge-item" data-pct="done">
+        <div class="nudge-item__content" data-i18n="nudge_done">Task hoàn thành → Postscript khi totalToolCalls ≥ skill_nudge_interval (default: 15)</div>
+      </div>
+    </div>
+
+    <h3 data-i18n="s04_version_h">Versioning Skills — Immutable per version</h3>
+    <div class="code-file">
+      <div class="code-file__header" data-i18n="version_header">skills-store/ — filesystem layout</div>
+      <div class="code-file__body">skills-store/
+├── my-workflow-skill/
+│   ├── 1/
+│   │   └── SKILL.md
+│   └── 2/          ← patch tạo version mới
+│       ├── SKILL.md
+│       └── scripts/ (copy từ v1)
+└── .trash/
+    └── old-skill.1710000000  ← soft-deleted</div>
+    </div>
+    <div class="card card--amber">
+      <div class="card-label amber" data-i18n="concurrency_label">Concurrency Control</div>
+      <p style="margin:0;font-size:14px;" data-i18n="concurrency_desc"><code>pg_advisory_xact_lock</code> keyed on FNV-64a hash của slug — serialize concurrent version creation cho cùng một skill. Database dùng <code>ON CONFLICT(slug) DO UPDATE</code> + <code>RETURNING id</code> để handle upserts atomically.</p>
+    </div>
+  </div>
+</section>
+
+<!-- S05 — Metrics Engine -->
+<section class="section-band" id="s05">
+  <div class="band-inner reveal">
+    <p class="sec-label rose" data-i18n="s05_label">05 — Tầng 3: Metrics & Suggestions</p>
+    <h2 class="sec-title" data-i18n="s05_title">Cải thiện dựa trên dữ liệu 7-day window</h2>
+
+    <p data-i18n="s05_intro">Trong quá trình agent hoạt động, GoClaw ghi lại ba loại metrics. <code>SuggestionEngine</code> chạy như cron job hàng ngày, phân tích và tạo suggestions cho admin review.</p>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr>
+          <th data-i18n="th_type">Loại</th>
+          <th data-i18n="th_data">Dữ liệu thu thập</th>
+          <th data-i18n="th_example">Ví dụ</th>
+        </tr></thead>
+        <tbody>
+          <tr><td><strong>tool</strong></td><td data-i18n="m_tool_data">invocation_count, success_rate, failure_count, avg_duration_ms</td><td data-i18n="m_tool_ex"><code>web_search</code> gọi 150 lần, 85% thành công</td></tr>
+          <tr><td><strong>retrieval</strong></td><td data-i18n="m_ret_data">recall_rate, precision, relevance_score, query_count</td><td data-i18n="m_ret_ex">Knowledge vault: 200 queries, 18% usage rate</td></tr>
+          <tr><td><strong>feedback</strong></td><td data-i18n="m_feed_data">rating, sentiment, effectiveness_score</td><td data-i18n="m_feed_ex">User abort/rephrase pattern</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 data-i18n="s05_rules_h">Ba quy tắc phân tích — Pluggable Rules</h3>
+
+    <div class="rules-grid">
+      <div class="rule-card">
+        <div class="rule-card__icon">📉</div>
+        <div class="rule-card__name">LowRetrievalUsageRule</div>
+        <div class="rule-card__trigger" data-i18n="rule1_trigger">Trigger: <code>usage_rate &lt; 0.2</code> trên 50+ queries — knowledge vault trả kết quả nhưng agent dùng dưới 20%.</div>
+        <div class="rule-card__action" data-i18n="rule1_action">→ Đề xuất tăng retrieval threshold để lọc ketat hơn</div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-card__icon">💥</div>
+        <div class="rule-card__name">ToolFailureRule</div>
+        <div class="rule-card__trigger" data-i18n="rule2_trigger">Trigger: <code>success_rate &lt; 0.1</code> trên 20+ calls — tool fail hơn 90% lần gọi.</div>
+        <div class="rule-card__action" data-i18n="rule2_action">→ Đề xuất review config hoặc disable tool</div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-card__icon">🔄</div>
+        <div class="rule-card__name">RepeatedToolRule</div>
+        <div class="rule-card__trigger" data-i18n="rule3_trigger">Trigger: tool gọi &gt; 100 lần/tuần với success rate &gt; 50%.</div>
+        <div class="rule-card__action" data-i18n="rule3_action">→ Đề xuất tạo skill + tự generate <code>skill_draft</code> template</div>
+      </div>
+    </div>
+
+    <div class="card card--rose">
+      <div class="card-label rose" data-i18n="dedup_label">Duplicate Prevention</div>
+      <p style="margin:0;font-size:14px;" data-i18n="dedup_desc">Mỗi suggestion được identify bằng composite key <code>(type, metric_key)</code>. Nếu đã có pending suggestion cùng type + metric key, rule bị skip — tránh spam suggestion cho cùng một vấn đề.</p>
+    </div>
+  </div>
+</section>
+
+<!-- S06 — Guardrails -->
+<section class="section-band" id="s06">
+  <div class="band-inner reveal">
+    <p class="sec-label" data-i18n="s06_label">06 — Auto-Adapt Guardrails</p>
+    <h2 class="sec-title" data-i18n="s06_title">Giới hạn an toàn cho tự động thích nghi</h2>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr>
+          <th data-i18n="th_guard">Guardrail</th>
+          <th data-i18n="th_default">Default</th>
+          <th data-i18n="th_purpose">Mục đích</th>
+        </tr></thead>
+        <tbody>
+          <tr><td><code>max_delta_per_cycle</code></td><td><code>0.1</code></td><td data-i18n="g1_purpose">Giới hạn mức thay đổi tham số mỗi chu kỳ</td></tr>
+          <tr><td><code>min_data_points</code></td><td><code>100</code></td><td data-i18n="g2_purpose">Cần đủ data trước khi apply — tránh overfitting</td></tr>
+          <tr><td><code>rollback_on_drop_pct</code></td><td><code>20.0</code></td><td data-i18n="g3_purpose">Auto-rollback nếu quality metric giảm &gt;20%</td></tr>
+          <tr><td><code>locked_params</code></td><td><code>[]</code></td><td data-i18n="g4_purpose">Params không cho phép auto-thay đổi</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 data-i18n="s06_flow_h">Apply → Monitor → Rollback</h3>
+    <div class="flow-diagram">
+      <div class="flow-col">
+        <div class="flow-node flow-node--neutral" data-i18n="gr_n1">Admin approve suggestion (<code>low_retrieval_usage</code>)</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node flow-node--amber" data-i18n="gr_n2">Kiểm tra: min_data_points đủ? Parameter không locked? Delta ≤ 0.1?</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node flow-node--neutral" data-i18n="gr_n3">Snapshot baseline vào <code>suggestion.parameters._baseline</code></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node flow-node--green" data-i18n="gr_n4">Apply: <code>retrieval_threshold += max_delta_per_cycle</code> (capped tại 0.95)</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-row">
+          <div class="flow-branch-item">
+            <div class="flow-branch-label" data-i18n="gr_ok">OK</div>
+            <div class="flow-node flow-node--green" data-i18n="gr_applied">status → <code>applied</code></div>
+          </div>
+          <div class="flow-branch-item">
+            <div class="flow-branch-label" data-i18n="gr_drop">Drop &gt;20%</div>
+            <div class="flow-node flow-node--rose" data-i18n="gr_rollback">Auto-rollback → status → <code>rolled_back</code></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong data-i18n="s06_note_h">Chỉ threshold suggestions hỗ trợ auto-apply.</strong> <span data-i18n="s06_note">Các loại <code>tool_failure</code> và <code>repeated_tool</code> là informational only — hệ thống tạo suggestion để admin đọc và quyết định thủ công. Lý do: thay đổi tool config hoặc tạo skill có tác động rộng hơn, cần human judgment.</span>
+    </div>
+  </div>
+</section>
+
+<!-- S07 — Security -->
+<section class="section-band" id="s07">
+  <div class="band-inner reveal">
+    <p class="sec-label rose" data-i18n="s07_label">07 — Bảo mật 4 tầng</p>
+    <h2 class="sec-title" data-i18n="s07_title">Skill Mutations qua 4 lớp kiểm tra</h2>
+
+    <p data-i18n="s07_intro">Mọi thao tác tạo/sửa/xóa skill đều đi qua 4 tầng kiểm tra tuần tự:</p>
+
+    <div class="guard-layers">
+      <div class="guard-layer">
+        <div class="guard-layer__num">1</div>
+        <div class="guard-layer__body">
+          <div class="guard-layer__name" data-i18n="sec1_name">Content Guard</div>
+          <div class="guard-layer__desc"><code>guard.go</code> — <span data-i18n="sec1_desc">25 regex rules, hard-reject on ANY violation</span></div>
+        </div>
+      </div>
+      <div class="guard-layer">
+        <div class="guard-layer__num">2</div>
+        <div class="guard-layer__body">
+          <div class="guard-layer__name" data-i18n="sec2_name">Ownership Check</div>
+          <div class="guard-layer__desc" data-i18n="sec2_desc">Chỉ owner hoặc admin mới được sửa</div>
+        </div>
+      </div>
+      <div class="guard-layer">
+        <div class="guard-layer__num">3</div>
+        <div class="guard-layer__body">
+          <div class="guard-layer__name" data-i18n="sec3_name">System Skill Check</div>
+          <div class="guard-layer__desc" data-i18n="sec3_desc"><code>is_system=true</code> → không thể sửa qua bất kỳ path nào</div>
+        </div>
+      </div>
+      <div class="guard-layer">
+        <div class="guard-layer__num">4</div>
+        <div class="guard-layer__body">
+          <div class="guard-layer__name" data-i18n="sec4_name">Filesystem Safety</div>
+          <div class="guard-layer__desc" data-i18n="sec4_desc">symlink / path traversal / size exceeded → reject</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 data-i18n="s07_guard_h">Content Guard — 25 rules trong 6 category</h3>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr>
+          <th data-i18n="th_cat">Category</th>
+          <th data-i18n="th_blocked">Ví dụ bị chặn</th>
+        </tr></thead>
+        <tbody>
+          <tr><td data-i18n="cat1">Destructive shell</td><td><code>rm -rf /</code>, fork bomb, <code>dd of=/dev/</code>, <code>shred</code></td></tr>
+          <tr><td data-i18n="cat2">Code injection</td><td><code>curl | bash</code>, <code>eval$(...)</code>, <code>python -c exec()</code></td></tr>
+          <tr><td data-i18n="cat3">Credential exfil</td><td><code>/etc/passwd</code>, <code>.ssh/id_rsa</code>, <code>AWS_SECRET_ACCESS_KEY</code></td></tr>
+          <tr><td data-i18n="cat4">Path traversal</td><td><code>../../../</code> deep traversal</td></tr>
+          <tr><td data-i18n="cat5">SQL injection</td><td><code>DROP TABLE</code>, <code>TRUNCATE TABLE</code>, <code>DROP DATABASE</code></td></tr>
+          <tr><td data-i18n="cat6">Privilege escalation</td><td><code>sudo</code>, world-writable <code>chmod</code>, <code>chown root</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- S08 — Grants -->
+<section class="section-band" id="s08">
+  <div class="band-inner reveal">
+    <p class="sec-label violet" data-i18n="s08_label">08 — Grants & Visibility</p>
+    <h2 class="sec-title" data-i18n="s08_title">Kiểm soát ai dùng được skill nào</h2>
+
+    <p data-i18n="s08_intro">Khi skill được tạo, visibility ban đầu là <code>private</code>. Ngay lập tức, <code>GrantToAgent</code> được gọi tự động và auto-promote visibility:</p>
+
+    <div class="flow-diagram">
+      <div class="flow-col">
+        <div class="flow-node flow-node--neutral" data-i18n="grant_n1">Tạo skill → <code>private</code> (momentarily)</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node flow-node--amber" data-i18n="grant_n2">Auto-grant cho creating agent → <code>internal</code></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node flow-node--violet" data-i18n="grant_n3">GrantToAgent / GrantToUser → <code>internal</code> (mở thêm)</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node flow-node--green" data-i18n="grant_n4">Admin promotes → <code>public</code> (all agents)</div>
+      </div>
+    </div>
+
+    <div class="card card--green">
+      <div class="card-label green" data-i18n="system_label">System Skills</div>
+      <p style="margin:0;font-size:14px;" data-i18n="system_desc">Skills có <code>is_system=true</code> luôn <code>public</code> và không thể bị revoke. Grant/revoke qua HTTP API (<code>/v1/skills/{id}/grants/agent</code>) và WebSocket RPC.</p>
+    </div>
+  </div>
+</section>
+
+<!-- S09 — Token Cost -->
+<section class="section-band" id="s09">
+  <div class="band-inner reveal">
+    <p class="sec-label" data-i18n="s09_label">09 — Chi phí Token</p>
+    <h2 class="sec-title" data-i18n="s09_title">Overhead tối thiểu, ephemeral khi có thể</h2>
+
+    <div class="token-grid">
+      <div class="token-cell">
+        <div class="token-val amber">~95</div>
+        <div class="token-lbl" data-i18n="tok1">Self-evolve section</div>
+      </div>
+      <div class="token-cell">
+        <div class="token-val violet">~135</div>
+        <div class="token-lbl" data-i18n="tok2">Skill creation guidance</div>
+      </div>
+      <div class="token-cell">
+        <div class="token-val violet">~290</div>
+        <div class="token-lbl" data-i18n="tok3">skill_manage tool def</div>
+      </div>
+      <div class="token-cell">
+        <div class="token-val">~79</div>
+        <div class="token-lbl" data-i18n="tok4">Budget nudges (ephemeral)</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr>
+          <th data-i18n="th_component">Component</th>
+          <th data-i18n="th_when">Khi nào active</th>
+          <th data-i18n="th_tokens">~Tokens</th>
+          <th data-i18n="th_persist">Persist?</th>
+        </tr></thead>
+        <tbody>
+          <tr><td data-i18n="tc1_name">Self-evolve section</td><td><code>self_evolve=true</code></td><td>~95</td><td data-i18n="tc_every">Mỗi request</td></tr>
+          <tr><td data-i18n="tc2_name">Skill creation guidance</td><td><code>skill_evolve=true</code></td><td>~135</td><td data-i18n="tc_every2">Mỗi request</td></tr>
+          <tr><td data-i18n="tc3_name">skill_manage tool def</td><td><code>skill_evolve=true</code></td><td>~290</td><td data-i18n="tc_every3">Mỗi request</td></tr>
+          <tr><td data-i18n="tc4_name">Budget nudge 70%</td><td data-i18n="tc4_when">iter ≥ 70% của max</td><td>~31</td><td data-i18n="tc_no">Không (ephemeral)</td></tr>
+          <tr><td data-i18n="tc5_name">Budget nudge 90%</td><td data-i18n="tc5_when">iter ≥ 90% của max</td><td>~48</td><td data-i18n="tc_no2">Không (ephemeral)</td></tr>
+          <tr><td data-i18n="tc6_name">Postscript</td><td data-i18n="tc6_when">toolCalls ≥ interval</td><td>~35</td><td data-i18n="tc_yes">Có (in session)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <strong data-i18n="tok_note_h">Khi disabled (default):</strong> <span data-i18n="tok_note">Overhead = 0. Cả hai tính năng phải được admin bật một cách tường minh cho từng predefined agent.</span>
+    </div>
+  </div>
+</section>
+
+<!-- S10 — Config -->
+<section class="section-band" id="s10">
+  <div class="band-inner reveal">
+    <p class="sec-label" data-i18n="s10_label">10 — Cấu hình</p>
+    <h2 class="sec-title" data-i18n="s10_title">Tham chiếu cấu hình & File references</h2>
+
+    <div class="code-file">
+      <div class="code-file__header" data-i18n="cfg_header">agents.other_config (JSONB)</div>
+      <div class="code-file__body">{
+  "self_evolve": true,
+  "skill_evolve": true,
+  "skill_nudge_interval": 15,
+  "evolution_enabled": true,
+  "evolution_guardrails": {
+    "max_delta_per_cycle": 0.1,
+    "min_data_points": 100,
+    "rollback_on_drop_pct": 20.0,
+    "locked_params": ["security_level"]
+  }
+}</div>
+    </div>
+
+    <div class="callout violet">
+      <strong data-i18n="cfg_note_h">Quan trọng:</strong> <span data-i18n="cfg_note">Cả <code>self_evolve</code> và <code>skill_evolve</code> chỉ hoạt động với <strong>predefined agents</strong>. Open agents luôn nhận <code>false</code> bất kể cài đặt trong DB — enforced tại resolver level.</span>
+    </div>
+
+    <h3 data-i18n="s10_files_h">File references</h3>
+    <div class="file-ref-list">
+      <div class="file-ref"><span class="file-ref__path">internal/agent/systemprompt.go</span><span class="file-ref__role" data-i18n="fr1">buildSelfEvolveSection(), buildSkillsSection()</span></div>
+      <div class="file-ref"><span class="file-ref__path">internal/agent/loop_finalize.go</span><span class="file-ref__role" data-i18n="fr2">Postscript injection</span></div>
+      <div class="file-ref"><span class="file-ref__path">internal/agent/loop_types.go</span><span class="file-ref__role" data-i18n="fr3">skillNudgeInterval, state flags</span></div>
+      <div class="file-ref"><span class="file-ref__path">internal/agent/loop_pipeline_callbacks.go</span><span class="file-ref__role" data-i18n="fr4">Postscript content builder</span></div>
+      <div class="file-ref"><span class="file-ref__path">internal/agent/resolver.go</span><span class="file-ref__role" data-i18n="fr5">Predefined-only enforcement</span></div>
+      <div class="file-ref"><span class="file-ref__path">internal/agent/suggestion_engine.go</span><span class="file-ref__role" data-i18n="fr6">SuggestionEngine, Analyze(), AnalyzeAll()</span></div>
+      <div class="file-ref"><span class="file-ref__path">internal/agent/suggestion_rules.go</span><span class="file-ref__role" data-i18n="fr7">LowRetrievalUsageRule, ToolFailureRule, RepeatedToolRule</span></div>
+      <div class="file-ref"><span class="file-ref__path">internal/agent/evolution_guardrails.go</span><span class="file-ref__role" data-i18n="fr8">CheckGuardrails, ApplySuggestion, RollbackSuggestion</span></div>
+      <div class="file-ref"><span class="file-ref__path">internal/tools/skill_manage.go</span><span class="file-ref__role" data-i18n="fr9">skill_manage tool (create/patch/delete)</span></div>
+      <div class="file-ref"><span class="file-ref__path">internal/tools/context_file_interceptor.go</span><span class="file-ref__role" data-i18n="fr10">SOUL.md write validation</span></div>
+      <div class="file-ref"><span class="file-ref__path">internal/skills/guard.go</span><span class="file-ref__role" data-i18n="fr11">Content security scanner (25 rules)</span></div>
+      <div class="file-ref"><span class="file-ref__path">internal/store/pg/skills_crud.go</span><span class="file-ref__role" data-i18n="fr12">Version creation với advisory lock</span></div>
+      <div class="file-ref"><span class="file-ref__path">internal/store/pg/evolution_metrics.go</span><span class="file-ref__role" data-i18n="fr13">Metrics CRUD + aggregation</span></div>
+      <div class="file-ref"><span class="file-ref__path">internal/store/pg/evolution_suggestions.go</span><span class="file-ref__role" data-i18n="fr14">Suggestions CRUD + status updates</span></div>
+      <div class="file-ref"><span class="file-ref__path">cmd/gateway_evolution_cron.go</span><span class="file-ref__role" data-i18n="fr15">Daily cron scheduler</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- S11 — Conclusion -->
+<section class="section-band" id="s11">
+  <div class="band-inner reveal">
+    <p class="sec-label" data-i18n="s11_label">11 — Kết luận</p>
+    <h2 class="sec-title" data-i18n="s11_title">Ba vòng lặp tiến hóa</h2>
+
+    <div class="feedback-loop">
+      <div class="fl-label" data-i18n="fl_diagram_label">Self-Evolution Engine — Three Feedback Loops</div>
+      <div class="fl-circles">
+        <div class="fl-circle amber">
+          <div class="fl-circle__level" data-i18n="fl1_level">Conversation-level</div>
+          <div class="fl-circle__title" data-i18n="fl1_title">SOUL.md Evolution</div>
+          <div class="fl-circle__desc" data-i18n="fl1_desc">Sau mỗi cuộc trò chuyện, agent điều chỉnh giọng nói, phong cách phản hồi. Thay đổi nhỏ tích lũy thành "nhân cách" thật sự phản ánh user preference.</div>
+        </div>
+        <div class="fl-circle violet">
+          <div class="fl-circle__level" data-i18n="fl2_level">Session-level</div>
+          <div class="fl-circle__title" data-i18n="fl2_title">Skill Learning</div>
+          <div class="fl-circle__desc" data-i18n="fl2_desc">Workflow phức tạp lặp lại được đóng gói thành skill tái sử dụng — với sự đồng ý của user. Agent không phải reinvent the wheel.</div>
+        </div>
+        <div class="fl-circle rose">
+          <div class="fl-circle__level" data-i18n="fl3_level">System-level</div>
+          <div class="fl-circle__title" data-i18n="fl3_title">Metrics & Suggestions</div>
+          <div class="fl-circle__desc" data-i18n="fl3_desc">Cron job hàng ngày phân tích 7-day window, phát hiện pattern bất thường, đề xuất cải thiện có cơ sở dữ liệu.</div>
+        </div>
+      </div>
+    </div>
+
+    <p data-i18n="s11_outro">Ba tầng này cùng nhau tạo ra agents không chỉ thực thi task mà còn <em>cải thiện theo thời gian</em> — từ phong cách giao tiếp đến kho skill đến tham số hệ thống.</p>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer-band">
+  <p class="footer-text" data-i18n="footer_text"><strong class="text-accent">Self-Evolution Engine</strong> — ba vòng phản hồi khép kín ở ba timescale: <em>conversation</em>, <em>session</em>, <em>system</em>. Agents không chỉ thực thi task mà còn tiến hóa theo thời gian.</p>
+  <p class="footer-ver">GoClaw — AI Infrastructure</p>
+  <a class="footer-back" href="/" id="footer-home" data-i18n="footer_back">← Về blog</a>
+</footer>
+
+<script>
+// ─── i18n ───
+const T = {
+  vi: {
+    eyebrow: "GoClaw — AI Infrastructure",
+    title_em: "Self-Evolution Engine",
+    title_vi: "Hệ thống tự tiến hóa",
+    deck: "Ba vòng phản hồi khép kín: agent tinh chỉnh phong cách giao tiếp, đóng gói workflow thành skill, và metrics hệ thống liên tục đề xuất cải tiến.",
+    tag1: "Self-Evolve", tag2: "Skill Learning", tag3: "Metrics Engine", tag4: "GoClaw",
+    toc01:"01 Vấn đề", toc02:"02 SOUL.md", toc03:"03 Skill Loop", toc04:"04 Nudges", toc05:"05 Metrics", toc06:"06 Guardrails", toc07:"07 Bảo mật", toc08:"08 Grants", toc09:"09 Token", toc10:"10 Config", toc11:"11 Kết luận",
+    s01_label:"01 — Vấn đề", s01_title:"Agent truyền thống không thể cải thiện",
+    s01_intro:"Hầu hết AI agent hoạt động theo vòng lặp cố định: nhận input → suy nghĩ → trả lời. Khi workflow phức tạp lặp lại, agent vẫn phải \"học lại từ đầu\" mỗi lượt — không nhớ rằng mình đã làm điều này hàng chục lần trước.",
+    tier1_name:"Self-Evolution", tier1_goal:"Điều chỉnh phong cách giao tiếp theo thời gian qua SOUL.md", tier1_scope:"Conversation-level",
+    tier2_name:"Skill Learning", tier2_goal:"Đóng gói workflow lặp lại thành skill tái sử dụng", tier2_scope:"Session-level",
+    tier3_name:"Metrics Engine", tier3_goal:"Cron job phân tích 7-day metrics, đề xuất cải tiến tham số", tier3_scope:"System-level",
+    s01_missing:"Không có cơ chế nào để:", s01_m1:"nhớ pattern", s01_m2:"phản ánh", s01_m3:"thích nghi",
+    s02_label:"02 — Tầng 1: Self-Evolution", s02_title:"SOUL.md — Tiến hóa phong cách giao tiếp",
+    s02_intro:"Mỗi predefined agent có file SOUL.md định nghĩa tone, giọng văn, cách phản hồi. Khi self_evolve = true, agent được phép tự cập nhật file này — dùng chính write_file tool vốn có, được intercepted bởi ContextFileInterceptor để route vào PostgreSQL.",
+    s02_limits_h:"Giới hạn an toàn — CAN / MUST NOT", s02_enforce_h:"Enforcement ở 3 tầng",
+    gl1_name:"System Prompt", gl1_desc:"CAN/MUST NOT guidance inject khi mỗi request",
+    gl2_name:"Context File Interceptor", gl2_desc:"Chỉ SOUL.md và CAPABILITIES.md mới writable",
+    gl3_name:"File Locking", gl3_desc:"IDENTITY.md, AGENTS.md luôn read-only — không thể sửa qua bất kỳ path nào",
+    s02_note_h:"Lưu ý:", s02_note:"Agent chỉ có thể thay đổi cách nó nói chuyện, không thể thay đổi nó là ai. Chi phí token: ~95 tokens/request. Chỉ áp dụng với predefined agents.",
+    s03_label:"03 — Tầng 2: Skill Learning Loop", s03_title:"Đóng gói workflow thành Skill",
+    s03_intro:"Khi một predefined agent hoàn thành task phức tạp (nhiều tool calls), hệ thống không để workflow đó biến mất. Ba điểm chạm trong agent loop để phát hiện và đóng gói pattern.",
+    fl_label:"Skill Learning Flow",
+    fl_n1:"Admin bật skill_evolve = true", fl_n2:"System prompt: hướng dẫn SHOULD/SHOULD NOT tạo skill",
+    fl_n3:"Agent xử lý task (think → act → observe)", fl_n4:"Budget milestone nudge (70% / 90%)",
+    fl_n5:"Task hoàn thành — totalToolCalls ≥ skill_nudge_interval?",
+    fl_no:"Không", fl_yes:"Có", fl_normal:"Response bình thường", fl_postscript:"Postscript: \"Save as skill?\"",
+    fl_create:"User \"save as skill\" → skill_manage(create) → Auto-granted",
+    s03_postscript_h:"Postscript — Lời đề nghị cuối bài",
+    s03_consent_h:"Nguyên tắc:", s03_consent:"Không có skill nào được tạo mà không có sự đồng ý tường minh của user.",
+    s03_manage_h:"skill_manage Tool — Actions",
+    th_action:"Action", th_params:"Params", th_desc:"Mô tả",
+    sm_create:"Tạo skill mới từ workflow", sm_patch:"Cập nhật một phần skill đã tạo", sm_delete:"Xóa mềm, move vào .trash/",
+    gating_label:"Tool Gating", gating_desc:"Khi skill_evolve = false, skill_manage hoàn toàn ẩn với LLM — bị filter khỏi toolDefs và toolNames. Agent không có awareness về nó.",
+    s04_label:"04 — Budget Nudges", s04_title:"Ephemeral messages giữa agent loop",
+    s04_intro:"Khi ngưỡng iteration bị đạt, hai ephemeral nudge được inject — không được persist vào session history, không tốn token về sau.",
+    nudge_done:"Task hoàn thành → Postscript khi totalToolCalls ≥ skill_nudge_interval (default: 15)",
+    s04_version_h:"Versioning Skills — Immutable per version",
+    version_header:"skills-store/ — filesystem layout",
+    concurrency_label:"Concurrency Control", concurrency_desc:"pg_advisory_xact_lock keyed on FNV-64a hash của slug — serialize concurrent version creation. Database dùng ON CONFLICT + RETURNING id để handle upserts atomically.",
+    s05_label:"05 — Tầng 3: Metrics & Suggestions", s05_title:"Cải thiện dựa trên dữ liệu 7-day window",
+    s05_intro:"Trong quá trình agent hoạt động, GoClaw ghi lại ba loại metrics. SuggestionEngine chạy như cron job hàng ngày, phân tích và tạo suggestions cho admin review.",
+    th_type:"Loại", th_data:"Dữ liệu thu thập", th_example:"Ví dụ",
+    m_tool_data:"invocation_count, success_rate, failure_count, avg_duration_ms", m_tool_ex:"web_search gọi 150 lần, 85% thành công",
+    m_ret_data:"recall_rate, precision, relevance_score, query_count", m_ret_ex:"Knowledge vault: 200 queries, 18% usage rate",
+    m_feed_data:"rating, sentiment, effectiveness_score", m_feed_ex:"User abort/rephrase pattern",
+    s05_rules_h:"Ba quy tắc phân tích — Pluggable Rules",
+    rule1_trigger:"Trigger: usage_rate < 0.2 trên 50+ queries — knowledge vault trả kết quả nhưng agent dùng dưới 20%.",
+    rule1_action:"→ Đề xuất tăng retrieval threshold để lọc ketat hơn",
+    rule2_trigger:"Trigger: success_rate < 0.1 trên 20+ calls — tool fail hơn 90% lần gọi.",
+    rule2_action:"→ Đề xuất review config hoặc disable tool",
+    rule3_trigger:"Trigger: tool gọi > 100 lần/tuần với success rate > 50%.",
+    rule3_action:"→ Đề xuất tạo skill + tự generate skill_draft template",
+    dedup_label:"Duplicate Prevention", dedup_desc:"Mỗi suggestion được identify bằng composite key (type, metric_key). Nếu đã có pending suggestion cùng type, rule bị skip.",
+    s06_label:"06 — Auto-Adapt Guardrails", s06_title:"Giới hạn an toàn cho tự động thích nghi",
+    th_guard:"Guardrail", th_default:"Default", th_purpose:"Mục đích",
+    g1_purpose:"Giới hạn mức thay đổi tham số mỗi chu kỳ",
+    g2_purpose:"Cần đủ data trước khi apply — tránh overfitting",
+    g3_purpose:"Auto-rollback nếu quality metric giảm >20%",
+    g4_purpose:"Params không cho phép auto-thay đổi",
+    s06_flow_h:"Apply → Monitor → Rollback",
+    gr_n1:"Admin approve suggestion", gr_n2:"Kiểm tra: min_data_points đủ? Parameter không locked? Delta ≤ 0.1?",
+    gr_n3:"Snapshot baseline vào suggestion.parameters._baseline",
+    gr_n4:"Apply: retrieval_threshold += max_delta_per_cycle (capped tại 0.95)",
+    gr_ok:"OK", gr_drop:"Drop >20%", gr_applied:"status → applied", gr_rollback:"Auto-rollback → status → rolled_back",
+    s06_note_h:"Chỉ threshold suggestions hỗ trợ auto-apply.",
+    s06_note:"Các loại tool_failure và repeated_tool là informational only — cần human judgment.",
+    s07_label:"07 — Bảo mật 4 tầng", s07_title:"Skill Mutations qua 4 lớp kiểm tra",
+    s07_intro:"Mọi thao tác tạo/sửa/xóa skill đều đi qua 4 tầng kiểm tra tuần tự:",
+    sec1_name:"Content Guard", sec1_desc:"25 regex rules, hard-reject on ANY violation",
+    sec2_name:"Ownership Check", sec2_desc:"Chỉ owner hoặc admin mới được sửa",
+    sec3_name:"System Skill Check", sec3_desc:"is_system=true → không thể sửa qua bất kỳ path nào",
+    sec4_name:"Filesystem Safety", sec4_desc:"symlink / path traversal / size exceeded → reject",
+    s07_guard_h:"Content Guard — 25 rules trong 6 category",
+    th_cat:"Category", th_blocked:"Ví dụ bị chặn",
+    cat1:"Destructive shell", cat2:"Code injection", cat3:"Credential exfil", cat4:"Path traversal", cat5:"SQL injection", cat6:"Privilege escalation",
+    s08_label:"08 — Grants & Visibility", s08_title:"Kiểm soát ai dùng được skill nào",
+    s08_intro:"Khi skill được tạo, visibility ban đầu là private. GrantToAgent được gọi tự động và auto-promote visibility:",
+    grant_n1:"Tạo skill → private (momentarily)", grant_n2:"Auto-grant cho creating agent → internal",
+    grant_n3:"GrantToAgent / GrantToUser → internal (mở thêm)", grant_n4:"Admin promotes → public (all agents)",
+    system_label:"System Skills", system_desc:"Skills có is_system=true luôn public và không thể bị revoke.",
+    s09_label:"09 — Chi phí Token", s09_title:"Overhead tối thiểu, ephemeral khi có thể",
+    tok1:"Self-evolve section", tok2:"Skill creation guidance", tok3:"skill_manage tool def", tok4:"Budget nudges (ephemeral)",
+    th_component:"Component", th_when:"Khi nào active", th_tokens:"~Tokens", th_persist:"Persist?",
+    tc1_name:"Self-evolve section", tc2_name:"Skill creation guidance", tc3_name:"skill_manage tool def",
+    tc4_name:"Budget nudge 70%", tc4_when:"iter ≥ 70% của max", tc5_name:"Budget nudge 90%", tc5_when:"iter ≥ 90% của max",
+    tc6_name:"Postscript", tc6_when:"toolCalls ≥ interval",
+    tc_every:"Mỗi request", tc_every2:"Mỗi request", tc_every3:"Mỗi request",
+    tc_no:"Không (ephemeral)", tc_no2:"Không (ephemeral)", tc_yes:"Có (in session)",
+    tok_note_h:"Khi disabled (default):", tok_note:"Overhead = 0. Cả hai tính năng phải được admin bật tường minh.",
+    s10_label:"10 — Cấu hình", s10_title:"Tham chiếu cấu hình & File references",
+    cfg_header:"agents.other_config (JSONB)",
+    cfg_note_h:"Quan trọng:", cfg_note:"Cả self_evolve và skill_evolve chỉ hoạt động với predefined agents. Open agents luôn nhận false — enforced tại resolver level.",
+    s10_files_h:"File references",
+    fr1:"buildSelfEvolveSection(), buildSkillsSection()", fr2:"Postscript injection",
+    fr3:"skillNudgeInterval, state flags", fr4:"Postscript content builder",
+    fr5:"Predefined-only enforcement", fr6:"SuggestionEngine, Analyze(), AnalyzeAll()",
+    fr7:"LowRetrievalUsageRule, ToolFailureRule, RepeatedToolRule",
+    fr8:"CheckGuardrails, ApplySuggestion, RollbackSuggestion",
+    fr9:"skill_manage tool (create/patch/delete)", fr10:"SOUL.md write validation",
+    fr11:"Content security scanner (25 rules)", fr12:"Version creation với advisory lock",
+    fr13:"Metrics CRUD + aggregation", fr14:"Suggestions CRUD + status updates",
+    fr15:"Daily cron scheduler",
+    s11_label:"11 — Kết luận", s11_title:"Ba vòng lặp tiến hóa",
+    fl_diagram_label:"Self-Evolution Engine — Three Feedback Loops",
+    fl1_level:"Conversation-level", fl1_title:"SOUL.md Evolution",
+    fl1_desc:"Sau mỗi cuộc trò chuyện, agent điều chỉnh giọng nói, phong cách phản hồi. Thay đổi nhỏ tích lũy thành \"nhân cách\" thật sự phản ánh user preference.",
+    fl2_level:"Session-level", fl2_title:"Skill Learning",
+    fl2_desc:"Workflow phức tạp lặp lại được đóng gói thành skill tái sử dụng — với sự đồng ý của user. Agent không phải reinvent the wheel.",
+    fl3_level:"System-level", fl3_title:"Metrics & Suggestions",
+    fl3_desc:"Cron job hàng ngày phân tích 7-day window, phát hiện pattern bất thường, đề xuất cải thiện có cơ sở dữ liệu.",
+    s11_outro:"Ba tầng này cùng nhau tạo ra agents không chỉ thực thi task mà còn cải thiện theo thời gian — từ phong cách giao tiếp đến kho skill đến tham số hệ thống.",
+    footer_text:"Ba vòng phản hồi khép kín ở ba timescale: conversation, session, system. Agents không chỉ thực thi task mà còn tiến hóa theo thời gian.",
+    footer_back:"← Về blog"
+  },
+  en: {
+    eyebrow: "GoClaw — AI Infrastructure",
+    title_em: "Self-Evolution Engine",
+    title_vi: "Adaptive AI Agents",
+    deck: "Three closed feedback loops: agents refine communication style, package repeated workflows as skills, and metrics continuously suggest parameter improvements.",
+    tag1: "Self-Evolve", tag2: "Skill Learning", tag3: "Metrics Engine", tag4: "GoClaw",
+    toc01:"01 Problem", toc02:"02 SOUL.md", toc03:"03 Skill Loop", toc04:"04 Nudges", toc05:"05 Metrics", toc06:"06 Guardrails", toc07:"07 Security", toc08:"08 Grants", toc09:"09 Tokens", toc10:"10 Config", toc11:"11 Summary",
+    s01_label:"01 — Problem", s01_title:"Traditional agents cannot improve",
+    s01_intro:"Most AI agents operate on a fixed loop: receive input → think → respond. When complex workflows repeat, the agent must start from scratch each time — unaware it has done this dozens of times before.",
+    tier1_name:"Self-Evolution", tier1_goal:"Adjust communication style over time via SOUL.md", tier1_scope:"Conversation-level",
+    tier2_name:"Skill Learning", tier2_goal:"Package repeated workflows into reusable skills", tier2_scope:"Session-level",
+    tier3_name:"Metrics Engine", tier3_goal:"Daily cron analyzes 7-day metrics, suggests parameter improvements", tier3_scope:"System-level",
+    s01_missing:"No mechanism to:", s01_m1:"remember patterns", s01_m2:"reflect", s01_m3:"adapt",
+    s02_label:"02 — Tier 1: Self-Evolution", s02_title:"SOUL.md — Evolving communication style",
+    s02_intro:"Each predefined agent has a SOUL.md file defining tone, voice, response style. When self_evolve = true, the agent can self-update this file using write_file, intercepted by ContextFileInterceptor to route into PostgreSQL.",
+    s02_limits_h:"Safety constraints — CAN / MUST NOT", s02_enforce_h:"Enforcement at 3 layers",
+    gl1_name:"System Prompt", gl1_desc:"CAN/MUST NOT guidance injected on each request",
+    gl2_name:"Context File Interceptor", gl2_desc:"Only SOUL.md and CAPABILITIES.md are writable",
+    gl3_name:"File Locking", gl3_desc:"IDENTITY.md, AGENTS.md are always read-only",
+    s02_note_h:"Note:", s02_note:"Agents can only change how they speak, not who they are. Token cost: ~95 tokens/request. Predefined agents only.",
+    s03_label:"03 — Tier 2: Skill Learning Loop", s03_title:"Packaging workflows as Skills",
+    s03_intro:"When a predefined agent completes a complex task (many tool calls), the system preserves that workflow. Three touchpoints in the agent loop detect and package patterns.",
+    fl_label:"Skill Learning Flow",
+    fl_n1:"Admin enables skill_evolve = true", fl_n2:"System prompt: SHOULD/SHOULD NOT guidance for skill creation",
+    fl_n3:"Agent processes task (think → act → observe)", fl_n4:"Budget milestone nudge (70% / 90%)",
+    fl_n5:"Task complete — totalToolCalls ≥ skill_nudge_interval?",
+    fl_no:"No", fl_yes:"Yes", fl_normal:"Normal response", fl_postscript:"Postscript: \"Save as skill?\"",
+    fl_create:"User \"save as skill\" → skill_manage(create) → Auto-granted",
+    s03_postscript_h:"Postscript — The offer at the end",
+    s03_consent_h:"Principle:", s03_consent:"No skill is created without explicit user consent. The postscript is only an offer — the user must reply \"save as skill\" for the agent to call skill_manage(create).",
+    s03_manage_h:"skill_manage Tool — Actions",
+    th_action:"Action", th_params:"Params", th_desc:"Description",
+    sm_create:"Create new skill from workflow", sm_patch:"Update part of an existing skill", sm_delete:"Soft delete, move to .trash/",
+    gating_label:"Tool Gating", gating_desc:"When skill_evolve = false, skill_manage is completely hidden from the LLM — filtered from toolDefs and toolNames. Agent has no awareness of it.",
+    s04_label:"04 — Budget Nudges", s04_title:"Ephemeral messages mid-loop",
+    s04_intro:"When iteration thresholds are hit, two ephemeral nudges inject into the agent loop — not persisted to session history, no future token cost.",
+    nudge_done:"Task complete → Postscript when totalToolCalls ≥ skill_nudge_interval (default: 15)",
+    s04_version_h:"Versioning Skills — Immutable per version",
+    version_header:"skills-store/ — filesystem layout",
+    concurrency_label:"Concurrency Control", concurrency_desc:"pg_advisory_xact_lock keyed on FNV-64a hash of slug — serializes concurrent version creation. Database uses ON CONFLICT + RETURNING id for atomic upserts.",
+    s05_label:"05 — Tier 3: Metrics & Suggestions", s05_title:"Data-driven improvements — 7-day window",
+    s05_intro:"During agent operation, GoClaw records three metric types. SuggestionEngine runs as a daily cron job, analyzes and creates suggestions for admin review.",
+    th_type:"Type", th_data:"Data collected", th_example:"Example",
+    m_tool_data:"invocation_count, success_rate, failure_count, avg_duration_ms", m_tool_ex:"web_search called 150x, 85% success",
+    m_ret_data:"recall_rate, precision, relevance_score, query_count", m_ret_ex:"Knowledge vault: 200 queries, 18% usage rate",
+    m_feed_data:"rating, sentiment, effectiveness_score", m_feed_ex:"User abort/rephrase pattern",
+    s05_rules_h:"Three analysis rules — Pluggable",
+    rule1_trigger:"Trigger: usage_rate < 0.2 on 50+ queries — vault returns results but agent uses <20%.",
+    rule1_action:"→ Suggest raising retrieval threshold for stricter filtering",
+    rule2_trigger:"Trigger: success_rate < 0.1 on 20+ calls — tool failing >90% of the time.",
+    rule2_action:"→ Suggest reviewing config or disabling the tool",
+    rule3_trigger:"Trigger: tool called >100x/week with success rate >50%.",
+    rule3_action:"→ Suggest creating a skill + auto-generate skill_draft template",
+    dedup_label:"Duplicate Prevention", dedup_desc:"Each suggestion is identified by composite key (type, metric_key). If a pending suggestion with same type exists, rule is skipped.",
+    s06_label:"06 — Auto-Adapt Guardrails", s06_title:"Safety limits for auto-adaptation",
+    th_guard:"Guardrail", th_default:"Default", th_purpose:"Purpose",
+    g1_purpose:"Limit parameter change magnitude per cycle",
+    g2_purpose:"Require sufficient data before applying — avoids overfitting",
+    g3_purpose:"Auto-rollback if quality metric drops >20%",
+    g4_purpose:"Parameters not allowed to auto-change",
+    s06_flow_h:"Apply → Monitor → Rollback",
+    gr_n1:"Admin approves suggestion", gr_n2:"Check: min_data_points met? Parameter unlocked? Delta ≤ 0.1?",
+    gr_n3:"Snapshot baseline into suggestion.parameters._baseline",
+    gr_n4:"Apply: retrieval_threshold += max_delta_per_cycle (capped at 0.95)",
+    gr_ok:"OK", gr_drop:"Drop >20%", gr_applied:"status → applied", gr_rollback:"Auto-rollback → status → rolled_back",
+    s06_note_h:"Only threshold suggestions support auto-apply.",
+    s06_note:"tool_failure and repeated_tool types are informational only — require human judgment.",
+    s07_label:"07 — 4-Layer Security", s07_title:"Skill Mutations through 4 checks",
+    s07_intro:"All skill create/patch/delete operations go through 4 sequential checks:",
+    sec1_name:"Content Guard", sec1_desc:"25 regex rules, hard-reject on ANY violation",
+    sec2_name:"Ownership Check", sec2_desc:"Only owner or admin may modify",
+    sec3_name:"System Skill Check", sec3_desc:"is_system=true → cannot modify via any path",
+    sec4_name:"Filesystem Safety", sec4_desc:"symlink / path traversal / size exceeded → reject",
+    s07_guard_h:"Content Guard — 25 rules in 6 categories",
+    th_cat:"Category", th_blocked:"Examples blocked",
+    cat1:"Destructive shell", cat2:"Code injection", cat3:"Credential exfil", cat4:"Path traversal", cat5:"SQL injection", cat6:"Privilege escalation",
+    s08_label:"08 — Grants & Visibility", s08_title:"Control who can use which skill",
+    s08_intro:"When a skill is created, visibility starts as private. GrantToAgent is called automatically and auto-promotes visibility:",
+    grant_n1:"Create skill → private (momentarily)", grant_n2:"Auto-grant to creating agent → internal",
+    grant_n3:"GrantToAgent / GrantToUser → internal (expanded)", grant_n4:"Admin promotes → public (all agents)",
+    system_label:"System Skills", system_desc:"Skills with is_system=true are always public and cannot be revoked.",
+    s09_label:"09 — Token Cost", s09_title:"Minimal overhead, ephemeral where possible",
+    tok1:"Self-evolve section", tok2:"Skill creation guidance", tok3:"skill_manage tool def", tok4:"Budget nudges (ephemeral)",
+    th_component:"Component", th_when:"When active", th_tokens:"~Tokens", th_persist:"Persist?",
+    tc1_name:"Self-evolve section", tc2_name:"Skill creation guidance", tc3_name:"skill_manage tool def",
+    tc4_name:"Budget nudge 70%", tc4_when:"iter ≥ 70% of max", tc5_name:"Budget nudge 90%", tc5_when:"iter ≥ 90% of max",
+    tc6_name:"Postscript", tc6_when:"toolCalls ≥ interval",
+    tc_every:"Every request", tc_every2:"Every request", tc_every3:"Every request",
+    tc_no:"No (ephemeral)", tc_no2:"No (ephemeral)", tc_yes:"Yes (in session)",
+    tok_note_h:"When disabled (default):", tok_note:"Overhead = 0. Both features must be explicitly enabled by admin per predefined agent.",
+    s10_label:"10 — Configuration", s10_title:"Config reference & File references",
+    cfg_header:"agents.other_config (JSONB)",
+    cfg_note_h:"Important:", cfg_note:"Both self_evolve and skill_evolve only work with predefined agents. Open agents always receive false — enforced at resolver level.",
+    s10_files_h:"File references",
+    fr1:"buildSelfEvolveSection(), buildSkillsSection()", fr2:"Postscript injection",
+    fr3:"skillNudgeInterval, state flags", fr4:"Postscript content builder",
+    fr5:"Predefined-only enforcement", fr6:"SuggestionEngine, Analyze(), AnalyzeAll()",
+    fr7:"LowRetrievalUsageRule, ToolFailureRule, RepeatedToolRule",
+    fr8:"CheckGuardrails, ApplySuggestion, RollbackSuggestion",
+    fr9:"skill_manage tool (create/patch/delete)", fr10:"SOUL.md write validation",
+    fr11:"Content security scanner (25 rules)", fr12:"Version creation with advisory lock",
+    fr13:"Metrics CRUD + aggregation", fr14:"Suggestions CRUD + status updates",
+    fr15:"Daily cron scheduler",
+    s11_label:"11 — Summary", s11_title:"Three evolution loops",
+    fl_diagram_label:"Self-Evolution Engine — Three Feedback Loops",
+    fl1_level:"Conversation-level", fl1_title:"SOUL.md Evolution",
+    fl1_desc:"After each conversation, the agent adjusts tone and response style. Small changes accumulate into a personality that genuinely reflects user preference.",
+    fl2_level:"Session-level", fl2_title:"Skill Learning",
+    fl2_desc:"Repeated complex workflows are packaged as reusable skills — with user consent. Agents don't have to reinvent the wheel.",
+    fl3_level:"System-level", fl3_title:"Metrics & Suggestions",
+    fl3_desc:"Daily cron analyzes 7-day windows, detects anomalous patterns, proposes data-backed improvements.",
+    s11_outro:"Together, these three tiers create agents that not only execute tasks but improve over time — from communication style to skill library to system parameters.",
+    footer_text:"Three closed feedback loops at three timescales: conversation, session, system. Agents don't just execute tasks — they evolve.",
+    footer_back:"← Back to blog"
+  }
+};
+
+// ─── Lang detection ───
+function getLang() {
+  const p = window.location.pathname;
+  if (p.startsWith('/en/')) return 'en';
+  if (p.startsWith('/zh/')) return 'zh';
+  if (p.startsWith('/ja/')) return 'ja';
+  return 'vi';
+}
+
+const lang = getLang();
+const t = T[lang] || T.vi;
+
+// ─── Apply translations ───
+document.querySelectorAll('[data-i18n]').forEach(el => {
+  const key = el.getAttribute('data-i18n');
+  if (t[key] !== undefined) el.innerHTML = t[key];
+});
+
+// ─── Locale home link ───
+const homeLocale = lang === 'vi' ? '/' : `/${lang}`;
+document.getElementById('home-btn').href = homeLocale;
+document.getElementById('footer-home').href = homeLocale;
+
+// ─── Lang buttons ───
+document.querySelectorAll('.nav-lang').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const slug = 'self-evolution-engine';
+    const target = btn.dataset.lang;
+    const newPath = target === 'vi' ? `/posts/${slug}` : `/${target}/posts/${slug}`;
+    window.location.href = newPath;
+  });
+});
+
+// ─── Theme ───
+const themeBtn = document.getElementById('theme-btn');
+const html = document.documentElement;
+const saved = localStorage.getItem('theme');
+if (saved) html.setAttribute('data-theme', saved);
+
+themeBtn.addEventListener('click', () => {
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+});
+
+// ─── TOC active ───
+const sections = document.querySelectorAll('.section-band[id]');
+const tocLinks = document.querySelectorAll('.toc-link');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      tocLinks.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.toc-link[href="#${e.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-40% 0px -50% 0px' });
+sections.forEach(s => observer.observe(s));
+
+// ─── Reveal on scroll ───
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+</script>
+</body>
+</html>

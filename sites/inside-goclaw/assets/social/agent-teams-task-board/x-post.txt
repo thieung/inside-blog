@@ -1,0 +1,9 @@
+Multi-agent coordination without a shared task board is just chaos with extra steps. Built a proper team system for GoClaw v2.8.0.
+
+One lead agent orchestrates N member agents through a shared task board. Every delegation must reference a task ID — no ID, no dispatch. 8 task states, all transitions atomic at the DB layer (two agents claim the same task, only one wins).
+
+The interesting bit: blocked_by dependencies. Task B declares it depends on Task A. When A completes, B auto-transitions from blocked to pending and gets dispatched immediately. Lead creates multiple tasks in one turn, system queues them all and dispatches after the turn ends — no race conditions.
+
+Members hit a hard blocker? Post a blocker comment, system auto-fails the task and escalates to the lead. 17 actions total via the team_tasks tool.
+
+https://goclaw.thieunv.space/posts/agent-teams-task-board

@@ -1,0 +1,17 @@
+🦊 Inside GoClaw series tiếp tục với release v2.47.x — Deep dive vào Knowledge Graph: từ hội thoại đến bộ nhớ ngữ nghĩa, kèm 3D visualization (cái mà tui thích nhất).
+Shout out to Sang Nguyen, chiến thần visual, chúa tể 3D integration 😆
+Bài này phân tích chi tiết cách GoClaw xây dựng Knowledge Graph cho AI agents. Không chỉ lưu lịch sử chat mà hiểu được MỐI QUAN HỆ giữa các thực thể: ai làm gì, dự án nào liên kết với dự án nào.
+Kiến trúc 3 tầng:
+🔹 Trích xuất: LLM rút ra 7 loại thực thể + 17 loại quan hệ, chấm điểm độ tin cậy, tự động chia nhỏ văn bản dài
+🔹 Lưu trữ: PostgreSQL + pgvector cho tìm kiếm kết hợp (tìm kiếm toàn văn 30% + vector 70%), có cơ chế dự phòng khi embedding không khả dụng
+🔹 Trực quan hóa (MỚI từ v2.47.x): Đồ thị lực 3D với Three.js, duyệt sâu qua recursive CTE (tối đa 3 bước nhảy)
+Khử trùng lặp tự động: Tìm kiếm KNN + so sánh Jaro-Winkler → tự gộp khi vector giống >= 98% và tên giống >= 85%. Nếu giống >= 90% thì đánh dấu để review tay.
+10 cải tiến từ v2.47.0 → v2.47.3:
+
+Tra cứu thực thể O(1) qua Map, tính trước kiểu cạnh, ghi nhớ EntityNode (nghĩa là render lại không tính toán lại từ đầu)
+Giới hạn vòng lặp mô phỏng lực bằng log(n)
+Đồng bộ giới hạn fetch với GRAPH_LIMIT, gộp fitView, đổi theme chỉ tốn O(n)
+v2.47.3: trì hoãn mở dialog (INP từ 808ms → dưới 100ms), ghi nhớ RelationsTable, tự điều chỉnh thông số lực theo số lượng node
+
+Chi tiết bài phân tích mình để link ở comment 👇
+#GoClaw #KnowledgeGraph #AIAgents #NextLevelBuilder

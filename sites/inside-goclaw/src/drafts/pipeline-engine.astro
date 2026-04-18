@@ -1,0 +1,1558 @@
+---
+import FloatHome from '@blog/core/components/FloatHome.astro';
+import LangSwitcher from '@blog/core/components/LangSwitcher.astro';
+import ScrollReveal from '@blog/core/components/ScrollReveal.astro';
+import { getTranslation } from '@blog/core/utils/i18n-helpers';
+import translations from '@i18n/pipeline-engine.json';
+
+const locale = Astro.currentLocale || 'vi';
+const t = getTranslation(translations, locale);
+---
+
+<!DOCTYPE html>
+<html lang={locale}>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>GoClaw V3 — Kiến trúc Pipeline 8 giai đoạn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080b0f;
+    --surface: #0e1318;
+    --surface2: #141b22;
+    --surface3: #1a2330;
+    --border: #1e2d3d;
+    --border2: #253545;
+    --text: #d4dde6;
+    --muted: #5a7080;
+    --dim: #354555;
+    --amber: #f59e0b;
+    --amber2: #fbbf24;
+    --amber-dim: rgba(245,158,11,0.1);
+    --amber-glow: rgba(245,158,11,0.06);
+    --steel: #60a5fa;
+    --steel-dim: rgba(96,165,250,0.1);
+    --green: #34d399;
+    --green-dim: rgba(52,211,153,0.1);
+    --red: #f87171;
+    --red-dim: rgba(248,113,113,0.1);
+    --display: 'Syne', system-ui, sans-serif;
+    --mono: 'Space Mono', monospace;
+    --body: 'Inter', system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--body);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── NOISE TEXTURE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.5;
+  }
+
+  /* ─── FLOAT HOME ─── */
+  :global(.float-home) {
+    position: fixed;
+    top: 20px; left: 20px;
+    z-index: 100;
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  :global(.float-home:hover) {
+    background: var(--amber-dim);
+    border-color: var(--amber);
+    color: var(--amber);
+  }
+
+  /* ─── LANG BAR ─── */
+  .lang-bar {
+    position: fixed; top: 20px; right: 20px; z-index: 100;
+    display: flex; gap: 3px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 4px;
+  }
+  .lang-btn {
+    padding: 5px 11px; border-radius: 7px;
+    font-family: var(--mono); font-size: 10px;
+    cursor: pointer; border: none;
+    background: transparent; color: var(--muted);
+    transition: all 0.2s; letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .lang-btn.active {
+    background: var(--amber);
+    color: var(--bg);
+    font-weight: 700;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: flex-start;
+    padding: 120px 60px 80px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 55% 45% at 85% 50%, rgba(245,158,11,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 10% 80%, rgba(96,165,250,0.04) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  /* Vertical pipeline indicator */
+  .hero-pipeline-indicator {
+    position: absolute;
+    right: 60px; top: 50%;
+    transform: translateY(-50%);
+    display: flex; flex-direction: column; align-items: center;
+    gap: 0;
+  }
+  .hpi-stage {
+    display: flex; align-items: center; gap: 12px;
+    position: relative;
+  }
+  .hpi-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border2);
+    background: var(--surface2);
+    position: relative; z-index: 2;
+    transition: all 0.3s;
+  }
+  .hpi-dot.setup { border-color: var(--amber); background: var(--amber-dim); }
+  .hpi-dot.iter { border-color: var(--steel); background: var(--steel-dim); }
+  .hpi-dot.final { border-color: var(--green); background: var(--green-dim); }
+  .hpi-label {
+    font-family: var(--mono); font-size: 9px;
+    color: var(--dim); letter-spacing: 0.1em;
+    text-transform: uppercase; white-space: nowrap;
+  }
+  .hpi-label.setup { color: var(--amber); opacity: 0.7; }
+  .hpi-label.iter { color: var(--steel); opacity: 0.7; }
+  .hpi-label.final { color: var(--green); opacity: 0.7; }
+  .hpi-line {
+    width: 1.5px; height: 28px;
+    background: linear-gradient(to bottom, var(--border2), var(--border));
+    margin: 0 auto;
+    position: relative; left: -0.5px;
+  }
+  /* Animated signal dot on pipeline indicator */
+  .hpi-signal {
+    position: absolute; right: 60px; top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  .hpi-pulse {
+    width: 4px; height: 4px;
+    background: var(--amber);
+    border-radius: 50%;
+    box-shadow: 0 0 6px 2px var(--amber);
+    animation: heroSignal 4s ease-in-out infinite;
+    position: absolute; left: 3px;
+  }
+  @keyframes heroSignal {
+    0% { top: -60px; opacity: 0; }
+    10% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { top: 240px; opacity: 0; }
+  }
+
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--amber); letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    animation: fadeInLeft 0.7s ease both;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    width: 32px; height: 1px;
+    background: var(--amber);
+    opacity: 0.5;
+  }
+  .hero h1 {
+    font-family: var(--display);
+    font-size: clamp(44px, 6.5vw, 88px);
+    font-weight: 800;
+    line-height: 1.0;
+    color: #fff;
+    max-width: 680px;
+    letter-spacing: -0.02em;
+    animation: fadeInLeft 0.8s ease 0.1s both;
+  }
+  .hero h1 .num {
+    color: var(--amber);
+    font-size: 0.85em;
+    vertical-align: super;
+    font-size: clamp(28px, 4vw, 52px);
+  }
+  .hero h1 .accent { color: var(--amber); }
+  .hero-sub {
+    max-width: 520px;
+    font-size: 17px;
+    color: var(--muted);
+    margin-top: 24px;
+    line-height: 1.65;
+    animation: fadeInLeft 0.9s ease 0.2s both;
+  }
+
+  /* KPI Row */
+  .hero-kpis {
+    display: flex; gap: 32px; flex-wrap: wrap;
+    margin-top: 48px;
+    animation: fadeInLeft 1s ease 0.35s both;
+  }
+  .kpi {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .kpi-value {
+    font-family: var(--display);
+    font-size: 38px; font-weight: 800;
+    color: #fff; line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .kpi-value .kpi-unit {
+    font-size: 18px; color: var(--amber);
+    margin-left: 2px;
+  }
+  .kpi-label {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--dim); text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .kpi-sep {
+    width: 1px; height: 48px;
+    background: var(--border);
+    align-self: center;
+  }
+
+  @keyframes fadeInLeft {
+    from { opacity: 0; transform: translateX(-24px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ─── LAYOUT ─── */
+  .content { max-width: 860px; margin: 0 auto; padding: 0 40px; }
+  section { padding: 80px 0; }
+  .section-label {
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--amber); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1; height: 1px;
+    background: var(--border);
+    max-width: 80px;
+  }
+  h2 {
+    font-family: var(--display);
+    font-size: clamp(30px, 4.5vw, 52px);
+    font-weight: 800; line-height: 1.1;
+    color: #fff;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+  h2 .a { color: var(--amber); }
+  h2 .s { color: var(--steel); }
+  h3 {
+    font-family: var(--display);
+    font-size: 22px; font-weight: 700;
+    color: var(--text); margin: 32px 0 12px;
+    letter-spacing: -0.01em;
+  }
+  p {
+    font-size: 16px; color: var(--muted);
+    margin-bottom: 16px; line-height: 1.75;
+  }
+  strong { color: var(--text); font-weight: 600; }
+  code {
+    font-family: var(--mono); font-size: 12px;
+    background: var(--surface2); color: var(--amber2);
+    padding: 2px 7px; border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+  .divider {
+    width: 1px; height: 60px;
+    background: linear-gradient(to bottom, transparent, var(--border), transparent);
+    margin: 0 auto;
+  }
+
+  /* ─── REVEAL ─── */
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.65s ease, transform 0.65s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ─── PIPELINE DIAGRAM ─── */
+  .pipeline-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px 32px;
+    margin: 40px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .pipeline-wrap::before {
+    content: 'PIPELINE FLOW';
+    position: absolute; top: 16px; left: 20px;
+    font-family: var(--mono); font-size: 9px;
+    color: var(--dim); letter-spacing: 0.2em;
+  }
+
+  /* Stage rows */
+  .pipe-row {
+    display: flex; align-items: center; gap: 0;
+    justify-content: center;
+    position: relative;
+  }
+  .pipe-row + .pipe-row {
+    margin-top: 0;
+  }
+
+  /* Phase label */
+  .phase-label {
+    font-family: var(--mono); font-size: 9px;
+    text-transform: uppercase; letter-spacing: 0.15em;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    padding: 12px 8px;
+    border-radius: 6px;
+    margin-right: 16px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    align-self: stretch;
+    display: flex; align-items: center;
+  }
+  .phase-setup { color: var(--amber); background: var(--amber-glow); border: 1px solid rgba(245,158,11,0.15); }
+  .phase-iter { color: var(--steel); background: rgba(96,165,250,0.04); border: 1px solid rgba(96,165,250,0.12); }
+  .phase-fin { color: var(--green); background: var(--green-dim); border: 1px solid rgba(52,211,153,0.15); opacity: 0.7; }
+
+  /* Stage node */
+  .stage-node {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .stage-box {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid;
+    font-family: var(--mono); font-size: 11px;
+    font-weight: 700; text-align: center;
+    white-space: nowrap;
+    position: relative;
+    cursor: default;
+    transition: all 0.2s;
+    min-width: 110px;
+  }
+  .stage-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .stage-num {
+    position: absolute; top: -7px; left: 8px;
+    font-family: var(--mono); font-size: 8px;
+    font-weight: 700; color: var(--bg);
+    padding: 1px 6px; border-radius: 4px;
+  }
+  .stage-sub {
+    font-family: var(--mono); font-size: 9px;
+    color: var(--dim); text-align: center;
+    letter-spacing: 0.05em;
+    max-width: 100px;
+  }
+
+  /* Stage colors */
+  .s-context { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.3); color: var(--amber2); }
+  .s-context .stage-num { background: var(--amber); }
+  .s-think { background: rgba(96,165,250,0.08); border-color: rgba(96,165,250,0.3); color: var(--steel); }
+  .s-think .stage-num { background: var(--steel); }
+  .s-prune { background: rgba(248,113,113,0.07); border-color: rgba(248,113,113,0.25); color: var(--red); }
+  .s-prune .stage-num { background: var(--red); }
+  .s-tool { background: rgba(167,139,250,0.08); border-color: rgba(167,139,250,0.25); color: #a78bfa; }
+  .s-tool .stage-num { background: #a78bfa; }
+  .s-observe { background: rgba(34,211,153,0.07); border-color: rgba(34,211,153,0.2); color: var(--green); }
+  .s-observe .stage-num { background: var(--green); }
+  .s-checkpoint { background: rgba(251,191,36,0.07); border-color: rgba(251,191,36,0.2); color: #fbbf24; }
+  .s-checkpoint .stage-num { background: #fbbf24; }
+  .s-memflush { background: rgba(248,113,113,0.06); border-color: rgba(248,113,113,0.2); color: var(--red); opacity: 0.75; }
+  .s-memflush .stage-num { background: var(--red); }
+  .s-finalize { background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.3); color: var(--green); }
+  .s-finalize .stage-num { background: var(--green); }
+
+  /* Connector arrows */
+  .pipe-connector {
+    display: flex; align-items: center;
+    padding: 0 4px; flex-shrink: 0;
+    position: relative;
+  }
+  .pipe-line {
+    height: 1.5px;
+    background: linear-gradient(to right, var(--border2), var(--border));
+    position: relative;
+    overflow: visible;
+  }
+  .pipe-line-h { width: 24px; }
+  .pipe-line-h::after {
+    content: '';
+    position: absolute; right: -4px; top: -3.5px;
+    border-left: 7px solid var(--border2);
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+  }
+
+  /* Vertical connector */
+  .pipe-vconn {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 4px 0;
+  }
+  .pipe-vline {
+    width: 1.5px;
+    height: 32px;
+    background: linear-gradient(to bottom, var(--border2), var(--border));
+    position: relative;
+    overflow: visible;
+  }
+  .pipe-vline::after {
+    content: '';
+    position: absolute; bottom: -4px; left: -3.5px;
+    border-top: 7px solid var(--border2);
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+  }
+
+  /* Signal animation — dot travelling through pipeline */
+  .pipe-signal {
+    position: absolute;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--amber);
+    box-shadow: 0 0 8px 3px rgba(245,158,11,0.5);
+    pointer-events: none;
+    top: -1.75px;
+    animation: signalTravel 6s ease-in-out infinite;
+    opacity: 0;
+  }
+  @keyframes signalTravel {
+    0%   { left: -5px; opacity: 0; }
+    5%   { opacity: 1; }
+    95%  { opacity: 1; }
+    100% { left: calc(100% + 5px); opacity: 0; }
+  }
+  .pipe-line-h .pipe-signal { animation-duration: 1.2s; }
+
+  /* Loop bracket */
+  .loop-bracket {
+    position: relative;
+    display: flex; flex-direction: column;
+    gap: 6px;
+    padding: 16px 0;
+  }
+  .loop-label {
+    position: absolute; right: -70px; top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--mono); font-size: 9px;
+    color: var(--steel); opacity: 0.6;
+    letter-spacing: 0.1em; white-space: nowrap;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .loop-label::before {
+    content: '';
+    width: 1px; height: 32px;
+    background: rgba(96,165,250,0.2);
+    border-right: 1px dashed rgba(96,165,250,0.2);
+  }
+  .loop-brace {
+    position: absolute; right: -14px; top: 0; bottom: 0;
+    width: 12px;
+    border-right: 1.5px solid rgba(96,165,250,0.15);
+    border-top: 1.5px solid rgba(96,165,250,0.15);
+    border-bottom: 1.5px solid rgba(96,165,250,0.15);
+    border-radius: 0 6px 6px 0;
+  }
+
+  /* ─── CODE BLOCK ─── */
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden; margin: 24px 0;
+  }
+  .code-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .code-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .code-dot.r { background: #f87171; opacity: 0.7; }
+  .code-dot.y { background: #fbbf24; opacity: 0.7; }
+  .code-dot.g { background: #34d399; opacity: 0.7; }
+  .code-filename {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--muted); margin-left: 4px;
+  }
+  .code-body {
+    padding: 20px 20px;
+    overflow-x: auto;
+  }
+  .code-body pre {
+    font-family: var(--mono); font-size: 12.5px;
+    line-height: 1.75; color: var(--muted);
+    white-space: pre;
+  }
+  .ck { color: var(--steel); }
+  .ct { color: var(--amber2); }
+  .cs { color: var(--green); }
+  .cc { color: var(--dim); font-style: italic; }
+  .cf { color: #c084fc; }
+
+  /* ─── RUNSTATE DIAGRAM ─── */
+  .runstate-grid {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin: 28px 0;
+  }
+  .rs-key {
+    background: var(--surface2);
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono); font-size: 12px;
+    color: var(--steel); display: flex; align-items: center;
+    gap: 8px;
+  }
+  .rs-key:last-of-type { border-bottom: none; }
+  .rs-key .rs-ico { font-size: 14px; flex-shrink: 0; opacity: 0.7; }
+  .rs-val {
+    background: var(--surface);
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px; color: var(--muted);
+    display: flex; align-items: center;
+  }
+  .rs-val:last-of-type { border-bottom: none; }
+  .rs-owner {
+    font-family: var(--mono); font-size: 10px;
+    padding: 2px 8px; border-radius: 5px;
+    margin-left: auto; flex-shrink: 0;
+  }
+
+  /* ─── STAGE DETAIL CARDS ─── */
+  .stage-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin: 24px 0;
+  }
+  .stage-card-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sc-num {
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .sc-title {
+    font-family: var(--display); font-size: 18px; font-weight: 700;
+    color: var(--text); letter-spacing: -0.01em;
+  }
+  .sc-phase {
+    margin-left: auto;
+    font-family: var(--mono); font-size: 9px;
+    padding: 3px 9px; border-radius: 100px;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    flex-shrink: 0;
+  }
+  .sc-body { padding: 20px; }
+  .sc-body p { font-size: 15px; }
+
+  /* Step list */
+  .step-list {
+    display: flex; flex-direction: column; gap: 8px;
+    margin: 16px 0;
+  }
+  .step-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font-size: 13px; color: var(--muted);
+    line-height: 1.5;
+  }
+  .step-n {
+    font-family: var(--mono); font-size: 10px;
+    width: 20px; height: 20px; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-weight: 700;
+    margin-top: 1px;
+  }
+  .step-item strong { font-size: 13px; }
+
+  /* Pill badges */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 100px;
+    font-family: var(--mono); font-size: 10px;
+    font-weight: 700; letter-spacing: 0.05em;
+  }
+  .b-amber { background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.25); color: var(--amber2); }
+  .b-steel { background: var(--steel-dim); border: 1px solid rgba(96,165,250,0.25); color: var(--steel); }
+  .b-green { background: var(--green-dim); border: 1px solid rgba(52,211,153,0.2); color: var(--green); }
+  .b-red { background: var(--red-dim); border: 1px solid rgba(248,113,113,0.2); color: var(--red); }
+  .b-purple { background: rgba(167,139,250,0.08); border: 1px solid rgba(167,139,250,0.2); color: #a78bfa; }
+
+  /* Color variants for stage cards */
+  .sc-setup .sc-num { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
+  .sc-setup .sc-phase { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
+  .sc-setup .stage-card-header { border-bottom-color: rgba(245,158,11,0.1); }
+  .sc-iter .sc-num { background: var(--steel-dim); color: var(--steel); border: 1px solid rgba(96,165,250,0.2); }
+  .sc-iter .sc-phase { background: var(--steel-dim); color: var(--steel); border: 1px solid rgba(96,165,250,0.2); }
+  .sc-sub .sc-num { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+  .sc-sub .sc-phase { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+  .sc-fin .sc-num { background: var(--green-dim); color: var(--green); border: 1px solid rgba(52,211,153,0.2); }
+  .sc-fin .sc-phase { background: var(--green-dim); color: var(--green); border: 1px solid rgba(52,211,153,0.2); }
+
+  /* ─── PRUNE BUDGET DIAGRAM ─── */
+  .budget-viz {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 16px 0;
+    overflow-x: auto;
+  }
+  .budget-bar-wrap {
+    position: relative;
+    height: 36px;
+    background: var(--surface);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .budget-bar {
+    position: absolute; top: 0; left: 0;
+    height: 100%;
+    border-radius: 8px;
+    display: flex; align-items: center;
+    padding: 0 10px;
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    white-space: nowrap;
+  }
+  .bb-overhead { width: 20%; background: rgba(245,158,11,0.2); color: var(--amber2); border-right: 1px solid rgba(245,158,11,0.3); }
+  .bb-reserve { width: 5%; left: 20%; background: rgba(248,113,113,0.12); color: var(--red); }
+  .bb-safe { width: 50%; left: 25%; background: rgba(52,211,153,0.08); color: var(--green); }
+  .bb-warn { width: 25%; left: 75%; background: rgba(248,113,113,0.12); border-left: 2px dashed rgba(248,113,113,0.4); color: var(--red); font-size: 9px; }
+  .budget-legend {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    font-family: var(--mono); font-size: 10px; color: var(--dim);
+  }
+  .bl-item { display: flex; align-items: center; gap: 6px; }
+  .bl-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* ─── TOOL PARALLEL DIAGRAM ─── */
+  .parallel-diagram {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 16px 0;
+    font-family: var(--mono); font-size: 12px;
+  }
+  .pd-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .pd-label { width: 80px; color: var(--dim); font-size: 10px; text-align: right; flex-shrink: 0; }
+  .pd-bar {
+    flex: 1; height: 28px; border-radius: 7px;
+    display: flex; align-items: center; padding: 0 10px;
+    font-size: 10px; font-weight: 700;
+    border: 1px solid;
+  }
+  .pd-io { background: rgba(96,165,250,0.08); border-color: rgba(96,165,250,0.2); color: var(--steel); }
+  .pd-mut { background: rgba(245,158,11,0.07); border-color: rgba(245,158,11,0.2); color: var(--amber); }
+  .pd-conn { width: 2px; background: var(--border); height: 14px; margin: 0 auto; }
+  .pd-arrow {
+    display: flex; align-items: center; gap: 6px;
+    color: var(--dim); font-size: 9px;
+    justify-content: center; margin: 4px 0;
+  }
+
+  /* ─── COMPARISON TABLE ─── */
+  .cmp-table {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    margin: 24px 0;
+    border-radius: 14px; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .cmp-table th {
+    background: var(--surface2);
+    padding: 12px 16px; text-align: left;
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--dim); border-bottom: 1px solid var(--border);
+  }
+  .cmp-table th.col-v3 { color: var(--amber); }
+  .cmp-table td {
+    padding: 13px 16px; font-size: 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    vertical-align: top;
+    color: var(--muted);
+  }
+  .cmp-table tr:last-child td { border-bottom: none; }
+  .cmp-table td:first-child { color: var(--text); font-weight: 500; font-family: var(--mono); font-size: 12px; }
+  .cmp-table td.v3-cell { color: var(--amber2); }
+
+  /* ─── FINALIZE STEPS ─── */
+  .fin-steps {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px; margin: 16px 0;
+  }
+  @media (max-width: 640px) { .fin-steps { grid-template-columns: 1fr; } }
+  .fin-step {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .fin-step-n {
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    color: var(--bg); background: var(--green);
+    width: 20px; height: 20px; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .fin-step-text { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .fin-step-text strong { font-size: 13px; display: block; margin-bottom: 2px; }
+
+  /* ─── DEPS CARD ─── */
+  .deps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px; margin: 20px 0;
+  }
+  .dep-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--muted);
+    position: relative;
+    overflow: hidden;
+  }
+  .dep-item::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--steel);
+    opacity: 0.4;
+  }
+  .dep-item .dep-name { color: var(--steel); font-weight: 700; display: block; margin-bottom: 4px; }
+  .dep-item .dep-sig { font-size: 10px; color: var(--dim); line-height: 1.4; }
+
+  /* ─── FOOTER ─── */
+  .footer {
+    text-align: center;
+    padding: 64px 24px;
+    border-top: 1px solid var(--border);
+    position: relative;
+  }
+  .footer::before {
+    content: '';
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 160px; height: 1px;
+    background: linear-gradient(to right, transparent, var(--amber), transparent);
+  }
+  .footer-label {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--dim); letter-spacing: 0.2em;
+    text-transform: uppercase; margin-bottom: 20px;
+  }
+  .footer h3 {
+    font-family: var(--display);
+    font-size: clamp(24px, 4vw, 40px);
+    font-weight: 800; color: #fff;
+    letter-spacing: -0.02em; margin-bottom: 16px;
+  }
+  .footer h3 .a { color: var(--amber); }
+  .footer p {
+    max-width: 520px; margin: 0 auto 0;
+    font-size: 15px;
+  }
+  .footer-tag {
+    margin-top: 32px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--dim);
+  }
+
+  /* ─── MOBILE ─── */
+  @media (max-width: 768px) {
+    .hero { padding: 100px 24px 60px; }
+    .hero-pipeline-indicator { display: none; }
+    .hero-kpis { gap: 20px; }
+    .kpi-sep { display: none; }
+    .kpi-value { font-size: 30px; }
+    .content { padding: 0 20px; }
+    section { padding: 56px 0; }
+    h2 { font-size: clamp(26px, 6vw, 36px); }
+    .pipeline-wrap { padding: 28px 16px; }
+    .pipe-row { flex-wrap: wrap; justify-content: flex-start; gap: 6px; }
+    .stage-box { min-width: 80px; font-size: 10px; padding: 8px 10px; }
+    .pipe-line-h { width: 12px; }
+    .loop-label { display: none; }
+    .loop-brace { display: none; }
+    .runstate-grid { grid-template-columns: 140px 1fr; }
+    .fin-steps { grid-template-columns: 1fr; }
+    .deps-grid { grid-template-columns: 1fr; }
+    .cmp-table { display: block; overflow-x: auto; font-size: 12px; }
+    .cmp-table th, .cmp-table td { padding: 9px 12px; white-space: normal; }
+  }
+  @media (max-width: 480px) {
+    .hero h1 { font-size: clamp(36px, 9vw, 48px); }
+    .hero-sub { font-size: 15px; }
+    .runstate-grid { grid-template-columns: 1fr; }
+    .rs-val { border-top: 0; border-bottom: 1px solid var(--border); }
+    .rs-key { border-bottom: 0; }
+  }
+</style>
+</head>
+<body>
+
+<FloatHome />
+
+<!-- LANG BAR -->
+<div class="lang-bar">
+  <button class="lang-btn" data-lang="vi">VI</button>
+  <button class="lang-btn" data-lang="en">EN</button>
+  <button class="lang-btn" data-lang="zh">ZH</button>
+  <button class="lang-btn" data-lang="ja">JA</button>
+</div>
+
+<!-- ═══ HERO ═══ -->
+<header class="hero">
+  <div class="hero-eyebrow">{t.hero_eyebrow || 'GoClaw V3 — Architecture'}</div>
+  <h1>
+    <span class="num">8</span><br>
+    <span class="accent">{t.hero_title_1 || 'Stage'}</span><br>
+    {t.hero_title_2 || 'Pipeline'}
+  </h1>
+  <p class="hero-sub">{t.hero_sub || 'Từ một hàm monolithic 600 dòng đến 8 giai đoạn tường minh — mỗi stage có trách nhiệm độc lập, flow control qua enum, và crash recovery tích hợp sẵn.'}</p>
+
+  <div class="hero-kpis">
+    <div class="kpi">
+      <div class="kpi-value">8<span class="kpi-unit">×</span></div>
+      <div class="kpi-label">{t.kpi_label_1 || 'Stage rõ ràng'}</div>
+    </div>
+    <div class="kpi-sep"></div>
+    <div class="kpi">
+      <div class="kpi-value">30<span class="kpi-unit">×</span></div>
+      <div class="kpi-label">{t.kpi_label_2 || 'Iteration tối đa'}</div>
+    </div>
+    <div class="kpi-sep"></div>
+    <div class="kpi">
+      <div class="kpi-value">5<span class="kpi-unit">n</span></div>
+      <div class="kpi-label">{t.kpi_label_3 || 'Checkpoint mỗi N lần'}</div>
+    </div>
+    <div class="kpi-sep"></div>
+    <div class="kpi">
+      <div class="kpi-value">3</div>
+      <div class="kpi-label">{t.kpi_label_4 || 'Giai đoạn (Setup/Iter/Final)'}</div>
+    </div>
+  </div>
+
+  <!-- Vertical pipeline indicator (decorative) -->
+  <div class="hero-pipeline-indicator" aria-hidden="true">
+    <div class="hpi-stage">
+      <div class="hpi-dot setup"></div>
+      <span class="hpi-label setup">Setup</span>
+    </div>
+    <div class="hpi-line"></div>
+    <div class="hpi-stage">
+      <div class="hpi-dot iter"></div>
+      <span class="hpi-label iter">Think</span>
+    </div>
+    <div class="hpi-line"></div>
+    <div class="hpi-stage">
+      <div class="hpi-dot iter"></div>
+      <span class="hpi-label iter">Prune</span>
+    </div>
+    <div class="hpi-line"></div>
+    <div class="hpi-stage">
+      <div class="hpi-dot iter"></div>
+      <span class="hpi-label iter">Tool</span>
+    </div>
+    <div class="hpi-line"></div>
+    <div class="hpi-stage">
+      <div class="hpi-dot iter"></div>
+      <span class="hpi-label iter">Observe</span>
+    </div>
+    <div class="hpi-line"></div>
+    <div class="hpi-stage">
+      <div class="hpi-dot iter"></div>
+      <span class="hpi-label iter">Checkpoint</span>
+    </div>
+    <div class="hpi-line"></div>
+    <div class="hpi-stage">
+      <div class="hpi-dot final"></div>
+      <span class="hpi-label final">Finalize</span>
+    </div>
+    <!-- Animated signal dot -->
+    <div class="hpi-pulse" aria-hidden="true"></div>
+  </div>
+</header>
+
+<div class="divider"></div>
+
+<!-- ═══ SECTION 01: OVERVIEW ═══ -->
+<section>
+  <div class="content reveal">
+    <span class="section-label">01 — {t.s1_label || 'Tổng quan kiến trúc'}</span>
+    <h2>{t.s1_title || 'Pipeline <span class="a">tường minh</span>'}</h2>
+    <p>{t.s1_p1 || 'Trước V3, toàn bộ logic xử lý một agent run được dồn vào một hàm monolithic'} <code>runLoop()</code> {t.s1_p1b || '— dài hàng trăm dòng, khó mở rộng và khó test từng phần riêng lẻ. V3 Pipeline Engine chia nó thành 8 stage rõ ràng.'}</p>
+    <p>{t.s1_p2 || 'Toàn bộ business logic vẫn nằm trong'} <code>agent</code> {t.s1_p2b || 'package — pipeline chỉ là bộ khung thuần orchestration. V2 monolithic'} <code>runLoop()</code> {t.s1_p2c || 'đã bị xóa hoàn toàn. Flag'} <code>v3_pipeline_enabled</code> {t.s1_p2d || 'chỉ còn để backward compat với data cũ.'}</p>
+
+    <!-- Pipeline diagram -->
+    <div class="pipeline-wrap">
+      <!-- SETUP ROW -->
+      <div class="pipe-row">
+        <div class="phase-label phase-setup">Setup</div>
+        <div class="stage-node">
+          <div class="stage-box s-context">
+            <span class="stage-num">1</span>
+            ContextStage
+          </div>
+          <span class="stage-sub">{t.diagram_ctx || 'Build context, system prompt'}</span>
+        </div>
+      </div>
+
+      <!-- Vertical connector to iteration -->
+      <div style="display:flex; align-items:center; padding-left:60px; padding-top:4px; padding-bottom:4px;">
+        <div style="width:1.5px; height:28px; background:var(--border2); position:relative; margin-left:55px;">
+          <div style="position:absolute; bottom:-4px; left:-3.5px; border-top:7px solid var(--border2); border-left:4px solid transparent; border-right:4px solid transparent;"></div>
+        </div>
+      </div>
+
+      <!-- ITERATION ROW -->
+      <div class="pipe-row" style="position:relative;">
+        <div class="phase-label phase-iter">{t.diagram_iter || 'Iteration ×30'}</div>
+        <div style="position:relative; display:flex; flex-direction:column; gap:6px;">
+          <!-- Main iteration chain -->
+          <div style="display:flex; align-items:center; gap:0;">
+            <div class="stage-node">
+              <div class="stage-box s-think">
+                <span class="stage-num">2</span>
+                ThinkStage
+              </div>
+              <span class="stage-sub">{t.diagram_think || 'LLM call, flow ctrl'}</span>
+            </div>
+            <div class="pipe-connector">
+              <div class="pipe-line pipe-line-h"><div class="pipe-signal"></div></div>
+            </div>
+            <div class="stage-node">
+              <div class="stage-box s-prune">
+                <span class="stage-num">3</span>
+                PruneStage
+              </div>
+              <span class="stage-sub">{t.diagram_prune || 'Context budget'}</span>
+            </div>
+            <div class="pipe-connector">
+              <div class="pipe-line pipe-line-h" style="animation-delay:0.4s"><div class="pipe-signal" style="animation-delay:0.8s"></div></div>
+            </div>
+            <div class="stage-node">
+              <div class="stage-box s-tool">
+                <span class="stage-num">4</span>
+                ToolStage
+              </div>
+              <span class="stage-sub">{t.diagram_tool || 'Parallel exec'}</span>
+            </div>
+            <div class="pipe-connector">
+              <div class="pipe-line pipe-line-h" style="animation-delay:0.8s"><div class="pipe-signal" style="animation-delay:1.6s"></div></div>
+            </div>
+            <div class="stage-node">
+              <div class="stage-box s-observe">
+                <span class="stage-num">5</span>
+                ObserveStage
+              </div>
+              <span class="stage-sub">{t.diagram_observe || 'Drain, accumulate'}</span>
+            </div>
+            <div class="pipe-connector">
+              <div class="pipe-line pipe-line-h" style="animation-delay:1.2s"><div class="pipe-signal" style="animation-delay:2.4s"></div></div>
+            </div>
+            <div class="stage-node">
+              <div class="stage-box s-checkpoint">
+                <span class="stage-num">6</span>
+                CheckpointStage
+              </div>
+              <span class="stage-sub">{t.diagram_checkpoint || 'Flush every 5'}</span>
+            </div>
+          </div>
+          <!-- Prune sub-stage (MemoryFlush) -->
+          <div style="display:flex; padding-left:138px; margin-top:4px;">
+            <div style="display:flex; flex-direction:column; align-items:center;">
+              <div style="width:1.5px; height:16px; background:rgba(248,113,113,0.2);"></div>
+              <div class="stage-box s-memflush" style="min-width:90px; font-size:10px; padding:7px 10px;">
+                <span class="stage-num" style="font-size:7px; top:-5px; left:6px;">7</span>
+                MemFlushStage
+              </div>
+              <span class="stage-sub" style="font-size:8px;">{t.diagram_memflush || '(if compaction)'}</span>
+            </div>
+          </div>
+
+          <!-- Loop brace -->
+          <div class="loop-brace"></div>
+          <div class="loop-label">{t.diagram_loop_label || 'max 30 iter'}</div>
+        </div>
+      </div>
+
+      <!-- Vertical connector to finalize -->
+      <div style="display:flex; align-items:center; padding-left:60px; padding-top:4px; padding-bottom:4px;">
+        <div style="width:1.5px; height:28px; background:var(--border2); position:relative; margin-left:55px;">
+          <div style="position:absolute; bottom:-4px; left:-3.5px; border-top:7px solid var(--border2); border-left:4px solid transparent; border-right:4px solid transparent;"></div>
+        </div>
+      </div>
+
+      <!-- FINALIZE ROW -->
+      <div class="pipe-row">
+        <div class="phase-label phase-fin">Finalize</div>
+        <div class="stage-node">
+          <div class="stage-box s-finalize">
+            <span class="stage-num">8</span>
+            FinalizeStage
+          </div>
+          <span class="stage-sub">{t.diagram_finalize || 'WithoutCancel, flush'}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage interface -->
+    <h3>{t.s1_interface_title || 'Stage Interface'}</h3>
+    <p>{t.s1_interface_p || 'Mọi stage implement một interface tối giản:'}</p>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div>
+        <span class="code-filename">pipeline/stage.go</span>
+      </div>
+      <div class="code-body">
+        <pre><span class="ck">type</span> <span class="ct">Stage</span> <span class="ck">interface</span> &#123;
+  <span class="cf">Name</span>() <span class="ck">string</span>
+  <span class="cf">Execute</span>(ctx <span class="ct">context.Context</span>, state *<span class="ct">RunState</span>) <span class="ck">error</span>
+&#125;
+
+<span class="cc">// Stage nào cần kiểm soát flow implement thêm:</span>
+<span class="ck">type</span> <span class="ct">StageWithResult</span> <span class="ck">interface</span> &#123;
+  <span class="ct">Stage</span>
+  <span class="cf">Result</span>() <span class="ct">StageResult</span>  <span class="cc">// Continue | BreakLoop | AbortRun</span>
+&#125;</pre>
+      </div>
+    </div>
+
+    <p>{t.s1_result_p || 'Ba giá trị của'} <code>StageResult</code>:</p>
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-n" style="background:var(--green);color:var(--bg);">→</div>
+        <div><strong>Continue</strong> — {t.s1_r_continue || 'tiếp tục stage tiếp theo trong iteration'}</div>
+      </div>
+      <div class="step-item">
+        <div class="step-n" style="background:var(--amber);color:var(--bg);">⏎</div>
+        <div><strong>BreakLoop</strong> — {t.s1_r_break || 'thoát iteration loop (LLM không gọi tool → done)'}</div>
+      </div>
+      <div class="step-item">
+        <div class="step-n" style="background:var(--red);color:var(--bg);">✕</div>
+        <div><strong>AbortRun</strong> — {t.s1_r_abort || 'hủy toàn bộ run (lỗi không phục hồi)'}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ SECTION 02: RUNSTATE ═══ -->
+<section>
+  <div class="content reveal">
+    <span class="section-label">02 — {t.s2_label || 'Shared State'}</span>
+    <h2>RunState — <span class="s">{t.s2_title || 'Bộ nhớ dùng chung'}</span></h2>
+    <p>{t.s2_p || 'RunState là struct được truyền qua tất cả stage theo dạng pointer. Mỗi stage sở hữu một substate riêng — không đọc/ghi vào vùng dữ liệu của stage khác, đảm bảo isolation hoàn toàn.'}</p>
+
+    <div class="runstate-grid">
+      <div class="rs-key"><span class="rs-ico">🔒</span> Input *RunInput</div>
+      <div class="rs-val">{t.rs_input || 'Immutable: message, sessionKey, userID, agentID'} <span class="rs-owner b-steel">{t.rs_immutable || 'immutable'}</span></div>
+
+      <div class="rs-key"><span class="rs-ico">📨</span> Messages *MessageBuffer</div>
+      <div class="rs-val">{t.rs_messages || 'History + pending + system (thread-safe)'} <span class="rs-owner b-green">{t.rs_shared || 'shared'}</span></div>
+
+      <div class="rs-key"><span class="rs-ico">⚙️</span> Context ContextState</div>
+      <div class="rs-val">{t.rs_context || 'EffectiveContextWindow, workspace, media refs'} <span class="rs-owner b-amber">ContextStage</span></div>
+
+      <div class="rs-key"><span class="rs-ico">🧠</span> Think ThinkState</div>
+      <div class="rs-val">{t.rs_think || 'ChatRequest, tool calls, usage counters'} <span class="rs-owner b-steel">ThinkStage</span></div>
+
+      <div class="rs-key"><span class="rs-ico">✂️</span> Prune PruneState</div>
+      <div class="rs-val">{t.rs_prune || 'Budget thresholds, flush triggers'} <span class="rs-owner b-red">PruneStage</span></div>
+
+      <div class="rs-key"><span class="rs-ico">🔧</span> Tool ToolState</div>
+      <div class="rs-val">{t.rs_tool || 'Parallel results, read-only streak counter'} <span class="rs-owner b-purple">ToolStage</span></div>
+
+      <div class="rs-key"><span class="rs-ico">👁️</span> Observe ObserveState</div>
+      <div class="rs-val">{t.rs_observe || 'FinalContent, BlockReplies, drained channels'} <span class="rs-owner b-green">ObserveStage</span></div>
+
+      <div class="rs-key"><span class="rs-ico">💾</span> Compact CompactState</div>
+      <div class="rs-val">{t.rs_compact || 'Compaction history, flush timestamps'} <span class="rs-owner b-amber">Checkpoint + MemFlush</span></div>
+
+      <div class="rs-key"><span class="rs-ico">📈</span> Evolution EvolutionState</div>
+      <div class="rs-val">{t.rs_evolution || 'Nudge70Sent, Nudge90Sent, iteration budget'} <span class="rs-owner b-steel">ThinkStage</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ SECTION 03: CONTEXTSTAGE ═══ -->
+<section>
+  <div class="content reveal">
+    <span class="section-label">03 — Stage 1</span>
+    <div class="stage-card sc-setup">
+      <div class="stage-card-header">
+        <div class="sc-num">1</div>
+        <div class="sc-title">ContextStage</div>
+        <span class="sc-phase">Setup · 1×</span>
+      </div>
+      <div class="sc-body">
+        <p>{t.s3_p || 'Stage duy nhất trong giai đoạn Setup. Chuẩn bị toàn bộ ngữ cảnh trước khi vòng lặp iteration bắt đầu, theo 10 bước tuần tự:'}</p>
+        <div class="step-list">
+          <div class="step-item"><div class="step-n" style="background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.2);">1</div><div><strong>InjectContext</strong> — agentID, userID, agentType, locale vào ctx</div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.2);">2</div><div><strong>ResolveContextWindow</strong> — {t.s3_step2 || 'tra ModelRegistry → lấy context window chính xác, lưu vào'} <code>EffectiveContextWindow</code></div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.2);">3</div><div><strong>ResolveWorkspace</strong> — {t.s3_step3 || '6 kịch bản: default / team lead / team member / dispatch / subagent / cron'}</div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.2);">4</div><div><strong>LoadContextFiles</strong> — agent-level + per-user + fallback bootstrap</div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.2);">5</div><div><strong>LoadSessionHistory</strong> — lịch sử session + summary từ store</div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.2);">6</div><div><strong>BuildMessages</strong> — {t.s3_step6 || 'system prompt (15+ sections) + history pipeline'}</div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.2);">7</div><div><strong>ComputeOverheadTokens</strong> — đếm token system prompt qua TokenCounter</div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.2);">8</div><div><strong>EnrichMedia</strong> — resolve media refs, inline descriptions</div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.2);">9</div><div><strong>InjectReminders</strong> — team task reminders vào history</div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.2);">10</div><div><strong>AutoInject L0</strong> — {t.s3_step10 || 'top-K vault entries từ hybrid search (BM25 + vector) vào system prompt'}</div></div>
+        </div>
+        <p style="margin-top:12px;">{t.s3_note || 'AutoInject L0 nhận thêm'} <code>recentContext</code> — {t.s3_note2 || 'nối tối đa 2 user turn gần nhất, cắt ở 300 rune (an toàn cho tiếng Việt/Trung/Nhật) — để vector search có thể resolve pronoun và implicit reference.'}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ SECTION 04: THINKSTAGE ═══ -->
+<section>
+  <div class="content reveal">
+    <span class="section-label">04 — Stage 2</span>
+    <div class="stage-card sc-iter">
+      <div class="stage-card-header">
+        <div class="sc-num">2</div>
+        <div class="sc-title">ThinkStage</div>
+        <span class="sc-phase">{t.iter_label || 'Iteration · đầu tiên'}</span>
+      </div>
+      <div class="sc-body">
+        <p>{t.s4_p || 'Stage gọi LLM. Chạy đầu tiên trong mỗi iteration:'}</p>
+        <div class="step-list">
+          <div class="step-item"><div class="step-n" style="background:var(--steel-dim);color:var(--steel);border:1px solid rgba(96,165,250,0.2);">1</div><div><strong>maybeInjectNudge</strong> — {t.s4_nudge || 'inject system message tại 70% / 90% iteration budget'}</div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--steel-dim);color:var(--steel);border:1px solid rgba(96,165,250,0.2);">2</div><div><strong>BuildFilteredTools</strong> — {t.s4_tools || 'lọc tool qua PolicyEngine (RBAC)'}</div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--steel-dim);color:var(--steel);border:1px solid rgba(96,165,250,0.2);">3</div><div><strong>Construct ChatRequest</strong></div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--steel-dim);color:var(--steel);border:1px solid rgba(96,165,250,0.2);">4</div><div><strong>CallLLM</strong> — stream hoặc sync tùy cấu hình</div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--steel-dim);color:var(--steel);border:1px solid rgba(96,165,250,0.2);">5</div><div><strong>AccumulateUsage</strong> — promptTokens, completionTokens, thinkingTokens</div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--steel-dim);color:var(--steel);border:1px solid rgba(96,165,250,0.2);">6</div><div><strong>HandleTruncation</strong> — {t.s4_trunc || 'retry tối đa 3 lần nếu tool call args bị truncate/malformed'}</div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--steel-dim);color:var(--steel);border:1px solid rgba(96,165,250,0.2);">7</div><div><strong>UniqueToolCallIDs</strong> — {t.s4_dedup || 'dedup ID (OpenAI trả 400 nếu duplicate)'}</div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--steel-dim);color:var(--steel);border:1px solid rgba(96,165,250,0.2);">8</div><div><strong>FlowControl</strong> — {t.s4_flow || 'không có tool call → BreakLoop; có tool call → Continue'}</div></div>
+        </div>
+        <h3 style="font-size:16px; margin-top:20px;">{t.s4_nudge_title || 'Iteration Nudges'}</h3>
+        <p>{t.s4_nudge_p || 'Cơ chế phòng vệ khi agent bị kẹt trong vòng lặp dài. Ở 70% budget, system message nhắc "bắt đầu kết thúc". Ở 90%, cảnh báo khẩn: "Giao kết quả ngay". Tracked bởi'} <code>Nudge70Sent</code> / <code>Nudge90Sent</code> {t.s4_nudge_p2 || 'để không inject trùng.'}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ SECTION 05: PRUNESTAGE ═══ -->
+<section>
+  <div class="content reveal">
+    <span class="section-label">05 — Stage 3</span>
+    <div class="stage-card sc-iter" style="border-color:rgba(248,113,113,0.15);">
+      <div class="stage-card-header" style="border-bottom-color:rgba(248,113,113,0.1);">
+        <div class="sc-num" style="background:var(--red-dim);color:var(--red);border-color:rgba(248,113,113,0.2);">3</div>
+        <div class="sc-title">PruneStage</div>
+        <span class="sc-phase" style="background:var(--red-dim);color:var(--red);border-color:rgba(248,113,113,0.2);">{t.iter_label || 'Iteration · sau Think'}</span>
+      </div>
+      <div class="sc-body">
+        <p>{t.s5_p || '"Van an toàn" cho context window. Chạy sau ThinkStage, trước khi tool được thực thi:'}</p>
+
+        <div class="budget-viz">
+          <div class="budget-bar-wrap">
+            <div class="budget-bar bb-overhead">Overhead</div>
+            <div class="budget-bar bb-reserve">Res.</div>
+            <div class="budget-bar bb-safe">✓ {t.budget_safe || 'Safe zone (≤70%)'}</div>
+            <div class="budget-bar bb-warn">⚠ {t.budget_warn || 'Danger'}</div>
+          </div>
+          <div class="budget-legend">
+            <div class="bl-item"><div class="bl-dot" style="background:var(--amber2);"></div><span>{t.budget_overhead || 'System prompt overhead'}</span></div>
+            <div class="bl-item"><div class="bl-dot" style="background:var(--red); opacity:0.5"></div><span>reserveTokens</span></div>
+            <div class="bl-item"><div class="bl-dot" style="background:var(--green);opacity:0.5;"></div><span>{t.budget_history || 'History tokens ≤70% → skip'}</span></div>
+            <div class="bl-item"><div class="bl-dot" style="background:var(--red);opacity:0.3;"></div><span>{t.budget_danger || '>70% → Phase 1 prune / >100% → Phase 2 compaction'}</span></div>
+          </div>
+        </div>
+
+        <div class="step-list" style="margin-top:12px;">
+          <div class="step-item"><div class="step-n" style="background:rgba(245,158,11,0.15);color:var(--amber);border:1px solid rgba(245,158,11,0.2);">P1</div><div><strong>{t.s5_phase1 || 'Soft Prune'}</strong> — {t.s5_phase1_desc || 'cắt message cũ, giữ đầu/cuối. Trigger khi >70% budget.'}</div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--red-dim);color:var(--red);border:1px solid rgba(248,113,113,0.2);">P2</div><div><strong>{t.s5_phase2 || 'Memory Flush + LLM Compaction'}</strong> — {t.s5_phase2_desc || 'agent persist memory trước, sau đó LLM tạo summary thay thế toàn bộ history. Trigger khi >100% budget.'}</div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--red-dim);color:var(--red);border:1px solid rgba(248,113,113,0.2);">✕</div><div><strong>AbortRun</strong> — {t.s5_abort || 'vẫn vượt budget sau compaction → abort.'}</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ SECTION 06: TOOL + OBSERVE ═══ -->
+<section>
+  <div class="content reveal">
+    <span class="section-label">06 — Stage 4 &amp; 5</span>
+    <h2>Tool <span class="a">&amp;</span> Observe</h2>
+
+    <div class="stage-card sc-iter" style="border-color:rgba(167,139,250,0.15);">
+      <div class="stage-card-header" style="border-bottom-color:rgba(167,139,250,0.1);">
+        <div class="sc-num" style="background:rgba(167,139,250,0.1);color:#a78bfa;border-color:rgba(167,139,250,0.2);">4</div>
+        <div class="sc-title">ToolStage</div>
+        <span class="sc-phase" style="background:rgba(167,139,250,0.1);color:#a78bfa;border-color:rgba(167,139,250,0.2);">{t.iter_label || 'Iteration'}</span>
+      </div>
+      <div class="sc-body">
+        <p>{t.s6_tool_p || 'Thực thi tool calls từ ThinkStage. Thiết kế then chốt: tách I/O ra khỏi state mutation để chạy song song an toàn.'}</p>
+
+        <div class="parallel-diagram">
+          <div class="pd-row">
+            <div class="pd-label" style="color:var(--steel);">Phase 1</div>
+            <div class="pd-bar pd-io">goroutine 1: ExecuteToolRaw(tc1) → (msg1, raw1)</div>
+          </div>
+          <div class="pd-row">
+            <div class="pd-label"></div>
+            <div class="pd-bar pd-io" style="opacity:0.75;">goroutine 2: ExecuteToolRaw(tc2) → (msg2, raw2)</div>
+          </div>
+          <div class="pd-row">
+            <div class="pd-label"></div>
+            <div class="pd-bar pd-io" style="opacity:0.5; font-style:italic;">... wg.Wait()</div>
+          </div>
+          <div class="pd-arrow">── {t.s6_phase_sep || 'I/O hoàn tất, bắt đầu ghi state tuần tự'} ──</div>
+          <div class="pd-row">
+            <div class="pd-label" style="color:var(--amber);">Phase 2</div>
+            <div class="pd-bar pd-mut">ProcessToolResult(tc1, msg1, raw1) → deterministic order</div>
+          </div>
+          <div class="pd-row">
+            <div class="pd-label"></div>
+            <div class="pd-bar pd-mut" style="opacity:0.7;">ProcessToolResult(tc2, msg2, raw2)</div>
+          </div>
+        </div>
+        <p>{t.s6_tool_note || 'Điều kiện thoát sớm:'} <code>LoopKilled</code>, {t.s6_exit2 || 'read-only streak, hoặc'} <code>MaxToolCalls</code>.</p>
+      </div>
+    </div>
+
+    <div class="stage-card sc-iter" style="margin-top:16px;">
+      <div class="stage-card-header">
+        <div class="sc-num">5</div>
+        <div class="sc-title">ObserveStage</div>
+        <span class="sc-phase">{t.iter_label || 'Iteration'}</span>
+      </div>
+      <div class="sc-body">
+        <div class="step-list">
+          <div class="step-item"><div class="step-n" style="background:var(--steel-dim);color:var(--steel);border:1px solid rgba(96,165,250,0.2);">1</div><div><strong>DrainInjectCh</strong> — {t.s6_obs1 || 'collect messages từ subagent results, side effects'}</div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--steel-dim);color:var(--steel);border:1px solid rgba(96,165,250,0.2);">2</div><div><strong>TrackBlockReplies</strong> — {t.s6_obs2 || 'đếm intermediate assistant content (non-streaming channels: Zalo, Discord, WhatsApp)'}</div></div>
+          <div class="step-item"><div class="step-n" style="background:var(--steel-dim);color:var(--steel);border:1px solid rgba(96,165,250,0.2);">3</div><div><strong>AccumulateFinalContent</strong> — {t.s6_obs3 || 'nếu không có tool calls → lưu response vào FinalContent'}</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ SECTION 07: CHECKPOINT ═══ -->
+<section>
+  <div class="content reveal">
+    <span class="section-label">07 — Stage 6</span>
+    <div class="stage-card sc-iter" style="border-color:rgba(251,191,36,0.15);">
+      <div class="stage-card-header" style="border-bottom-color:rgba(251,191,36,0.1);">
+        <div class="sc-num" style="background:rgba(251,191,36,0.08);color:#fbbf24;border-color:rgba(251,191,36,0.2);">6</div>
+        <div class="sc-title">CheckpointStage</div>
+        <span class="sc-phase" style="background:rgba(251,191,36,0.08);color:#fbbf24;border-color:rgba(251,191,36,0.2);">{t.iter_label || 'Iteration · cuối mỗi vòng'}</span>
+      </div>
+      <div class="sc-body">
+        <p>{t.s7_p || 'Flush pending messages vào session store định kỳ. Mục đích: crash recovery — nếu agent crash giữa chừng, 10–15 message cuối vẫn phục hồi được từ database.'}</p>
+        <div class="code-block" style="margin-top:16px;">
+          <div class="code-header">
+            <div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div>
+            <span class="code-filename">pipeline/checkpoint_stage.go</span>
+          </div>
+          <div class="code-body">
+            <pre><span class="cc">// Flush mỗi 5 iteration (configurable)</span>
+<span class="ck">if</span> iteration == 0 || iteration % checkpointInterval != 0 &#123;
+  <span class="ck">return</span> <span class="cs">nil</span> <span class="cc">// skip</span>
+&#125;
+<span class="cf">FlushMessages</span>(ctx, sessionKey, pending)</pre>
+          </div>
+        </div>
+        <p>{t.s7_note || 'Lỗi flush ở checkpoint là non-fatal — FinalizeStage sẽ flush lại ở cuối.'}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ SECTION 08: FINALIZE ═══ -->
+<section>
+  <div class="content reveal">
+    <span class="section-label">08 — Stage 7 &amp; 8</span>
+    <h2>Finalize — <span class="a">{t.s8_title || 'Không thể bị cancel'}</span></h2>
+
+    <div class="stage-card sc-sub" style="margin-bottom:16px;">
+      <div class="stage-card-header">
+        <div class="sc-num">7</div>
+        <div class="sc-title">MemoryFlushStage</div>
+        <span class="sc-phase">{t.sub_label || 'Sub-stage · do PruneStage gọi'}</span>
+      </div>
+      <div class="sc-body">
+        <p>{t.s8_mem_p || 'Không nằm trong iteration loop — được PruneStage gọi khi cần compaction. Nhiệm vụ: chạy memory flush synchronous (tối đa 5 LLM iteration, timeout 90s) để agent persist durable memories TRƯỚC KHI history bị xóa.'}</p>
+      </div>
+    </div>
+
+    <div class="stage-card sc-fin">
+      <div class="stage-card-header">
+        <div class="sc-num">8</div>
+        <div class="sc-title">FinalizeStage</div>
+        <span class="sc-phase">Finalize · context.WithoutCancel</span>
+      </div>
+      <div class="sc-body">
+        <p>{t.s8_fin_p || 'Stage quan trọng nhất sau vòng lặp. Chạy với'} <code>context.WithoutCancel</code> — {t.s8_fin_p2 || 'không bị cancel dù user gọi /stop hay connection bị ngắt. DB write phải thành công.'}</p>
+        <div class="fin-steps">
+          <div class="fin-step"><div class="fin-step-n">1</div><div class="fin-step-text"><strong>SanitizeContent</strong>{t.fs1 || 'Làm sạch response text'}</div></div>
+          <div class="fin-step"><div class="fin-step-n">2</div><div class="fin-step-text"><strong>SkillPostscript</strong>{t.fs2 || 'Skill evolution nudge'}</div></div>
+          <div class="fin-step"><div class="fin-step-n">3</div><div class="fin-step-text"><strong>NO_REPLY detect</strong>{t.fs3 || 'Silent reply trước flush'}</div></div>
+          <div class="fin-step"><div class="fin-step-n">4</div><div class="fin-step-text"><strong>Content fallback</strong>{t.fs4 || '"..." nếu empty (channel cần non-empty)'}</div></div>
+          <div class="fin-step"><div class="fin-step-n">5</div><div class="fin-step-text"><strong>ContentSuffix dedup</strong>{t.fs5 || 'Image markdown cho WS, tránh duplicate'}</div></div>
+          <div class="fin-step"><div class="fin-step-n">6</div><div class="fin-step-text"><strong>ForwardMedia merge</strong>{t.fs6 || 'Merge forwarded media vào kết quả'}</div></div>
+          <div class="fin-step"><div class="fin-step-n">7</div><div class="fin-step-text"><strong>Media dedup + size</strong>{t.fs7 || 'Dedup theo path, populate file sizes'}</div></div>
+          <div class="fin-step"><div class="fin-step-n">8</div><div class="fin-step-text"><strong>Build assistant msg</strong>{t.fs8 || 'Tạo message cuối với MediaRefs đầy đủ'}</div></div>
+          <div class="fin-step"><div class="fin-step-n">9</div><div class="fin-step-text"><strong>FlushMessages</strong>{t.fs9 || 'Atomic flush tất cả pending vào session store'}</div></div>
+          <div class="fin-step"><div class="fin-step-n">10</div><div class="fin-step-text"><strong>UpdateMetadata</strong>{t.fs10 || 'Token usage, BootstrapCleanup, MaybeSummarize, EmitSessionCompleted'}</div></div>
+        </div>
+        <p style="margin-top:16px;"><code>EmitSessionCompleted</code> {t.s8_emit || 'kick-off toàn bộ memory consolidation pipeline: Episodic Worker → Semantic Worker → Dreaming Worker.'}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ SECTION 09: DEPS ═══ -->
+<section>
+  <div class="content reveal">
+    <span class="section-label">09 — {t.s9_label || 'Dependency Injection'}</span>
+    <h2><span class="s">PipelineDeps</span> — {t.s9_title || 'Extensible Hooks'}</h2>
+    <p>{t.s9_p || 'PipelineDeps (deps.go) là struct chứa ~35 callback được wire từ agent.Loop. Cho phép test từng stage độc lập bằng cách mock bất kỳ callback nào.'}</p>
+
+    <div class="deps-grid">
+      <div class="dep-item">
+        <span class="dep-name">InjectContext</span>
+        <span class="dep-sig">func(ctx, input) → (Context, error)</span>
+      </div>
+      <div class="dep-item">
+        <span class="dep-name">ResolveWorkspace</span>
+        <span class="dep-sig">func(ctx, input) → (*WorkspaceContext, error)</span>
+      </div>
+      <div class="dep-item">
+        <span class="dep-name">BuildMessages</span>
+        <span class="dep-sig">func(ctx, input, history, summary) → []Message</span>
+      </div>
+      <div class="dep-item">
+        <span class="dep-name">AutoInject</span>
+        <span class="dep-sig">func(ctx, userMsg, userID, recentCtx) → string</span>
+      </div>
+      <div class="dep-item">
+        <span class="dep-name">BuildFilteredTools</span>
+        <span class="dep-sig">func(state) → ([]ToolDef, error)</span>
+      </div>
+      <div class="dep-item">
+        <span class="dep-name">CallLLM</span>
+        <span class="dep-sig">func(ctx, state, req) → (*ChatResponse, error)</span>
+      </div>
+      <div class="dep-item">
+        <span class="dep-name">PruneMessages</span>
+        <span class="dep-sig">func(msgs, budget) → []Message</span>
+      </div>
+      <div class="dep-item">
+        <span class="dep-name">CompactMessages</span>
+        <span class="dep-sig">func(ctx, msgs, model) → ([]Message, error)</span>
+      </div>
+      <div class="dep-item">
+        <span class="dep-name">ExecuteToolRaw</span>
+        <span class="dep-sig">func(ctx, tc) → (Message, any, error)</span>
+      </div>
+      <div class="dep-item">
+        <span class="dep-name">ProcessToolResult</span>
+        <span class="dep-sig">func(ctx, state, tc, msg, raw) → []Message</span>
+      </div>
+      <div class="dep-item">
+        <span class="dep-name">SanitizeContent</span>
+        <span class="dep-sig">func(content) → string</span>
+      </div>
+      <div class="dep-item" style="border-color:var(--border2); opacity:0.5;">
+        <span class="dep-name" style="color:var(--dim);">+25 callbacks</span>
+        <span class="dep-sig">{t.s9_more || 'MaybeSummarize, EmitSessionCompleted, ...'}</span>
+      </div>
+    </div>
+
+    <p>{t.s9_benefit1 || 'Thiết kế này cho phép'} <strong>{t.s9_b1 || 'test từng stage độc lập'}</strong> — {t.s9_benefit2 || 'mock bất kỳ callback nào. Business logic không bị leak vào pipeline package. Thay thế từng bộ phận (ví dụ: đổi compaction strategy) mà không ảnh hưởng stage khác.'}</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ SECTION 10: COMPARISON ═══ -->
+<section>
+  <div class="content reveal">
+    <span class="section-label">10 — {t.s10_label || 'So sánh V2 vs V3'}</span>
+    <h2>V2 <span class="a">→</span> V3</h2>
+
+    <table class="cmp-table">
+      <thead>
+        <tr>
+          <th>{t.cmp_aspect || 'Khía cạnh'}</th>
+          <th>{t.cmp_v2 || 'Trước V3 (monolithic)'}</th>
+          <th class="col-v3">{t.cmp_v3 || 'V3 Pipeline (hiện tại)'}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{t.cmp_structure || 'Cấu trúc'}</td>
+          <td>1 hàm <code>runLoop()</code> ~600 LOC</td>
+          <td class="v3-cell">{t.cmp_v3_structure || '8 stage, mỗi file &lt;200 LOC'}</td>
+        </tr>
+        <tr>
+          <td>Test</td>
+          <td>{t.cmp_v2_test || 'Integration test toàn bộ flow'}</td>
+          <td class="v3-cell">{t.cmp_v3_test || 'Unit test từng stage độc lập'}</td>
+        </tr>
+        <tr>
+          <td>{t.cmp_extend || 'Mở rộng'}</td>
+          <td>{t.cmp_v2_extend || 'Sửa thẳng vào runLoop'}</td>
+          <td class="v3-cell">{t.cmp_v3_extend || 'Thêm stage mới hoặc wrap stage có sẵn'}</td>
+        </tr>
+        <tr>
+          <td>Debug</td>
+          <td>{t.cmp_v2_debug || 'Stack trace dài, khó xác định vị trí'}</td>
+          <td class="v3-cell">{t.cmp_v3_debug || 'Stage name rõ ràng trong log/trace'}</td>
+        </tr>
+        <tr>
+          <td>{t.cmp_flow || 'Flow control'}</td>
+          <td>{t.cmp_v2_flow || 'bool/error phức tạp'}</td>
+          <td class="v3-cell"><code>StageResult</code>: Continue / BreakLoop / AbortRun</td>
+        </tr>
+        <tr>
+          <td>{t.cmp_cancel || 'Cancel safety'}</td>
+          <td>{t.cmp_v2_cancel || 'Best-effort'}</td>
+          <td class="v3-cell">{t.cmp_v3_cancel || 'FinalizeStage chạy WithoutCancel'}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top:16px;">{t.s10_compat || 'Output backward compatible: V3 produce cùng RunResult. Migration qua'} <code>convertRunResult()</code> {t.s10_adapter || 'adapter.'}</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer reveal">
+  <div class="footer-label">{t.footer_label || 'Tóm tắt'}</div>
+  <h3>
+    {t.footer_title_1 || 'Refactoring có'}<br>
+    <span class="a">{t.footer_title_2 || 'kiểm soát'}</span>
+  </h3>
+  <p>{t.footer_p || 'V3 Pipeline Engine không phải rewrite — đó là refactoring có kiểm soát. V2 monolithic runLoop() đã được xóa hoàn toàn; V3 pipeline hiện là path duy nhất cho mọi agent run.'}</p>
+  <div class="footer-tag">GoClaw V3 — Pipeline Engine Architecture</div>
+</footer>
+
+<ScrollReveal />
+
+<script>
+  // Lang switcher
+  function setLang(lang) {
+    const path = window.location.pathname;
+    const slug = 'pipeline-engine';
+    const locales = ['en', 'zh', 'ja'];
+    let base = path;
+    for (const l of locales) {
+      base = base.replace(`/${l}/`, '/').replace(`/${l}`, '/');
+    }
+    base = base.replace(/^\/posts\//, '/').replace(/^\/drafts\//, '/');
+    let newPath;
+    if (lang === 'vi') {
+      newPath = `/drafts/${slug}`;
+    } else {
+      newPath = `/${lang}/posts/${slug}`;
+    }
+    window.location.href = newPath;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const langParam = params.get('lang');
+    const locale = langParam || document.documentElement.lang || 'vi';
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      const l = btn.getAttribute('data-lang');
+      if (l === locale) btn.classList.add('active');
+      else btn.classList.remove('active');
+      btn.addEventListener('click', () => setLang(l));
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -45,7 +45,7 @@
     "s06_title": "Bắt đầu <span class=\"hl\">ngay</span>",
     "upgrade_h": "Zero migration",
     "upgrade_p": "Không cần migration database. Chỉ cần cập nhật config hoặc bật trên Web UI: <strong>Channels → Telegram → Group Response Behavior → \"Multi-bot\"</strong>.",
-    "footer_text": "Yield Mention Mode biến Telegram group từ nơi các bot \"tranh nhau nói\" thành workspace có trật tự — mọi bot đều sẵn sàng, nhưng biết khi nào nên <span class=\"hl\">lùi lại</span>."
+    "footer_text": "Yield Mention Mode biến Telegram group từ nơi các bot \"tranh nhau nói\" thành workspace có trật tự — mọi bot đều sẵn sàng, nhưng biết khi nào nên <span class=\"hl\">nhường nhau</span>."
   },
   "en": {
     "hero_sub": "Let multiple bots coexist in one Telegram group — each bot knows when to step back.",

@@ -1,0 +1,5 @@
+GoClaw v2.8.0 có Agent Teams — nhiều agent phối hợp qua shared task board, mỗi task có 8 trạng thái, blocked_by dependencies tự resolve, và auto-escalation khi member gặp blocker.
+
+Điểm đặc biệt: mọi delegation phải gắn task ID, state transitions atomic ở DB layer. Không ai chen ngang được 🔥
+
+https://goclaw.thieunv.space/posts/agent-teams-task-board
