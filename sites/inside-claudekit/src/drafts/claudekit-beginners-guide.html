@@ -39,11 +39,11 @@
   --rule: #b08a5c;
 }
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
 body {
   font-family: var(--font-body); background: var(--bg); color: var(--text);
   line-height: 1.8; min-height: 100dvh; -webkit-font-smoothing: antialiased;
-  font-size: 16px; font-feature-settings: 'kern', 'liga', 'onum';
+  font-size: 16px; font-feature-settings: 'kern', 'liga', 'onum'; overflow-x: hidden;
 }
 ::selection { background: var(--accent-glow); color: var(--text-hi); }
 
@@ -105,11 +105,13 @@ body {
 
 /* ─── TOC ─── */
 .toc-bar {
-  position: sticky; top: 0; z-index: 200; display: flex; gap: 2px; align-items: center;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 700; display: flex; gap: 2px; align-items: center;
   justify-content: center; overflow-x: auto;
   background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border); padding: 14px 32px;
+  transform: translateY(-100%); transition: transform 0.3s ease;
 }
+.toc-bar.visible { transform: translateY(0); }
 .toc-bar::-webkit-scrollbar { display: none; }
 .toc-label {
   font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 2px;
@@ -575,14 +577,14 @@ li::marker { color: var(--accent); }
   <a href="#s1" class="toc-link" data-i18n="toc_s1">Claude Code</a>
   <a href="#s2" class="toc-link" data-i18n="toc_s2">ClaudeKit</a>
   <a href="#s3" class="toc-link" data-i18n="toc_s3">Setup</a>
-  <a href="#sR" class="toc-link" data-i18n="toc_sR">Rules</a>
-  <a href="#s4" class="toc-link" data-i18n="toc_s4">Commands</a>
-  <a href="#s5" class="toc-link" data-i18n="toc_s5">Use Cases</a>
-  <a href="#s6" class="toc-link" data-i18n="toc_s6">Best Practices</a>
-  <a href="#s7" class="toc-link" data-i18n="toc_s7">Bad Practices</a>
-  <a href="#s8" class="toc-link" data-i18n="toc_s8">Workflows</a>
-  <a href="#s9" class="toc-link" data-i18n="toc_s9">Roadmap</a>
-  <a href="#s10" class="toc-link" data-i18n="toc_s10">Cheat Sheet</a>
+  <a href="#s4" class="toc-link" data-i18n="toc_s4">Rules</a>
+  <a href="#s5" class="toc-link" data-i18n="toc_s5">Commands</a>
+  <a href="#s6" class="toc-link" data-i18n="toc_s6">Use Cases</a>
+  <a href="#s7" class="toc-link" data-i18n="toc_s7">Best Practices</a>
+  <a href="#s8" class="toc-link" data-i18n="toc_s8">Bad Practices</a>
+  <a href="#s9" class="toc-link" data-i18n="toc_s9">Workflows</a>
+  <a href="#s10" class="toc-link" data-i18n="toc_s10">Roadmap</a>
+  <a href="#s11" class="toc-link" data-i18n="toc_s11">Cheat Sheet</a>
 </nav>
 
 <!-- Section 1: Claude Code -->
@@ -903,14 +905,14 @@ li::marker { color: var(--accent); }
 </section>
 
 <!-- Section R: Custom Rules -->
-<section id="sR" class="section-band">
+<section id="s4" class="section-band">
   <div class="band-inner">
     <span class="sec-label">Section 04</span>
-    <h2 class="sec-title" data-i18n="sR_title">Custom Rules — <code>.claude/rules/</code></h2>
-    <p data-i18n="sR_intro">Với projects lớn, split instructions thành nhiều file nhỏ trong <code>.claude/rules/</code> thay vì nhét tất cả vào một CLAUDE.md. Rules có thể <strong>scope theo file paths</strong> qua YAML frontmatter — chỉ load vào context khi Claude đụng files match pattern, tiết kiệm context space.</p>
+    <h2 class="sec-title" data-i18n="s4_title">Custom Rules — <code>.claude/rules/</code></h2>
+    <p data-i18n="s4_intro">Với projects lớn, split instructions thành nhiều file nhỏ trong <code>.claude/rules/</code> thay vì nhét tất cả vào một CLAUDE.md. Rules có thể <strong>scope theo file paths</strong> qua YAML frontmatter — chỉ load vào context khi Claude đụng files match pattern, tiết kiệm context space.</p>
 
-    <h3 data-i18n="sR_anatomy_title">Cấu trúc <code>.claude/</code> directory</h3>
-    <p data-i18n="sR_anatomy_desc">Rules chỉ là 1 phần — <code>.claude/</code> chứa nhiều loại config. Tóm tắt <strong>Project scope</strong> (shared với team qua git) vs <strong>Global scope</strong> (personal, per-machine):</p>
+    <h3 data-i18n="s4_anatomy_title">Cấu trúc <code>.claude/</code> directory</h3>
+    <p data-i18n="s4_anatomy_desc">Rules chỉ là 1 phần — <code>.claude/</code> chứa nhiều loại config. Tóm tắt <strong>Project scope</strong> (shared với team qua git) vs <strong>Global scope</strong> (personal, per-machine):</p>
 
     <div class="scope-anatomy" data-os="unix">
       <div class="os-toggle" role="tablist" aria-label="Operating system path syntax">
@@ -924,8 +926,8 @@ li::marker { color: var(--accent); }
           <div class="scope-card__header">
             <div class="scope-card__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
             <div class="scope-card__meta">
-              <div class="scope-card__title" data-i18n="sR_scope_proj_title">Project scope</div>
-              <div class="scope-card__sub" data-i18n="sR_scope_proj_sub">Committed qua git · shared với team</div>
+              <div class="scope-card__title" data-i18n="s4_scope_proj_title">Project scope</div>
+              <div class="scope-card__sub" data-i18n="s4_scope_proj_sub">Committed qua git · shared với team</div>
             </div>
           </div>
           <pre class="path-tree paths-unix">./CLAUDE.md              <span class="cmt"># project instructions (hoặc ./.claude/CLAUDE.md)</span>
@@ -961,8 +963,8 @@ li::marker { color: var(--accent); }
           <div class="scope-card__header">
             <div class="scope-card__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
             <div class="scope-card__meta">
-              <div class="scope-card__title" data-i18n="sR_scope_glb_title">Global scope</div>
-              <div class="scope-card__sub" data-i18n="sR_scope_glb_sub">Your machine only · never committed</div>
+              <div class="scope-card__title" data-i18n="s4_scope_glb_title">Global scope</div>
+              <div class="scope-card__sub" data-i18n="s4_scope_glb_sub">Your machine only · never committed</div>
             </div>
           </div>
           <pre class="path-tree paths-unix">~/.claude.json           <span class="cmt"># app state, personal MCP, UI prefs</span>
@@ -997,14 +999,14 @@ li::marker { color: var(--accent); }
       </div>
     </div>
 
-    <h3 data-i18n="sR_pathrules_title">Path-specific rules — scope rule theo file pattern</h3>
+    <h3 data-i18n="s4_pathrules_title">Path-specific rules — scope rule theo file pattern</h3>
     <div class="callout callout--tip" style="margin: 14px 0;">
       <div class="callout__header">
         <span class="callout__icon" style="color: var(--accent);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -3px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 18 2 2 4-4"/></svg></span>
-        <span class="callout__title" data-i18n="sR_pathrules_calltitle">Chỉ load rule khi cần</span>
+        <span class="callout__title" data-i18n="s4_pathrules_calltitle">Chỉ load rule khi cần</span>
       </div>
       <div class="callout__body">
-        <p data-i18n="sR_pathrules_body" style="margin-bottom: 0;">Thêm YAML frontmatter vào đầu file rule để giới hạn phạm vi áp dụng. Claude chỉ nạp rule vào context khi <strong>đang thao tác với files match glob pattern</strong> — <em>giảm context bloat</em> mà vẫn giữ guidance chuyên biệt cho từng domain (auth, db, UI, tests…).</p>
+        <p data-i18n="s4_pathrules_body" style="margin-bottom: 0;">Thêm YAML frontmatter vào đầu file rule để giới hạn phạm vi áp dụng. Claude chỉ nạp rule vào context khi <strong>đang thao tác với files match glob pattern</strong> — <em>giảm context bloat</em> mà vẫn giữ guidance chuyên biệt cho từng domain (auth, db, UI, tests…).</p>
       </div>
     </div>
     <div class="code-block">
@@ -1026,55 +1028,55 @@ applies_to:
     <div class="callout callout--tip" style="margin: 16px 0; border-left-color: var(--amber);">
       <div class="callout__header">
         <span class="callout__icon" style="color: var(--amber);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -3px;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
-        <span class="callout__title" data-i18n="sR_guidance_title">Rules là guidance, KHÔNG phải enforcement</span>
+        <span class="callout__title" data-i18n="s4_guidance_title">Rules là guidance, KHÔNG phải enforcement</span>
       </div>
       <div class="callout__body">
-        <p data-i18n="sR_guidance_body">Rules (và CLAUDE.md) là <strong>instructions Claude đọc</strong>, không phải config Claude Code <em>enforce</em>. Claude có thể không follow nếu instructions mâu thuẫn hoặc mơ hồ. Cho behavior <strong>guaranteed</strong>, dùng:</p>
+        <p data-i18n="s4_guidance_body">Rules (và CLAUDE.md) là <strong>instructions Claude đọc</strong>, không phải config Claude Code <em>enforce</em>. Claude có thể không follow nếu instructions mâu thuẫn hoặc mơ hồ. Cho behavior <strong>guaranteed</strong>, dùng:</p>
         <ul style="margin: 8px 0 0 16px; font-size: 13px;">
-          <li data-i18n="sR_guarantee1"><strong>Hooks</strong> (<code>settings.json</code>) — scripts chạy trước/sau tool calls</li>
-          <li data-i18n="sR_guarantee2"><strong>Permissions</strong> — allow/deny specific tools/commands</li>
+          <li data-i18n="s4_guarantee1"><strong>Hooks</strong> (<code>settings.json</code>) — scripts chạy trước/sau tool calls</li>
+          <li data-i18n="s4_guarantee2"><strong>Permissions</strong> — allow/deny specific tools/commands</li>
         </ul>
       </div>
     </div>
 
-    <h3 data-i18n="sR_precedence_title">CLAUDE.md vs Settings: 2 cơ chế merge khác nhau</h3>
+    <h3 data-i18n="s4_precedence_title">CLAUDE.md vs Settings: 2 cơ chế merge khác nhau</h3>
     <table class="compare-table">
       <thead><tr><th>CLAUDE.md + rules</th><th>settings.json</th></tr></thead>
       <tbody>
-        <tr><td data-i18n="sR_p1a"><strong>Concatenated</strong> vào context — cả global + project + local đều được đọc</td><td data-i18n="sR_p1b"><strong>Key-level override</strong> — project override global, local override project</td></tr>
-        <tr><td data-i18n="sR_p2a">Khi conflict: file load sau thắng (last read)</td><td data-i18n="sR_p2b">Arrays (permissions.allow) <em>combine</em>; scalars (model) lấy giá trị specific nhất</td></tr>
+        <tr><td data-i18n="s4_p1a"><strong>Concatenated</strong> vào context — cả global + project + local đều được đọc</td><td data-i18n="s4_p1b"><strong>Key-level override</strong> — project override global, local override project</td></tr>
+        <tr><td data-i18n="s4_p2a">Khi conflict: file load sau thắng (last read)</td><td data-i18n="s4_p2b">Arrays (permissions.allow) <em>combine</em>; scalars (model) lấy giá trị specific nhất</td></tr>
       </tbody>
     </table>
 
     <div class="feature-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 16px;">
       <div class="feature-card">
-        <div class="feature-card__title" data-i18n="sR_cmd_skill_title">Commands ≈ Skills</div>
-        <div class="feature-card__desc" data-i18n="sR_cmd_skill_desc">Commands và skills giờ cùng 1 mechanism. Workflows mới nên dùng <code>skills/&lt;name&gt;/SKILL.md</code> — bundle SKILL.md + supporting files (checklist, scripts, reference docs). Nếu skill và command trùng tên, <strong>skill thắng</strong>.</div>
+        <div class="feature-card__title" data-i18n="s4_cmd_skill_title">Commands ≈ Skills</div>
+        <div class="feature-card__desc" data-i18n="s4_cmd_skill_desc">Commands và skills giờ cùng 1 mechanism. Workflows mới nên dùng <code>skills/&lt;name&gt;/SKILL.md</code> — bundle SKILL.md + supporting files (checklist, scripts, reference docs). Nếu skill và command trùng tên, <strong>skill thắng</strong>.</div>
       </div>
       <div class="feature-card">
-        <div class="feature-card__title" data-i18n="sR_automem_title">Auto-memory</div>
-        <div class="feature-card__desc" data-i18n="sR_automem_desc">Claude tự ghi notes vào <code>~/.claude/projects/&lt;project&gt;/memory/MEMORY.md</code> (first 200 dòng / 25KB loaded mỗi session). Topic files lazy-load. Toggle: <code>/memory</code> hoặc <code>autoMemoryEnabled</code> setting.</div>
+        <div class="feature-card__title" data-i18n="s4_automem_title">Auto-memory</div>
+        <div class="feature-card__desc" data-i18n="s4_automem_desc">Claude tự ghi notes vào <code>~/.claude/projects/&lt;project&gt;/memory/MEMORY.md</code> (first 200 dòng / 25KB loaded mỗi session). Topic files lazy-load. Toggle: <code>/memory</code> hoặc <code>autoMemoryEnabled</code> setting.</div>
       </div>
     </div>
 
-    <h3 data-i18n="sR_diff_title">Sự khác biệt: CLAUDE.md vs rules/</h3>
+    <h3 data-i18n="s4_diff_title">Sự khác biệt: CLAUDE.md vs rules/</h3>
     <table class="compare-table">
       <thead><tr><th>CLAUDE.md</th><th><code>.claude/rules/*.md</code></th></tr></thead>
       <tbody>
-        <tr><td data-i18n="sR_d1a">Instructions chung cho toàn project</td><td data-i18n="sR_d1b">Instructions modular, chia theo topic/path</td></tr>
-        <tr><td data-i18n="sR_d2a">Luôn load vào context từ launch</td><td data-i18n="sR_d2b">Không <code>paths</code>: load từ launch · Có <code>paths</code>: lazy-load khi match files</td></tr>
-        <tr><td data-i18n="sR_d3a">Target: under 200 dòng</td><td data-i18n="sR_d3b">Mỗi file một topic (code-style.md, testing.md...)</td></tr>
-        <tr><td data-i18n="sR_d4a">Build commands, conventions tổng quan</td><td data-i18n="sR_d4b">Domain rules: API, frontend, security, DB...</td></tr>
-        <tr><td data-i18n="sR_d5a">Một file duy nhất</td><td data-i18n="sR_d5b">Nhiều file, subdirectories recursive</td></tr>
+        <tr><td data-i18n="s4_d1a">Instructions chung cho toàn project</td><td data-i18n="s4_d1b">Instructions modular, chia theo topic/path</td></tr>
+        <tr><td data-i18n="s4_d2a">Luôn load vào context từ launch</td><td data-i18n="s4_d2b">Không <code>paths</code>: load từ launch · Có <code>paths</code>: lazy-load khi match files</td></tr>
+        <tr><td data-i18n="s4_d3a">Target: under 200 dòng</td><td data-i18n="s4_d3b">Mỗi file một topic (code-style.md, testing.md...)</td></tr>
+        <tr><td data-i18n="s4_d4a">Build commands, conventions tổng quan</td><td data-i18n="s4_d4b">Domain rules: API, frontend, security, DB...</td></tr>
+        <tr><td data-i18n="s4_d5a">Một file duy nhất</td><td data-i18n="s4_d5b">Nhiều file, subdirectories recursive</td></tr>
       </tbody>
     </table>
     <div class="callout callout--tip" style="margin: 16px 0;">
       <div class="callout__header">
         <span class="callout__icon" style="color: var(--amber);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -3px;"><path d="M9 18h6M10 22h4M12 2v1M4.22 4.22l.7.7M1 12h1M4.22 19.78l.7-.7M12 17c-2.5 0-4.5-2-4.5-4.5 0-1.5.7-2.8 1.8-3.7.5-.4.7-.9.7-1.5V7a2 2 0 1 1 4 0v.3c0 .6.2 1.1.7 1.5 1.1.9 1.8 2.2 1.8 3.7 0 2.5-2 4.5-4.5 4.5z"/></svg></span>
-        <span class="callout__title" data-i18n="sR_insight_title">Path-specific rules</span>
+        <span class="callout__title" data-i18n="s4_insight_title">Path-specific rules</span>
       </div>
       <div class="callout__body">
-        <p data-i18n="sR_insight_body">Dùng YAML frontmatter với field <code>paths</code> để rule chỉ active khi Claude đụng files match:</p>
+        <p data-i18n="s4_insight_body">Dùng YAML frontmatter với field <code>paths</code> để rule chỉ active khi Claude đụng files match:</p>
         <div class="code-block" style="margin: 10px 0;">
           <div class="code-block__header">.claude/rules/api-design.md</div>
           <div class="code-block__body">---
@@ -1089,15 +1091,15 @@ paths:
 - Use standard error response format
 - Include OpenAPI docs comments</div>
         </div>
-        <p style="margin-top: 8px;" data-i18n="sR_insight_note">Rules <strong>không có</strong> <code>paths</code> field load unconditionally. Có <code>paths</code> thì trigger khi Claude read files match pattern.</p>
+        <p style="margin-top: 8px;" data-i18n="s4_insight_note">Rules <strong>không có</strong> <code>paths</code> field load unconditionally. Có <code>paths</code> thì trigger khi Claude read files match pattern.</p>
       </div>
     </div>
 
-    <h3 data-i18n="sR_bp_title">Best Practices khi tạo rules</h3>
+    <h3 data-i18n="s4_bp_title">Best Practices khi tạo rules</h3>
     <div class="practice-grid">
       <div class="practice-card practice-card--good">
         <div class="practice-card__label">DO</div>
-        <div class="practice-card__content" data-i18n="sR_do">• Chia rules theo domain/concern (i18n-rules.md, testing-rules.md...)
+        <div class="practice-card__content" data-i18n="s4_do">• Chia rules theo domain/concern (i18n-rules.md, testing-rules.md...)
 • Viết ngắn gọn, bullet/checklist — Claude parse nhanh
 • Kebab-case, tên mô tả rõ (api-error-handling.md)
 • Include examples (good vs bad)
@@ -1105,18 +1107,18 @@ paths:
       </div>
       <div class="practice-card practice-card--bad">
         <div class="practice-card__label">DON'T</div>
-        <div class="practice-card__content" data-i18n="sR_dont">• Viết rules dài dòng như documentation
+        <div class="practice-card__content" data-i18n="s4_dont">• Viết rules dài dòng như documentation
 • Duplicate content giữa CLAUDE.md và rules/
 • Tạo rules cho những thứ YAGNI (1-time use)</div>
       </div>
     </div>
 
-    <h3 data-i18n="sR_uc_title">Use Cases phổ biến</h3>
+    <h3 data-i18n="s4_uc_title">Use Cases phổ biến</h3>
 
     <div class="cmd-grid">
       <div class="cmd-card">
         <div class="cmd-card__name">UC1: Multi-language app (i18n)</div>
-        <div class="cmd-card__desc" data-i18n="sR_uc1_desc">Tạo <code>.claude/rules/i18n-rules.md</code> cho app đa ngôn ngữ.</div>
+        <div class="cmd-card__desc" data-i18n="s4_uc1_desc">Tạo <code>.claude/rules/i18n-rules.md</code> cho app đa ngôn ngữ.</div>
         <div class="code-block" style="margin: 12px 0 0;">
           <div class="code-block__header">i18n-rules.md</div>
           <div class="code-block__body"># i18n Rules
@@ -1140,7 +1142,7 @@ Apply to all user-facing text in src/components/ and src/pages/.
 
       <div class="cmd-card">
         <div class="cmd-card__name">UC2: API Error Handling</div>
-        <div class="cmd-card__desc" data-i18n="sR_uc2_desc">Enforce pattern discriminated union cho API responses.</div>
+        <div class="cmd-card__desc" data-i18n="s4_uc2_desc">Enforce pattern discriminated union cho API responses.</div>
         <div class="code-block" style="margin: 12px 0 0;">
           <div class="code-block__header">api-error-handling.md</div>
           <div class="code-block__body"># API Error Handling
@@ -1161,7 +1163,7 @@ Mọi API call phải wrap trong try/catch, return discriminated union:
 
       <div class="cmd-card">
         <div class="cmd-card__name">UC3: Database Migration Safety</div>
-        <div class="cmd-card__desc" data-i18n="sR_uc3_desc">Tránh breaking changes khi migrate DB.</div>
+        <div class="cmd-card__desc" data-i18n="s4_uc3_desc">Tránh breaking changes khi migrate DB.</div>
         <div class="code-block" style="margin: 12px 0 0;">
           <div class="code-block__header">db-migration.md</div>
           <div class="code-block__body"># Database Migration Rules
@@ -1176,7 +1178,7 @@ Mọi API call phải wrap trong try/catch, return discriminated union:
 
       <div class="cmd-card">
         <div class="cmd-card__name">UC4: Testing Standards</div>
-        <div class="cmd-card__desc" data-i18n="sR_uc4_desc">Coverage target và conventions cho tests.</div>
+        <div class="cmd-card__desc" data-i18n="s4_uc4_desc">Coverage target và conventions cho tests.</div>
         <div class="code-block" style="margin: 12px 0 0;">
           <div class="code-block__header">testing-rules.md</div>
           <div class="code-block__body"># Testing Rules
@@ -1196,7 +1198,7 @@ Mọi API call phải wrap trong try/catch, return discriminated union:
 
       <div class="cmd-card">
         <div class="cmd-card__name">UC5: Security Baseline</div>
-        <div class="cmd-card__desc" data-i18n="sR_uc5_desc">Baseline security rules cho mọi project.</div>
+        <div class="cmd-card__desc" data-i18n="s4_uc5_desc">Baseline security rules cho mọi project.</div>
         <div class="code-block" style="margin: 12px 0 0;">
           <div class="code-block__header">security-rules.md</div>
           <div class="code-block__body"># Security Rules
@@ -1211,8 +1213,8 @@ Mọi API call phải wrap trong try/catch, return discriminated union:
       </div>
     </div>
 
-    <h3 data-i18n="sR_priority_title">Thứ tự nạp file (Loading Order)</h3>
-    <p data-i18n="sR_priority_desc">Khi mở một session, Claude đọc các file memory theo thứ tự từ trên xuống, rồi <strong>nối (concatenate)</strong> tất cả vào context — không ghi đè lẫn nhau.</p>
+    <h3 data-i18n="s4_priority_title">Thứ tự nạp file (Loading Order)</h3>
+    <p data-i18n="s4_priority_desc">Khi mở một session, Claude đọc các file memory theo thứ tự từ trên xuống, rồi <strong>nối (concatenate)</strong> tất cả vào context — không ghi đè lẫn nhau.</p>
 
     <!-- Loading Order Visual -->
     <div class="loading-order-viz" aria-hidden="false">
@@ -1277,20 +1279,20 @@ Mọi API call phải wrap trong try/catch, return discriminated union:
         </g>
       </svg>
     </div>
-    <p style="font-size: 13px; color: var(--text-dim); margin-top: 4px;" data-i18n="sR_priority_note">Rules có <code>paths</code> frontmatter chỉ kích hoạt khi Claude đụng file khớp pattern — không nạp lúc khởi động. Nhờ vậy bạn có thể viết rule riêng cho từng thư mục mà không làm CLAUDE.md phình ra.</p>
+    <p style="font-size: 13px; color: var(--text-dim); margin-top: 4px;" data-i18n="s4_priority_note">Rules có <code>paths</code> frontmatter chỉ kích hoạt khi Claude đụng file khớp pattern — không nạp lúc khởi động. Nhờ vậy bạn có thể viết rule riêng cho từng thư mục mà không làm CLAUDE.md phình ra.</p>
 
     <div class="callout callout--tip" style="margin: 16px 0;">
       <div class="callout__header">
         <span class="callout__icon" style="color: var(--accent);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -3px;"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg></span>
-        <span class="callout__title" data-i18n="sR_bp_size_title">Kích thước khuyến nghị</span>
+        <span class="callout__title" data-i18n="s4_bp_size_title">Kích thước khuyến nghị</span>
       </div>
       <div class="callout__body">
-        <p data-i18n="sR_bp_size_body">Anthropic khuyến nghị <strong>CLAUDE.md nên dưới 200 dòng</strong>. File dài hơn sẽ làm <em>adherence</em> giảm — nghĩa là Claude bỏ sót hoặc lờ đi rule của bạn nhiều hơn vì phải đọc quá nhiều thông tin. File rule cũng nên giữ ngắn. Khi CLAUDE.md sắp chạm 200 dòng, hãy tách ra <code>.claude/rules/</code> theo chủ đề (ví dụ <code>api-design.md</code>, <code>testing.md</code>, <code>security.md</code>). Đặt tên file mô tả rõ nội dung để cả team và chính Claude tìm nhanh bằng Grep.</p>
+        <p data-i18n="s4_bp_size_body">Anthropic khuyến nghị <strong>CLAUDE.md nên dưới 200 dòng</strong>. File dài hơn sẽ làm <em>adherence</em> giảm — nghĩa là Claude bỏ sót hoặc lờ đi rule của bạn nhiều hơn vì phải đọc quá nhiều thông tin. File rule cũng nên giữ ngắn. Khi CLAUDE.md sắp chạm 200 dòng, hãy tách ra <code>.claude/rules/</code> theo chủ đề (ví dụ <code>api-design.md</code>, <code>testing.md</code>, <code>security.md</code>). Đặt tên file mô tả rõ nội dung để cả team và chính Claude tìm nhanh bằng Grep.</p>
       </div>
     </div>
 
-    <h3 data-i18n="sR_load_title">Cơ chế nạp file nâng cao</h3>
-    <p data-i18n="sR_load_desc">Khi project lớn hoặc muốn chia sẻ rule giữa nhiều repo, bạn có 4 cơ chế mở rộng context. Sơ đồ dưới cho thấy mỗi cơ chế kéo thêm file vào CLAUDE.md gốc như thế nào.</p>
+    <h3 data-i18n="s4_load_title">Cơ chế nạp file nâng cao</h3>
+    <p data-i18n="s4_load_desc">Khi project lớn hoặc muốn chia sẻ rule giữa nhiều repo, bạn có 4 cơ chế mở rộng context. Sơ đồ dưới cho thấy mỗi cơ chế kéo thêm file vào CLAUDE.md gốc như thế nào.</p>
 
     <!-- Advanced Loading Visual -->
     <div class="loading-order-viz" style="margin: 16px 0 20px;">
@@ -1337,11 +1339,11 @@ Mọi API call phải wrap trong try/catch, return discriminated union:
       <details class="mech">
         <summary>
           <span class="mech__name"><code>@import</code> syntax</span>
-          <span class="mech__short" data-i18n="sR_at_import_short">Nhúng file khác thẳng vào CLAUDE.md</span>
+          <span class="mech__short" data-i18n="s4_at_import_short">Nhúng file khác thẳng vào CLAUDE.md</span>
           <span class="mech__chev" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
         </summary>
         <div class="mech__body">
-          <p data-i18n="sR_at_import">Trong CLAUDE.md, viết <code>@docs/coding-standards.md</code> hoặc <code>@~/.claude/my-prefs.md</code> để nhúng nội dung file đó vào đúng vị trí. Claude hỗ trợ cả đường dẫn tương đối lẫn tuyệt đối, độ sâu tối đa <strong>5 lần nhúng lồng nhau</strong> (hop). Dùng để tách content dài ra file riêng mà vẫn giữ CLAUDE.md gọn.</p>
+          <p data-i18n="s4_at_import">Trong CLAUDE.md, viết <code>@docs/coding-standards.md</code> hoặc <code>@~/.claude/my-prefs.md</code> để nhúng nội dung file đó vào đúng vị trí. Claude hỗ trợ cả đường dẫn tương đối lẫn tuyệt đối, độ sâu tối đa <strong>5 lần nhúng lồng nhau</strong> (hop). Dùng để tách content dài ra file riêng mà vẫn giữ CLAUDE.md gọn.</p>
           <div class="code-block" style="margin: 8px 0 0;">
             <div class="code-block__header">CLAUDE.md</div>
             <div class="code-block__body">@docs/coding-standards.md
@@ -1354,12 +1356,12 @@ Mọi API call phải wrap trong try/catch, return discriminated union:
       <details class="mech">
         <summary>
           <span class="mech__name"><code>--add-dir</code> flag</span>
-          <span class="mech__short" data-i18n="sR_add_dir_short">Mở thêm thư mục làm việc trong cùng session</span>
+          <span class="mech__short" data-i18n="s4_add_dir_short">Mở thêm thư mục làm việc trong cùng session</span>
           <span class="mech__chev" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
         </summary>
         <div class="mech__body">
-          <p data-i18n="sR_add_dir_p1">Thông thường Claude Code chỉ đọc file trong thư mục bạn khởi chạy (working directory). Flag <code>--add-dir</code> cho phép mở thêm thư mục khác vào cùng một session — tiện khi làm monorepo hoặc cần tham chiếu thư mục <code>../shared</code>, <code>../design-system</code> bên ngoài project hiện tại.</p>
-          <p data-i18n="sR_add_dir_p2">Ba cách kích hoạt đều tương đương: flag <code>--add-dir</code> khi chạy lệnh, slash command <code>/add-dir</code> ngay trong session, hoặc khai báo <code>additionalDirectories</code> trong <code>settings.json</code>.</p>
+          <p data-i18n="s4_add_dir_p1">Thông thường Claude Code chỉ đọc file trong thư mục bạn khởi chạy (working directory). Flag <code>--add-dir</code> cho phép mở thêm thư mục khác vào cùng một session — tiện khi làm monorepo hoặc cần tham chiếu thư mục <code>../shared</code>, <code>../design-system</code> bên ngoài project hiện tại.</p>
+          <p data-i18n="s4_add_dir_p2">Ba cách kích hoạt đều tương đương: flag <code>--add-dir</code> khi chạy lệnh, slash command <code>/add-dir</code> ngay trong session, hoặc khai báo <code>additionalDirectories</code> trong <code>settings.json</code>.</p>
           <div class="code-block" style="margin: 8px 0;">
             <div class="code-block__header">Kích hoạt --add-dir</div>
             <div class="code-block__body"><span class="comment"># Flag khi launch</span>
@@ -1368,35 +1370,35 @@ Mọi API call phải wrap trong try/catch, return discriminated union:
 <span class="comment"># Hoặc slash command trong session</span>
 /add-dir ../shared</div>
           </div>
-          <p data-i18n="sR_add_dir_p3"><strong>Lưu ý quan trọng:</strong> mặc định Claude <em>không</em> nạp file <code>CLAUDE.md</code> hay <code>CLAUDE.local.md</code> từ các thư mục thêm qua <code>--add-dir</code> — để giữ tương thích ngược với project cũ. Nếu muốn Claude áp dụng memory từ những thư mục đó, bật biến môi trường sau trước khi chạy:</p>
+          <p data-i18n="s4_add_dir_p3"><strong>Lưu ý quan trọng:</strong> mặc định Claude <em>không</em> nạp file <code>CLAUDE.md</code> hay <code>CLAUDE.local.md</code> từ các thư mục thêm qua <code>--add-dir</code> — để giữ tương thích ngược với project cũ. Nếu muốn Claude áp dụng memory từ những thư mục đó, bật biến môi trường sau trước khi chạy:</p>
           <div class="code-block" style="margin: 8px 0;">
             <div class="code-block__header">Bật nạp memory cho --add-dir</div>
             <div class="code-block__body"><span class="cmd">export</span> CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1
 <span class="cmd">claude</span> --add-dir ../shared</div>
           </div>
-          <p data-i18n="sR_add_dir_p4">Sau khi bật, mọi <code>CLAUDE.md</code> hoặc <code>CLAUDE.local.md</code> trong thư mục được thêm sẽ được nạp cùng với project chính, giúp Claude hiểu quy ước riêng của từng workspace trong cùng một session. Tính năng này có từ phiên bản <strong>2.1.20</strong> và để opt-in vì lý do tương thích ngược.</p>
+          <p data-i18n="s4_add_dir_p4">Sau khi bật, mọi <code>CLAUDE.md</code> hoặc <code>CLAUDE.local.md</code> trong thư mục được thêm sẽ được nạp cùng với project chính, giúp Claude hiểu quy ước riêng của từng workspace trong cùng một session. Tính năng này có từ phiên bản <strong>2.1.20</strong> và để opt-in vì lý do tương thích ngược.</p>
         </div>
       </details>
 
       <details class="mech">
         <summary>
           <span class="mech__name"><code>CLAUDE.local.md</code></span>
-          <span class="mech__short" data-i18n="sR_local_short">Ghi chú cá nhân, không commit vào git</span>
+          <span class="mech__short" data-i18n="s4_local_short">Ghi chú cá nhân, không commit vào git</span>
           <span class="mech__chev" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
         </summary>
         <div class="mech__body">
-          <p data-i18n="sR_local">File dành cho sở thích riêng của bạn trong project (URL sandbox, tài khoản test, lệnh debug cá nhân). Thêm <code>CLAUDE.local.md</code> vào <code>.gitignore</code> để không lẫn vào commit. Claude nạp file này cùng với <code>CLAUDE.md</code> nhưng chỉ hiển thị với máy bạn — team khác không thấy.</p>
+          <p data-i18n="s4_local">File dành cho sở thích riêng của bạn trong project (URL sandbox, tài khoản test, lệnh debug cá nhân). Thêm <code>CLAUDE.local.md</code> vào <code>.gitignore</code> để không lẫn vào commit. Claude nạp file này cùng với <code>CLAUDE.md</code> nhưng chỉ hiển thị với máy bạn — team khác không thấy.</p>
         </div>
       </details>
 
       <details class="mech">
         <summary>
-          <span class="mech__name" data-i18n="sR_symlink_title">Symlinks share rules</span>
-          <span class="mech__short" data-i18n="sR_symlink_short">Dùng chung một bộ rule cho nhiều project</span>
+          <span class="mech__name" data-i18n="s4_symlink_title">Symlinks share rules</span>
+          <span class="mech__short" data-i18n="s4_symlink_short">Dùng chung một bộ rule cho nhiều project</span>
           <span class="mech__chev" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
         </summary>
         <div class="mech__body">
-          <p data-i18n="sR_symlink">Thư mục <code>.claude/rules/</code> hỗ trợ symlink — bạn giữ bộ rule chuẩn của team ở một nơi duy nhất rồi link vào từng project. Khi cập nhật rule, mọi project đều nhận cùng lúc. Claude tự phát hiện symlink vòng (circular) và bỏ qua, không bị kẹt.</p>
+          <p data-i18n="s4_symlink">Thư mục <code>.claude/rules/</code> hỗ trợ symlink — bạn giữ bộ rule chuẩn của team ở một nơi duy nhất rồi link vào từng project. Khi cập nhật rule, mọi project đều nhận cùng lúc. Claude tự phát hiện symlink vòng (circular) và bỏ qua, không bị kẹt.</p>
           <div class="code-block" style="margin: 8px 0 0;">
             <div class="code-block__header">Share rules qua symlinks</div>
             <div class="code-block__body"><span class="cmd">ln -s</span> ~/shared-claude-rules .claude/rules/shared
@@ -1409,7 +1411,7 @@ Mọi API call phải wrap trong try/catch, return discriminated union:
 </section>
 
 <!-- Section 4: Commands -->
-<section id="s4" class="section-band">
+<section id="s5" class="section-band">
   <div class="band-inner">
     <span class="sec-label">Section 05</span>
     <h2 class="sec-title" data-i18n="s4_title">7 Commands cốt lõi cho beginners</h2>
@@ -1462,7 +1464,7 @@ Mọi API call phải wrap trong try/catch, return discriminated union:
 </section>
 
 <!-- Section 5: Use Cases -->
-<section id="s5" class="section-band">
+<section id="s6" class="section-band">
   <div class="band-inner">
     <span class="sec-label">Section 06</span>
     <h2 class="sec-title" data-i18n="s5_title">Real-World Use Cases</h2>
@@ -1569,7 +1571,7 @@ Must maintain all existing behavior. Write tests first.
 </section>
 
 <!-- Section 6: Best Practices -->
-<section id="s6" class="section-band">
+<section id="s7" class="section-band">
   <div class="band-inner">
     <span class="sec-label">Section 07</span>
     <h2 class="sec-title" data-i18n="s6_title">Best Practices</h2>
@@ -1670,7 +1672,7 @@ Run tests after implementing.</div>
 </section>
 
 <!-- Section 7: Bad Practices -->
-<section id="s7" class="section-band">
+<section id="s8" class="section-band">
   <div class="band-inner">
     <span class="sec-label">Section 08</span>
     <h2 class="sec-title" data-i18n="s7_title">Bad Practices (Tránh!)</h2>
@@ -1711,7 +1713,7 @@ Run tests after implementing.</div>
 </section>
 
 <!-- Section 8: Workflow Patterns -->
-<section id="s8" class="section-band">
+<section id="s9" class="section-band">
   <div class="band-inner">
     <span class="sec-label">Section 09</span>
     <h2 class="sec-title" data-i18n="s8_title">Common Workflow Patterns</h2>
@@ -1755,7 +1757,7 @@ Phân tích root cause → fix thủ công hoặc /ck:fix</div>
 </section>
 
 <!-- Section 9: Skills Roadmap -->
-<section id="s9" class="section-band">
+<section id="s10" class="section-band">
   <div class="band-inner">
     <span class="sec-label">Section 10</span>
     <h2 class="sec-title" data-i18n="s9_title">Skills Roadmap</h2>
@@ -1823,7 +1825,7 @@ Phân tích root cause → fix thủ công hoặc /ck:fix</div>
 </section>
 
 <!-- Section 10: Cheat Sheet -->
-<section id="s10" class="section-band">
+<section id="s11" class="section-band">
   <div class="band-inner">
     <span class="sec-label">Section 11</span>
     <h2 class="sec-title" data-i18n="s10_title">Cheat Sheet</h2>
@@ -1912,11 +1914,18 @@ function toggleTheme() {
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
 
-// TOC active state
+// TOC active state & visibility
+const tocBar = document.querySelector('.toc-bar');
 const tocLinks = document.querySelectorAll('.toc-link');
 const sections = document.querySelectorAll('.section-band[id]');
+const hero = document.querySelector('.hero-band');
 
 function updateTOC() {
+  // Show/hide TOC based on scroll position (show after hero)
+  const heroBottom = hero ? hero.getBoundingClientRect().bottom : 0;
+  tocBar.classList.toggle('visible', heroBottom < 0);
+
+  // Update active link
   let current = '';
   sections.forEach(section => {
     const rect = section.getBoundingClientRect();
