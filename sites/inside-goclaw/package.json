@@ -9,10 +9,11 @@
     "check": "astro check"
   },
   "dependencies": {
-    "@blog/core": "workspace:*",
-    "astro": "^5",
+    "@astrojs/check": "^0.9",
     "@astrojs/vercel": "^8",
-    "@astrojs/check": "^0.9"
+    "@blog/core": "workspace:*",
+    "@vercel/analytics": "^2.0.1",
+    "astro": "^5"
   },
   "devDependencies": {
     "typescript": "^5"
