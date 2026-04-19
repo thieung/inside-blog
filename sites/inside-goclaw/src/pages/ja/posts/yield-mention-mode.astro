@@ -3,6 +3,7 @@ import FloatHome from '@blog/core/components/FloatHome.astro';
 import LangSwitcher from '@blog/core/components/LangSwitcher.astro';
 import ThemeToggle from '@blog/core/components/ThemeToggle.astro';
 import ScrollReveal from '@blog/core/components/ScrollReveal.astro';
+import Analytics from '@blog/core/components/Analytics.astro';
 import { getTranslation } from '@blog/core/utils/i18n-helpers';
 import translations from '@i18n/yield-mention-mode.json';
 
@@ -224,6 +225,7 @@ const t = getTranslation(translations, locale);
   .reveal { opacity: 0; transform: translateY(20px); transition: opacity .6s ease, transform .6s ease; }
   .reveal.visible { opacity: 1; transform: translateY(0); }
 </style>
+<Analytics measurementId={import.meta.env.INSIDE_GOCLAW_GA_ID || ''} />
 </head>
 <body>
 

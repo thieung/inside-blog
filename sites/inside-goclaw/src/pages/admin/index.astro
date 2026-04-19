@@ -1,5 +1,6 @@
 ---
 import statusData from '../../content/status.json';
+import Analytics from '@blog/core/components/Analytics.astro';
 
 // Get posts sorted by update date
 const posts = Object.entries(statusData as Record<string, { status: string; updated: string }>)
@@ -125,6 +126,7 @@ for (const entry of Object.values(statusData as Record<string, { status: string 
 
     .hidden { display: none !important; }
   </style>
+<Analytics measurementId={import.meta.env.INSIDE_GOCLAW_GA_ID || ''} />
 </head>
 <body>
   <header>

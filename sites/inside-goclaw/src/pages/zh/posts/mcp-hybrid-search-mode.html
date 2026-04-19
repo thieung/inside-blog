@@ -912,6 +912,15 @@ li { margin-bottom: 7px; font-size: 15px; }
   .kpi-strip { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
+<script>
+  if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  }
+</script>
+<script src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX" async></script>
 </head>
 <body>
 
