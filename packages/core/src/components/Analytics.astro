@@ -6,16 +6,17 @@ interface Props {
 const { measurementId } = Astro.props;
 ---
 
+<!-- DEBUG: PROD={import.meta.env.PROD}, GA_ID={measurementId ? 'SET' : 'EMPTY'} -->
 {
   import.meta.env.PROD && measurementId && (
     <>
+      <script is:inline src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`} async />
       <script is:inline define:vars={{ measurementId }}>
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
         gtag('config', measurementId);
       </script>
-      <script is:inline src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`} async />
     </>
   )
 }
