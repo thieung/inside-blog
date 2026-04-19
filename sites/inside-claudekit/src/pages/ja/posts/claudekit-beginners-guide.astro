@@ -72,7 +72,7 @@ body {
 ::selection { background: var(--accent-glow); color: var(--text-hi); }
 
 /* ─── Fixed Nav ─── */
-.fixed-nav { position: fixed; top: 18px; right: 18px; z-index: 600; display: flex; gap: 6px; }
+.fixed-nav { position: fixed; top: 18px; right: 18px; z-index: 800; display: flex; gap: 6px; }
 .nav-btn {
   width: 42px; height: 42px; border-radius: 50%;
   border: 1px solid var(--border-hi); background: var(--bg); color: var(--text-dim);
@@ -513,6 +513,34 @@ li::marker { color: var(--accent); }
 /* ─── Footer ─── */
 .footer-band { padding: 80px 32px; background: var(--bg-alt); border-top: 1px solid var(--border); }
 .footer-inner { max-width: 920px; margin: 0 auto; text-align: center; }
+
+/* Back to home button */
+.back-to-home-band {
+  padding: 32px;
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.back-to-home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  transition: background 0.2s, transform 0.15s;
+}
+.back-to-home-btn:hover {
+  background: var(--accent-hi, #8f320a);
+  transform: translateY(-1px);
+}
+.back-to-home-btn svg {
+  flex-shrink: 0;
+}
 .footer-summary { background: var(--bg); border: 1px solid var(--border-hi); border-radius: var(--radius-xl); padding: 44px 36px; margin-bottom: 36px; box-shadow: 0 4px 24px -8px rgba(0,0,0,0.08); position: relative; }
 .footer-summary::before { content: '✦'; position: absolute; top: -14px; left: 50%; transform: translateX(-50%); width: 28px; height: 28px; background: var(--bg-alt); color: var(--accent); display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid var(--border-hi); font-size: 14px; }
 .footer-summary h3 { font-family: var(--font-display); font-size: 1.6rem; color: var(--text-hi); margin-bottom: 18px; font-weight: 500; }
@@ -1448,49 +1476,49 @@ Mọi API call phải wrap trong try/catch, return discriminated union:
 <section id="s5" class="section-band">
   <div class="band-inner">
     <span class="sec-label">Section 05</span>
-    <h2 class="sec-title" >{t.s5_title}</h2>
+    <h2 class="sec-title" >{t.s6_title}</h2>
 
     <div class="cmd-grid">
       <div class="cmd-card">
         <div class="cmd-card__name">/ck:brainstorm</div>
-        <div class="cmd-card__desc" >{t.s5_brainstorm_desc}</div>
+        <div class="cmd-card__desc" >{t.s6_brainstorm_desc}</div>
         <div class="cmd-card__example">/ck:brainstorm How should we implement real-time notifications? WebSockets vs SSE vs polling?</div>
       </div>
 
       <div class="cmd-card">
         <div class="cmd-card__name">/ck:plan</div>
-        <div class="cmd-card__desc" >{t.s5_plan_desc}</div>
+        <div class="cmd-card__desc" >{t.s6_plan_desc}</div>
         <div class="cmd-card__example">/ck:plan Implement user authentication with OAuth2 (Google, GitHub)</div>
       </div>
 
       <div class="cmd-card">
         <div class="cmd-card__name">/ck:cook</div>
-        <div class="cmd-card__desc" >{t.s5_cook_desc}</div>
+        <div class="cmd-card__desc" >{t.s6_cook_desc}</div>
         <div class="cmd-card__example">/ck:cook Add a logout button to the navbar</div>
         <p style="font-size: 12px; color: var(--text-dim); margin-top: 10px;"><code>--fast</code>: Skip research | <code>--auto</code>: Skip all review gates</p>
       </div>
 
       <div class="cmd-card">
         <div class="cmd-card__name">/ck:fix</div>
-        <div class="cmd-card__desc" >{t.s5_fix_desc}</div>
+        <div class="cmd-card__desc" >{t.s6_fix_desc}</div>
         <div class="cmd-card__example">/ck:fix Users can't login after session timeout - seeing "Invalid token" error</div>
       </div>
 
       <div class="cmd-card">
         <div class="cmd-card__name">/ck:ask</div>
-        <div class="cmd-card__desc" >{t.s5_ask_desc}</div>
+        <div class="cmd-card__desc" >{t.s6_ask_desc}</div>
         <div class="cmd-card__example">/ck:ask How does our authentication middleware handle token refresh?</div>
       </div>
 
       <div class="cmd-card">
         <div class="cmd-card__name">/ck:test</div>
-        <div class="cmd-card__desc" >{t.s5_test_desc}</div>
+        <div class="cmd-card__desc" >{t.s6_test_desc}</div>
         <div class="cmd-card__example">/ck:test src/auth/    <span class="comment"># Test specific folder</span></div>
       </div>
 
       <div class="cmd-card">
         <div class="cmd-card__name">/ck:watzup</div>
-        <div class="cmd-card__desc" >{t.s5_watzup_desc}</div>
+        <div class="cmd-card__desc" >{t.s6_watzup_desc}</div>
         <div class="cmd-card__example">/ck:watzup</div>
       </div>
     </div>
@@ -1501,15 +1529,15 @@ Mọi API call phải wrap trong try/catch, return discriminated union:
 <section id="s6" class="section-band">
   <div class="band-inner">
     <span class="sec-label">Section 06</span>
-    <h2 class="sec-title" >{t.s6_title}</h2>
+    <h2 class="sec-title" >{t.s7_title}</h2>
 
     <!-- UC1: Build Feature - Beginner -->
     <div class="usecase-card">
       <div class="usecase-card__header">
         <div class="usecase-card__num">1</div>
-        <div class="usecase-card__title" >{t.s6_uc1_title}</div>
+        <div class="usecase-card__title" >{t.s7_uc1_title}</div>
       </div>
-      <div class="usecase-card__situation" >{t.s6_uc1_situation}</div>
+      <div class="usecase-card__situation" >{t.s7_uc1_situation}</div>
       <div class="code-block">
         <div class="code-block__header">Full Workflow</div>
         <div class="code-block__body"><span class="cmd">/ck:brainstorm</span> User settings page: dark mode + notifications.
@@ -1525,16 +1553,16 @@ plans/reports/brainstorm-260414-user-settings.md
 <span class="cmd">/ck:cook</span> plans/260414-xxxx-user-settings/plan.md  <span class="comment"># Execute: implement → review → test → done</span>
 <span class="cmd">/ck:git</span> cm            <span class="comment"># Commit with message</span></div>
       </div>
-      <div class="usecase-card__result" >{t.s6_uc1_result}</div>
+      <div class="usecase-card__result" >{t.s7_uc1_result}</div>
     </div>
 
     <!-- UC2: Fix Bug - Beginner -->
     <div class="usecase-card">
       <div class="usecase-card__header">
         <div class="usecase-card__num">2</div>
-        <div class="usecase-card__title" >{t.s6_uc2_title}</div>
+        <div class="usecase-card__title" >{t.s7_uc2_title}</div>
       </div>
-      <div class="usecase-card__situation" >{t.s6_uc2_situation}</div>
+      <div class="usecase-card__situation" >{t.s7_uc2_situation}</div>
       <div class="code-block">
         <div class="code-block__header">Quick Fix Workflow</div>
         <div class="code-block__body"><span class="cmd">/ck:fix</span> Email validation in signup form doesn't show error message.
@@ -1544,16 +1572,16 @@ Actual: No message, just red border
 
 <span class="cmd">/ck:test</span> src/components/SignupForm.test.tsx</div>
       </div>
-      <div class="usecase-card__result" >{t.s6_uc2_result}</div>
+      <div class="usecase-card__result" >{t.s7_uc2_result}</div>
     </div>
 
     <!-- UC3: Onboard - Intermediate -->
     <div class="usecase-card">
       <div class="usecase-card__header">
         <div class="usecase-card__num">3</div>
-        <div class="usecase-card__title" >{t.s6_uc3_title}</div>
+        <div class="usecase-card__title" >{t.s7_uc3_title}</div>
       </div>
-      <div class="usecase-card__situation" >{t.s6_uc3_situation}</div>
+      <div class="usecase-card__situation" >{t.s7_uc3_situation}</div>
       <div class="code-block">
         <div class="code-block__header">Exploration Workflow</div>
         <div class="code-block__body"><span class="cmd">/ck:scout</span> src/                    <span class="comment"># Explore structure</span>
@@ -1561,16 +1589,16 @@ Actual: No message, just red border
 <span class="cmd">/ck:ask</span> Explain src/services/auth/token-handler.ts
 <span class="cmd">/ck:ask</span> What patterns does this codebase follow?</div>
       </div>
-      <div class="usecase-card__result" >{t.s6_uc3_result}</div>
+      <div class="usecase-card__result" >{t.s7_uc3_result}</div>
     </div>
 
     <!-- UC4: Refactor - Intermediate -->
     <div class="usecase-card">
       <div class="usecase-card__header">
         <div class="usecase-card__num">4</div>
-        <div class="usecase-card__title" >{t.s6_uc4_title}</div>
+        <div class="usecase-card__title" >{t.s7_uc4_title}</div>
       </div>
-      <div class="usecase-card__situation" >{t.s6_uc4_situation}</div>
+      <div class="usecase-card__situation" >{t.s7_uc4_situation}</div>
       <div class="code-block">
         <div class="code-block__header">Safe Refactor Workflow</div>
         <div class="code-block__body"><span class="cmd">/ck:ask</span> Analyze src/legacy/user-manager.js
@@ -1584,16 +1612,16 @@ Must maintain all existing behavior. Write tests first.
 <span class="cmd">/ck:cook</span> &lt;plan-path&gt;              <span class="comment"># Execute: implement → review → test → done</span>
 <span class="cmd">/ck:code-review</span>                         <span class="comment"># Verify no regressions</span></div>
       </div>
-      <div class="usecase-card__result" >{t.s6_uc4_result}</div>
+      <div class="usecase-card__result" >{t.s7_uc4_result}</div>
     </div>
 
     <!-- UC5: UI from Figma - Intermediate -->
     <div class="usecase-card">
       <div class="usecase-card__header">
         <div class="usecase-card__num">5</div>
-        <div class="usecase-card__title" >{t.s6_uc5_title}</div>
+        <div class="usecase-card__title" >{t.s7_uc5_title}</div>
       </div>
-      <div class="usecase-card__situation" >{t.s6_uc5_situation}</div>
+      <div class="usecase-card__situation" >{t.s7_uc5_situation}</div>
       <div class="code-block">
         <div class="code-block__header">UI Implementation Workflow</div>
         <div class="code-block__body"><span class="cmd">/ck:frontend-design</span> [paste Figma URL hoặc screenshot]
@@ -1603,7 +1631,7 @@ Must maintain all existing behavior. Write tests first.
 <span class="cmd">/ck:ui-styling</span> Add dark mode support cho component vừa tạo
 <span class="cmd">/ck:test</span> src/components/NewFeature.test.tsx</div>
       </div>
-      <div class="usecase-card__result" >{t.s6_uc5_result}</div>
+      <div class="usecase-card__result" >{t.s7_uc5_result}</div>
     </div>
   </div>
 </section>
@@ -1612,10 +1640,10 @@ Must maintain all existing behavior. Write tests first.
 <section id="s7" class="section-band">
   <div class="band-inner">
     <span class="sec-label">Section 07</span>
-    <h2 class="sec-title" >{t.s7_title}</h2>
+    <h2 class="sec-title" >{t.s8_title}</h2>
 
-    <h3 >{t.s7_bp1_title}</h3>
-    <p ><Fragment set:html={t.s7_bp1_desc} /></p>
+    <h3 >{t.s8_bp1_title}</h3>
+    <p ><Fragment set:html={t.s8_bp1_desc} /></p>
     <div class="practice-grid">
       <div class="practice-card practice-card--bad">
         <div class="practice-card__label">Bad</div>
@@ -1629,7 +1657,7 @@ Run tests after implementing.</div>
       </div>
     </div>
 
-    <h3 >{t.s7_bp2_title}</h3>
+    <h3 >{t.s8_bp2_title}</h3>
     <div class="workflow-steps">
       <div class="workflow-step" data-step="1">
         <div class="workflow-step__content">
@@ -1652,39 +1680,39 @@ Run tests after implementing.</div>
         </div>
       </div>
     </div>
-    <p style="font-size: 13px; color: var(--text-dim); margin-top: 8px;" ><Fragment set:html={t.s7_cook_note} /></p>
+    <p style="font-size: 13px; color: var(--text-dim); margin-top: 8px;" ><Fragment set:html={t.s8_cook_note} /></p>
 
     <div class="callout callout--tip" style="margin: 16px 0;">
       <div class="callout__header">
         <span class="callout__icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;"><path d="M9 18h6M10 22h4M12 2v1M4.22 4.22l.7.7M1 12h1M4.22 19.78l.7-.7M12 17c-2.5 0-4.5-2-4.5-4.5 0-1.5.7-2.8 1.8-3.7.5-.4.7-.9.7-1.5V7a2 2 0 1 1 4 0v.3c0 .6.2 1.1.7 1.5 1.1.9 1.8 2.2 1.8 3.7 0 2.5-2 4.5-4.5 4.5z"/></svg></span>
-        <span class="callout__title" >{t.s7_when_skip_title}</span>
+        <span class="callout__title" >{t.s8_when_skip_title}</span>
       </div>
       <div class="callout__body">
-        <p ><Fragment set:html={t.s7_when_skip_desc} /></p>
+        <p ><Fragment set:html={t.s8_when_skip_desc} /></p>
         <ul style="margin: 8px 0 0 16px; font-size: 13px;">
-          <li >{t.s7_skip1}</li>
-          <li >{t.s7_skip2}</li>
-          <li >{t.s7_skip3}</li>
+          <li >{t.s8_skip1}</li>
+          <li >{t.s8_skip2}</li>
+          <li >{t.s8_skip3}</li>
         </ul>
-        <p style="margin-top: 8px;" ><Fragment set:html={t.s7_when_brainstorm} /></p>
+        <p style="margin-top: 8px;" ><Fragment set:html={t.s8_when_brainstorm} /></p>
       </div>
     </div>
 
     <div class="callout callout--tip" style="margin: 16px 0;">
       <div class="callout__header">
         <span class="callout__icon" style="color: var(--accent);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -3px;"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg></span>
-        <span class="callout__title" >{t.s7_mockup_title}</span>
+        <span class="callout__title" >{t.s8_mockup_title}</span>
       </div>
       <div class="callout__body">
-        <p >{t.s7_mockup_desc}</p>
+        <p >{t.s8_mockup_desc}</p>
         <div class="code-block" style="margin: 12px 0;">
           <div class="code-block__body" style="font-size: 12px;"><span class="cmd">/ck:brainstorm</span> → <span class="cmd">/ck:plan</span> → <span class="cmd">/ck:frontend-design</span> (mockup) → Review → <span class="cmd">/ck:cook</span></div>
         </div>
-        <p style="font-size: 13px; color: var(--text-dim);" >{t.s7_mockup_benefit}</p>
+        <p style="font-size: 13px; color: var(--text-dim);" >{t.s8_mockup_benefit}</p>
       </div>
     </div>
 
-    <h3 >{t.s7_bp3_title}</h3>
+    <h3 >{t.s8_bp3_title}</h3>
     <div class="practice-grid">
       <div class="practice-card practice-card--bad">
         <div class="practice-card__label">Bad</div>
@@ -1699,12 +1727,12 @@ Run tests after implementing.</div>
       </div>
     </div>
 
-    <h3 >{t.s7_bp4_title}</h3>
-    <p ><Fragment set:html={t.s7_bp4_desc} /></p>
+    <h3 >{t.s8_bp4_title}</h3>
+    <p ><Fragment set:html={t.s8_bp4_desc} /></p>
     <ul style="margin: 12px 0; padding-left: 20px; color: var(--text);">
-      <li >{t.s7_clear1}</li>
-      <li >{t.s7_clear2}</li>
-      <li >{t.s7_clear3}</li>
+      <li >{t.s8_clear1}</li>
+      <li >{t.s8_clear2}</li>
+      <li >{t.s8_clear3}</li>
     </ul>
   </div>
 </section>
@@ -1713,38 +1741,38 @@ Run tests after implementing.</div>
 <section id="s8" class="section-band">
   <div class="band-inner">
     <span class="sec-label">Section 08</span>
-    <h2 class="sec-title" >{t.s8_title}</h2>
+    <h2 class="sec-title" >{t.s9_title}</h2>
 
     <div class="cmd-grid">
       <div class="cmd-card" style="border-left-color: var(--red);">
-        <div class="cmd-card__name" style="color: var(--red);" ><Fragment set:html={t.s8_bp1_name} /></div>
-        <div class="cmd-card__desc" >{t.s8_bp1_desc}</div>
+        <div class="cmd-card__name" style="color: var(--red);" ><Fragment set:html={t.s9_bp1_name} /></div>
+        <div class="cmd-card__desc" >{t.s9_bp1_desc}</div>
         <div class="cmd-card__example" style="color: var(--red);">"Fix login" → "Add dark mode" → "Optimize images" → "Back to login"</div>
-        <p style="font-size: 13px; color: var(--green); margin-top: 10px;" ><Fragment set:html={t.s8_bp1_fix} /></p>
+        <p style="font-size: 13px; color: var(--green); margin-top: 10px;" ><Fragment set:html={t.s9_bp1_fix} /></p>
       </div>
 
       <div class="cmd-card" style="border-left-color: var(--red);">
-        <div class="cmd-card__name" style="color: var(--red);" ><Fragment set:html={t.s8_bp2_name} /></div>
-        <div class="cmd-card__desc" >{t.s8_bp2_desc}</div>
-        <p style="font-size: 13px; color: var(--green); margin-top: 10px;" ><Fragment set:html={t.s8_bp2_fix} /></p>
+        <div class="cmd-card__name" style="color: var(--red);" ><Fragment set:html={t.s9_bp2_name} /></div>
+        <div class="cmd-card__desc" >{t.s9_bp2_desc}</div>
+        <p style="font-size: 13px; color: var(--green); margin-top: 10px;" ><Fragment set:html={t.s9_bp2_fix} /></p>
       </div>
 
       <div class="cmd-card" style="border-left-color: var(--red);">
-        <div class="cmd-card__name" style="color: var(--red);" ><Fragment set:html={t.s8_bp3_name} /></div>
-        <div class="cmd-card__desc" >{t.s8_bp3_desc}</div>
-        <p style="font-size: 13px; color: var(--green); margin-top: 10px;" ><Fragment set:html={t.s8_bp3_fix} /></p>
+        <div class="cmd-card__name" style="color: var(--red);" ><Fragment set:html={t.s9_bp3_name} /></div>
+        <div class="cmd-card__desc" >{t.s9_bp3_desc}</div>
+        <p style="font-size: 13px; color: var(--green); margin-top: 10px;" ><Fragment set:html={t.s9_bp3_fix} /></p>
       </div>
 
       <div class="cmd-card" style="border-left-color: var(--red);">
-        <div class="cmd-card__name" style="color: var(--red);" ><Fragment set:html={t.s8_bp4_name} /></div>
-        <div class="cmd-card__desc" >{t.s8_bp4_desc}</div>
-        <p style="font-size: 13px; color: var(--green); margin-top: 10px;" ><Fragment set:html={t.s8_bp4_fix} /></p>
+        <div class="cmd-card__name" style="color: var(--red);" ><Fragment set:html={t.s9_bp4_name} /></div>
+        <div class="cmd-card__desc" >{t.s9_bp4_desc}</div>
+        <p style="font-size: 13px; color: var(--green); margin-top: 10px;" ><Fragment set:html={t.s9_bp4_fix} /></p>
       </div>
 
       <div class="cmd-card" style="border-left-color: var(--red);">
-        <div class="cmd-card__name" style="color: var(--red);" ><Fragment set:html={t.s8_bp5_name} /></div>
-        <div class="cmd-card__desc" >{t.s8_bp5_desc}</div>
-        <p style="font-size: 13px; color: var(--green); margin-top: 10px;" ><Fragment set:html={t.s8_bp5_fix} /></p>
+        <div class="cmd-card__name" style="color: var(--red);" ><Fragment set:html={t.s9_bp5_name} /></div>
+        <div class="cmd-card__desc" >{t.s9_bp5_desc}</div>
+        <p style="font-size: 13px; color: var(--green); margin-top: 10px;" ><Fragment set:html={t.s9_bp5_fix} /></p>
       </div>
     </div>
   </div>
@@ -1754,11 +1782,11 @@ Run tests after implementing.</div>
 <section id="s9" class="section-band">
   <div class="band-inner">
     <span class="sec-label">Section 09</span>
-    <h2 class="sec-title" >{t.s9_title}</h2>
+    <h2 class="sec-title" >{t.s10_title}</h2>
 
     <div class="feature-grid" style="grid-template-columns: repeat(2, 1fr);">
       <div class="feature-card">
-        <div class="feature-card__title"><Fragment set:html={t.s9_p1_title} /></div>
+        <div class="feature-card__title"><Fragment set:html={t.s10_p1_title} /></div>
         <div class="code-block" style="margin: 12px 0 0;">
           <div class="code-block__body" style="padding: 12px; font-size: 12px;">/ck:cook --fast Fix typo
 /ck:git cm "fix: typo"</div>
@@ -1766,7 +1794,7 @@ Run tests after implementing.</div>
       </div>
 
       <div class="feature-card">
-        <div class="feature-card__title"><Fragment set:html={t.s9_p2_title} /></div>
+        <div class="feature-card__title"><Fragment set:html={t.s10_p2_title} /></div>
         <div class="code-block" style="margin: 12px 0 0;">
           <div class="code-block__body" style="padding: 12px; font-size: 12px;">/ck:brainstorm
 /ck:plan → /ck:cook
@@ -1775,7 +1803,7 @@ Run tests after implementing.</div>
       </div>
 
       <div class="feature-card">
-        <div class="feature-card__title"><Fragment set:html={t.s9_p3_title} /></div>
+        <div class="feature-card__title"><Fragment set:html={t.s10_p3_title} /></div>
         <div class="code-block" style="margin: 12px 0 0;">
           <div class="code-block__body" style="padding: 12px; font-size: 12px;">Day 1: /ck:brainstorm → /ck:plan
 Day 2+: /ck:cook [Phase N]
@@ -1784,7 +1812,7 @@ Day 2+: /ck:cook [Phase N]
       </div>
 
       <div class="feature-card">
-        <div class="feature-card__title"><Fragment set:html={t.s9_p4_title} /></div>
+        <div class="feature-card__title"><Fragment set:html={t.s10_p4_title} /></div>
         <div class="code-block" style="margin: 12px 0 0;">
           <div class="code-block__body" style="padding: 12px; font-size: 12px;">/ck:debug [symptom + logs]
 Phân tích root cause → fix thủ công hoặc /ck:fix</div>
@@ -1804,7 +1832,7 @@ Phân tích root cause → fix thủ công hoặc /ck:fix</div>
       <div class="roadmap-level roadmap-level--beginner">
         <div class="roadmap-level__header">
           <span class="roadmap-level__badge">Beginner</span>
-          <span class="roadmap-level__time" >{t.s10_beginner_time}</span>
+          <span class="roadmap-level__time" >{t.s11_beginner_time}</span>
         </div>
         <div class="roadmap-skills">
           <span class="roadmap-skill">/ck:brainstorm</span>
@@ -1820,7 +1848,7 @@ Phân tích root cause → fix thủ công hoặc /ck:fix</div>
       <div class="roadmap-level roadmap-level--intermediate">
         <div class="roadmap-level__header">
           <span class="roadmap-level__badge">Intermediate</span>
-          <span class="roadmap-level__time" >{t.s10_intermediate_time}</span>
+          <span class="roadmap-level__time" >{t.s11_intermediate_time}</span>
         </div>
         <div class="roadmap-skills">
           <span class="roadmap-skill">/ck:scout</span>
@@ -1836,7 +1864,7 @@ Phân tích root cause → fix thủ công hoặc /ck:fix</div>
       <div class="roadmap-level roadmap-level--advanced">
         <div class="roadmap-level__header">
           <span class="roadmap-level__badge">Advanced</span>
-          <span class="roadmap-level__time" >{t.s10_advanced_time}</span>
+          <span class="roadmap-level__time" >{t.s11_advanced_time}</span>
         </div>
         <div class="roadmap-skills">
           <span class="roadmap-skill">/ck:team</span>
@@ -1847,12 +1875,12 @@ Phân tích root cause → fix thủ công hoặc /ck:fix</div>
           <span class="roadmap-skill">/ck:scenario</span>
           <span class="roadmap-skill">/ck:xia</span>
           <span class="roadmap-skill">/ck:bootstrap</span>
-          <a href="https://www.vividkit.dev/guides/commands" target="_blank" rel="noopener" class="roadmap-skill roadmap-skill--more" ><Fragment set:html={t.s10_more} /></a>
+          <a href="https://www.vividkit.dev/guides/commands" target="_blank" rel="noopener" class="roadmap-skill roadmap-skill--more" ><Fragment set:html={t.s11_more} /></a>
         </div>
       </div>
     </div>
 
-    <p class="roadmap-ref" ><Fragment set:html={t.s10_ref} /></p>
+    <p class="roadmap-ref" ><Fragment set:html={t.s11_ref} /></p>
   </div>
 </section>
 
@@ -1860,30 +1888,30 @@ Phân tích root cause → fix thủ công hoặc /ck:fix</div>
 <section id="s11" class="section-band">
   <div class="band-inner">
     <span class="sec-label">Section 11</span>
-    <h2 class="sec-title" >{t.s10_title}</h2>
+    <h2 class="sec-title" >{t.s11_title}</h2>
 
     <table class="cheat-table">
       <thead>
         <tr>
-          <th >{t.s10_th_situation}</th>
-          <th >{t.s10_th_command}</th>
+          <th >{t.s11_th_situation}</th>
+          <th >{t.s11_th_command}</th>
         </tr>
       </thead>
       <tbody>
-        <tr><td >{t.s10_r1}</td><td>/ck:brainstorm [question]</td></tr>
-        <tr><td >{t.s10_r2}</td><td>/ck:plan [description]</td></tr>
-        <tr><td >{t.s10_r3}</td><td>/ck:cook [description]</td></tr>
-        <tr><td >{t.s10_r4}</td><td>/ck:cook --fast [fix]</td></tr>
-        <tr><td >{t.s10_r5}</td><td>/ck:fix [symptom]</td></tr>
-        <tr><td >{t.s10_r6}</td><td>/ck:ask [question]</td></tr>
-        <tr><td >{t.s10_r7}</td><td>/ck:test [path]</td></tr>
-        <tr><td >{t.s10_r8}</td><td>/ck:scout [path]</td></tr>
-        <tr><td >{t.s10_r9}</td><td>/ck:code-review [path|--pr N]</td></tr>
-        <tr><td >{t.s10_r10}</td><td>/ck:watzup</td></tr>
-        <tr><td >{t.s10_r11}</td><td>/ck:git cm "message"</td></tr>
-        <tr><td >{t.s10_r12}</td><td>/ck:ship</td></tr>
-        <tr><td >{t.s10_r13}</td><td>/clear</td></tr>
-        <tr><td >{t.s10_r14}</td><td>/ck:coding-level 1</td></tr>
+        <tr><td >{t.s11_r1}</td><td>/ck:brainstorm [question]</td></tr>
+        <tr><td >{t.s11_r2}</td><td>/ck:plan [description]</td></tr>
+        <tr><td >{t.s11_r3}</td><td>/ck:cook [description]</td></tr>
+        <tr><td >{t.s11_r4}</td><td>/ck:cook --fast [fix]</td></tr>
+        <tr><td >{t.s11_r5}</td><td>/ck:fix [symptom]</td></tr>
+        <tr><td >{t.s11_r6}</td><td>/ck:ask [question]</td></tr>
+        <tr><td >{t.s11_r7}</td><td>/ck:test [path]</td></tr>
+        <tr><td >{t.s11_r8}</td><td>/ck:scout [path]</td></tr>
+        <tr><td >{t.s11_r9}</td><td>/ck:code-review [path|--pr N]</td></tr>
+        <tr><td >{t.s11_r10}</td><td>/ck:watzup</td></tr>
+        <tr><td >{t.s11_r11}</td><td>/ck:git cm "message"</td></tr>
+        <tr><td >{t.s11_r12}</td><td>/ck:ship</td></tr>
+        <tr><td >{t.s11_r13}</td><td>/clear</td></tr>
+        <tr><td >{t.s11_r14}</td><td>/ck:coding-level 1</td></tr>
       </tbody>
     </table>
 
@@ -1929,6 +1957,14 @@ Phân tích root cause → fix thủ công hoặc /ck:fix</div>
     </div>
   </div>
 </footer>
+
+<!-- Back to Home Button -->
+<div class="back-to-home-band">
+  <a href="/ja" class="back-to-home-btn">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    <span>{t.back_home_label}</span>
+  </a>
+</div>
 
 <script>
 // Theme toggle - use addEventListener since Astro bundles scripts as modules
